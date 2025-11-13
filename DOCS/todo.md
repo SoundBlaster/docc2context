@@ -1,0 +1,17 @@
+# docc2context TODO List
+
+Use this list for near-term execution. Each entry maps back to the PRD and [workplan](./workplan.md).
+
+## Ready to Start
+- [ ] **A1** Bootstrap Swift package with CLI/lib/test targets plus GitHub Actions matrix for Linux/macOS. _Depends on:_ none. _Doc:_ PRD §Phase A.
+- [ ] **A2** Create XCTest support utilities (temporary directories, fixture loader) and snapshot harness. _Depends on:_ A1. _Doc:_ PRD §Phase A.
+- [ ] **B1** Author failing CLI interface tests describing arguments (`--output`, `--force`, `--format`). _Depends on:_ A2. _Doc:_ PRD §Phase B.
+
+## Under Consideration
+- [ ] Collect at least two public DocC bundles for fixtures (SwiftUI Tutorials, SampleKit). Document provenance in `Fixtures/README.md`.
+- [ ] Draft release gate checklist covering determinism hash job and fixture integrity verification script.
+- [ ] Outline Markdown rendering strategy for tutorials vs articles in preparation for C1 snapshot specs.
+
+## Backlog Ideas
+- [ ] Explore incremental conversion to stream Markdown output for very large DocC bundles.
+- [ ] Investigate CLI `--filter technology` flag for selective exports once baseline pipeline ships.
