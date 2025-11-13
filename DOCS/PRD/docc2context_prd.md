@@ -4,62 +4,70 @@
 | Item | Details |
 | --- | --- |
 | Objective | Build a cross-platform (Linux + macOS) Swift CLI that converts existing DocC archives or directories into a structured Markdown corpus with DocC-equivalent content and cross-document links, optimized for LLM consumption. |
-| Primary Deliverables | 1) Swift command-line executable `docc2context`. 2) Converter pipeline supporting DocC bundle inputs (folder or archive). 3) Markdown output tree preserving hierarchy, metadata, and link graph. 4) Automated tests validating conversion fidelity. |
-| Success Criteria | Given a valid DocC bundle/archive, the tool emits Markdown files whose content, metadata, and navigational links mirror the original DocC documentation; CLI offers discoverable help; end-to-end tests pass on Linux and macOS Swift toolchains. |
+| Primary Deliverables | 1) Swift command-line executable `docc2context`. 2) Converter pipeline supporting DocC bundle inputs (folder or archive). 3) Markdown output tree preserving hierarchy, metadata, and link graph. 4) Automated CI + TDD harness (fixtures, snapshot specs, determinism gates) validating conversion fidelity. |
+| Success Criteria | Given a valid DocC bundle/archive, the tool emits Markdown files whose content, metadata, and navigational links mirror the original DocC documentation; CLI offers discoverable help; quality gates (tests, determinism checks, release scripts) exist before feature code merges and pass on Linux and macOS Swift toolchains. |
 | Constraints | Swift 5.9+; no proprietary dependencies; must operate offline; output Markdown must be deterministic; adhere to POSIX shell execution for automation. |
 | Assumptions | DocC bundle structure follows Apple DocC specification; Swift DocC symbol graphs are available within bundles; filesystem access is unrestricted; LLM agents consume plain Markdown and JSON metadata. |
 | External Dependencies | SwiftDocC parsing libraries (DocCKit / SymbolKit), Foundation file APIs, optional compression libraries for .doccarchive extraction. |
 
 ## 2. Structured TODO Plan
-### Phase A – Project Initialization
+### Phase A – Quality & Deployment Foundations
 | ID | Task | Description | Dependencies | Parallelizable |
 | --- | --- | --- | --- | --- |
-| A1 | Bootstrap Swift Package | Create SwiftPM package with CLI target, shared library target for conversion logic, and test target. | None | Yes |
-| A2 | Define CLI Interface | Specify command options (input path, output path, format flags) using ArgumentParser. | A1 | Yes |
-| A3 | Establish DocC Sample Fixtures | Collect or synthesize DocC bundles for testing, stored under `Fixtures/`. | None | Yes |
+| A1 | Bootstrap Swift Package & CI Skeleton | Create SwiftPM package with CLI target, shared library target, and XCTest target; configure GitHub Actions/Swift CI pipeline executing `swift test` on Linux + macOS. | None | Limited |
+| A2 | Provision TDD Harness | Set up XCTest utilities, snapshot testing helpers, and golden-file comparison utilities to drive conversion logic via tests-first iterations. | A1 | No |
+| A3 | Establish DocC Sample Fixtures | Collect or synthesize DocC bundles for testing, stored under `Fixtures/`, covering tutorials, articles, and symbol-rich bundles. | A2 | Yes |
+| A4 | Define Deployment & Release Gates | Document release checklist (tests, lint, determinism checks) and add scripts to validate artifacts before packaging. | A1 | Yes |
 
-### Phase B – DocC Intake & Parsing
+### Phase B – CLI Contract & Input Validation (Test-Driven)
 | ID | Task | Description | Dependencies | Parallelizable |
 | --- | --- | --- | --- | --- |
-| B1 | Detect Input Type | Implement logic to detect directories vs `.doccarchive` zip and normalize to bundle path. | A1 | Yes |
-| B2 | Extract Archive Inputs | If archive provided, extract to temp directory with deterministic paths. | B1 | Yes |
-| B3 | Parse DocC Metadata | Load `Info.plist`, `data/documentation`, and symbol graph references. | B1 | Limited |
-| B4 | Build Internal Model | Define structs/classes representing articles, tutorials, and references for uniform downstream processing. | B3 | No |
+| B1 | Specify CLI Interface via Failing Tests | Capture expected CLI arguments, flags, and error outputs through XCTest cases before implementation. | A2 | No |
+| B2 | Implement Argument Parsing to Satisfy Tests | Use swift-argument-parser to meet behaviors defined in B1 tests. | B1 | No |
+| B3 | Detect Input Type | Implement logic to detect directories vs `.doccarchive` zip and normalize to bundle path, with unit tests covering all cases. | B2 | Limited |
+| B4 | Extract Archive Inputs | If archive provided, extract to temp directory with deterministic paths validated by tests seeded with fixture archives. | B3 | Yes |
+| B5 | Parse DocC Metadata | Load `Info.plist`, documentation data, and symbol graph references guided by fixture-based tests. | B3 | Limited |
+| B6 | Build Internal Model | Define structs/classes representing articles, tutorials, and references, red-green-refactor style using model-focused tests. | B5 | No |
 
-### Phase C – Markdown Generation
+### Phase C – Markdown Generation (Red-Green-Refactor)
 | ID | Task | Description | Dependencies | Parallelizable |
 | --- | --- | --- | --- | --- |
-| C1 | Generate Markdown Files | Convert each DocC page/article into Markdown preserving headings, body text, code listings, media references. | B4 | No |
-| C2 | Create Link Graph | Compute cross-links between pages using original DocC reference identifiers and emit link metadata files (JSON). | C1 | Limited |
-| C3 | Emit TOC and Index | Produce global index and table-of-contents Markdown enabling navigation. | C2 | Yes |
-| C4 | Verify Determinism | Run conversion twice to ensure identical output (hash comparison). | C1 | No |
+| C1 | Author Snapshot Specs for Markdown Output | Define golden Markdown fixtures per DocC page type to drive generator implementation. | B6 | No |
+| C2 | Generate Markdown Files | Convert each DocC page/article into Markdown preserving headings, body text, code listings, and media references until snapshot tests pass. | C1 | No |
+| C3 | Create Link Graph | Compute cross-links between pages using original DocC reference identifiers and emit link metadata files (JSON), validated via adjacency-matrix tests. | C2 | Limited |
+| C4 | Emit TOC and Index | Produce global index and TOC Markdown enabling navigation, with tests comparing deterministic ordering. | C3 | Yes |
+| C5 | Verify Determinism | Run conversion twice in CI to ensure identical output (hash comparison) and gate release on success. | C2 | No |
 
-### Phase D – CLI UX & Validation
+### Phase D – Quality Gates, Packaging, and Documentation
 | ID | Task | Description | Dependencies | Parallelizable |
 | --- | --- | --- | --- | --- |
-| D1 | Implement Logging & Progress | Provide structured logging of phases, errors, and success summary. | A2 | Yes |
-| D2 | Add Validation Tests | Unit tests for parsing + generation, integration tests converting fixture bundles. | B4, C1 | No |
-| D3 | Document Usage | Create README section describing CLI usage, options, and examples. | D1 | Yes |
-| D4 | Package Distribution | Ensure `swift build` produces release binary, include install instructions. | D2 | Yes |
+| D1 | Implement Logging & Progress | Provide structured logging of phases, errors, and success summary covered by log snapshot tests. | B2 | Yes |
+| D2 | Harden Test Coverage | Expand unit + integration tests (including determinism + failure-path tests) ensuring >90% critical-path coverage before feature freeze. | C5 | No |
+| D3 | Document Usage & Testing Workflow | Update README with CLI usage plus explicit instructions for running tests, fixtures, and release scripts. | D2 | Yes |
+| D4 | Package Distribution & Release Automation | Ensure `swift build` produces release binary, run release gate script, and publish artifacts conditioned on all tests + quality checks passing. | D3 | Yes |
 
 ## 3. Execution Metadata
 | Task ID | Priority | Effort | Required Tools/Libraries | Acceptance Criteria | Verification Method |
 | --- | --- | --- | --- | --- | --- |
-| A1 | High | 2 pts | SwiftPM | `swift build` succeeds; package contains targets `Docc2ContextCLI`, `Docc2ContextCore`. | CI build log. |
-| A2 | High | 1 pt | swift-argument-parser | `docc2context --help` displays documented options. | Snapshot test. |
-| A3 | Medium | 1 pt | DocC sample docs | Fixtures exist and accessible via tests. | Repo inspection. |
-| B1 | High | 2 pts | Foundation | CLI accepts folder and `.doccarchive` paths and resolves them consistently. | Integration test. |
-| B2 | Medium | 2 pts | libarchive / Foundation | Archives extracted to temp dir; cleanup occurs. | Temp dir assertions. |
-| B3 | High | 3 pts | DocCKit/SymbolKit | Metadata parsed into native structs; missing fields cause descriptive errors. | Unit tests with corrupted fixtures. |
-| B4 | High | 3 pts | Custom models | Internal model contains all article/tutorial/symbol data needed downstream. | Unit tests verifying mapping. |
-| C1 | High | 4 pts | Markdown renderer | Markdown output matches DocC HTML structure per fixture. | Golden file comparison. |
-| C2 | Medium | 2 pts | Graph utilities | Link graph JSON lists all cross-references; no dangling links. | Graph validation tests. |
-| C3 | Medium | 1 pt | Markdown templates | TOC and index contain all generated files with correct links. | Snapshot tests. |
-| C4 | Medium | 1 pt | Hash utilities | Two consecutive runs produce identical hashes for same input. | Hash comparison script. |
-| D1 | Low | 1 pt | Logging framework | CLI prints progress with log levels. | Manual run transcript. |
-| D2 | High | 3 pts | XCTest | Test suite covers parsing + generation; CI run passes. | `swift test`. |
-| D3 | Medium | 1 pt | Markdown docs | README section includes usage and examples. | Doc review. |
-| D4 | Medium | 1 pt | SwiftPM | Release build instructions verified; binary executes. | `swift build -c release`. |
+| A1 | High | 3 pts | SwiftPM, GitHub Actions | Swift package + CI workflow run `swift test` on pushes for Linux/macOS. | CI matrix succeeds on scaffold commit. |
+| A2 | High | 2 pts | XCTest, SnapshotTesting | Shared test harness utilities compiled and reusable, enabling failing tests before feature code. | Unit tests referencing harness pass. |
+| A3 | High | 2 pts | DocC sample docs | Fixture bundles stored under `Fixtures/` with metadata manifest; accessible from tests. | Tests load fixtures without disk errors. |
+| A4 | Medium | 1 pt | Bash, Swift scripts | Release gate script enforces lint, determinism, and test pass before tagging. | Script exits non-zero when gate violated. |
+| B1 | High | 1 pt | XCTest | CLI spec tests cover all args and failure cases (red tests). | Tests initially fail then pass post-impl. |
+| B2 | High | 2 pts | swift-argument-parser | CLI options match spec; help text snapshot passes. | `swift test` CLI suite. |
+| B3 | High | 2 pts | Foundation | Input detection handles directories, archives, invalid paths per tests. | Unit tests + fixture permutations. |
+| B4 | Medium | 2 pts | libarchive / Foundation | Archive extraction deterministic and cleaned up; tests verify temp paths. | XCTest with hashed outputs. |
+| B5 | High | 3 pts | DocCKit/SymbolKit | Metadata parsed into native structs; corrupted fixture tests produce descriptive errors. | Parser test suite. |
+| B6 | High | 3 pts | Custom models | Internal model covers articles/tutorials/symbols validated via TDD cycle. | Model serialization tests. |
+| C1 | High | 2 pts | SnapshotTesting | Golden Markdown specs exist for each DocC entity type. | Snapshot fixtures stored + referenced. |
+| C2 | High | 4 pts | Markdown renderer | Markdown output matches DocC layout; snapshot diffs clean. | Snapshot comparison + `swift test`. |
+| C3 | Medium | 2 pts | Graph utilities | Link graph JSON has full coverage; adjacency tests show no dangling nodes. | Graph validation tests. |
+| C4 | Medium | 1 pt | Markdown templates | TOC/index generated deterministically verified by tests. | Snapshot tests. |
+| C5 | Medium | 1 pt | Hash utilities | Consecutive runs produce identical hashes enforced in CI. | Hash comparison job in CI. |
+| D1 | Low | 1 pt | Logging framework | Structured logs validated via log snapshot tests. | XCTest log fixtures. |
+| D2 | High | 3 pts | XCTest, coverage tooling | Critical paths maintain >90% coverage threshold enforced via CI badge. | Coverage report uploaded + checked. |
+| D3 | Medium | 1 pt | Markdown docs | README documents CLI + testing workflow; doc lints pass. | Markdown lint + review. |
+| D4 | Medium | 2 pts | SwiftPM, release scripts | Release pipeline builds, archives, and signs binaries only after gates succeed. | `swift build -c release` + gate script logs. |
 
 ## 4. Product Requirements Document
 ### 4.1 Feature Description & Rationale
@@ -81,8 +89,9 @@ DocC2Context converts DocC documentation bundles into Markdown corpora so that L
    - Provide `--help`, `--version`, verbosity flags, and dry-run mode.
    - Exit codes: `0` success, non-zero for validation/parsing/output errors.
 5. **Testing & Validation**
-   - Include unit tests for parser, generator, and CLI option parsing.
-   - Provide integration test converting a sample DocC bundle end-to-end.
+   - Practice red-green-refactor: write failing tests for each CLI and conversion behavior before implementing production code.
+   - Include unit tests for parser, generator, CLI option parsing, and logging flows.
+   - Provide integration test converting a sample DocC bundle end-to-end plus determinism regression tests invoked in CI.
 
 ### 4.3 Non-Functional Requirements
 - **Performance:** Convert 10 MB DocC bundle within 10 seconds on modern laptop (M1/M2, 16GB RAM).
@@ -91,6 +100,7 @@ DocC2Context converts DocC documentation bundles into Markdown corpora so that L
 - **Portability:** Builds on Swift 5.9+ for Linux and macOS without platform-specific patches.
 - **Security:** Reject path traversal attempts; sanitize extraction directories; no network access required.
 - **Compliance:** Output Markdown uses UTF-8; logs omit sensitive data.
+- **Quality Gates:** CI must run `swift test`, determinism checks, and coverage verification before packaging artifacts; releases blocked until gates succeed.
 
 ### 4.4 User Interaction Flow
 1. User installs tool via SwiftPM build or binary download.
