@@ -37,10 +37,10 @@ jobs:
         swift: ['5.9.2']
     steps:
       - uses: actions/checkout@v4
-      - name: Set up Swift ${{ matrix.swift }}
-        uses: swift-actions/setup-swift@v1
+      - name: Select Xcode 15.2 (Swift ${{ matrix.swift }})
+        uses: maxim-lobanov/setup-xcode@v1
         with:
-          swift-version: ${{ matrix.swift }}
+          xcode-version: '15.2'
       - name: Validate Swift toolchain
         run: swift --version
       - name: Build

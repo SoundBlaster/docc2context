@@ -6,7 +6,7 @@
 
 ### 1. Install Swift
 
-Swift 5.9+ is required. On macOS, Xcode 15 already ships a compatible toolchain. On Linux, follow the official [Swift.org downloads](https://swift.org/download/) for your distribution.
+Swift 5.9+ is required. On macOS, use Xcode 15.2 (ships Swift 5.9.2) so the SDK matches CI. On Linux, follow the official [Swift.org downloads](https://swift.org/download/) for your distribution.
 
 For Ubuntu 22.04 the basic setup looks like:
 
@@ -38,7 +38,7 @@ The tests exercise the CLI target and keep the Linux/macOS builds honest.
 
 ## Continuous Integration
 
-GitHub Actions runs `swift build` and `swift test` on Ubuntu 22.04 and macOS. The Linux job relies on [`SwiftyLab/setup-swift`](https://github.com/SwiftyLab/setup-swift) to install Swift and mirrors the package dependencies called out above so local and CI environments stay aligned.
+GitHub Actions runs `swift build` and `swift test` on Ubuntu 22.04 and macOS. The Linux job relies on [`SwiftyLab/setup-swift`](https://github.com/SwiftyLab/setup-swift) plus the apt dependencies above, while the macOS job selects Xcode 15.2 via [`maxim-lobanov/setup-xcode`](https://github.com/maxim-lobanov/setup-xcode) so both runners exercise Swift 5.9.2.
 
 ## Next steps
 
