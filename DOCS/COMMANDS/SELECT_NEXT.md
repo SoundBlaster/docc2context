@@ -16,7 +16,7 @@ Pick a task that keeps the conversion pipeline unblocked while upholding TDD and
 
 ## 🔗 REFERENCE MATERIALS
 - [Product Requirements](../PRD/docc2context_prd.md) — canonical scope, acceptance criteria, and priority table.
-- [Phase Checklist Index](../../phases.md) — quick links to per-phase TODO trackers for current counts.
+- [Phase Checklist Index](../PRD/phases.md) — quick links to per-phase TODO trackers for current counts.
 - [Workplan](../workplan.md) — ordered list of phases and responsibilities.
 - [TODO list](../todo.md) — curated queue of actionable tasks and dependencies.
 - [`DOCS/INPROGRESS/`](../INPROGRESS) — currently active tasks and research notes.

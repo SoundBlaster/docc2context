@@ -15,7 +15,7 @@ When a new requirement emerges:
 
 ## 🔗 REFERENCE MATERIALS
 - [PRD](../PRD/docc2context_prd.md) for existing scope boundaries.
-- [Phase Checklist Index](../../phases.md) to see phase-specific TODO slots before adding new scope.
+- [Phase Checklist Index](../PRD/phases.md) to see phase-specific TODO slots before adding new scope.
 - [Workplan](../workplan.md) to place the work in the proper phase.
 - [TODO list](../todo.md) to add actionable entries once the idea is refined.
 - Archive summary for analogous tasks that can serve as patterns.
