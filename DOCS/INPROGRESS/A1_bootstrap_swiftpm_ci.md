@@ -10,11 +10,12 @@ Launch the foundational Swift Package Manager workspace that exposes a `docc2con
 ## Dependencies
 - Prerequisites: none. Completion unlocks A2 (XCTest support utilities) and all downstream CLI work.
 - Inputs already reviewed: workplan, TODO list, and absence of conflicting `DOCS/TASK_ARCHIVE` entries.
-- Linux toolchain requirements: `clang`, `libicu-dev`, `libatomic1`, and `libcurl4-openssl-dev` must be installed prior to invoking Swift (mirrors README + CI steps). macOS builds now explicitly select Xcode 16.4 so local contributors should match that release when possible.
+- Linux toolchain requirements: `clang`, `libicu-dev`, `libatomic1`, and `libcurl4-openssl-dev` must be installed prior to invoking Swift (mirrors README + CI steps). macOS builds explicitly select Xcode 16.4 so local contributors should match that release when possible.
+- Toolchain version: Swift 6.0.1 across Linux + macOS to avoid mismatched SDK headers and `_stddef` module failures observed with 5.9.2.
 
 ## Test Plan / Validation
-- `swift build` and `swift test` locally plus via CI on Ubuntu 22.04 + macOS runners to ensure cross-platform builds (see `.github/workflows/ci.yml`). macOS validation must occur after switching to Xcode 16.4 via `maxim-lobanov/setup-xcode`.
-- Verify Swift tools version (target 5.9.2) before every run; CI now logs `swift --version` explicitly.
+- `swift build` and `swift test` locally plus via CI on Ubuntu 22.04 + macOS runners to ensure cross-platform builds (see `.github/workflows/ci.yml`). macOS validation occurs after switching to Xcode 16.4 via `maxim-lobanov/setup-xcode` and uses the bundled Swift 6.0.1 toolchain.
+- Verify Swift tools version (target 6.0.1) before every run; CI now logs `swift --version` and asserts the version string.
 - Placeholder unit tests confirming executable + library targets link successfully (`Docc2contextCommandTests`).
 - Document Linux bootstrap guidance (README) so maintainers can reproduce CI locally; update this file if deviations occur.
 
@@ -23,11 +24,11 @@ Launch the foundational Swift Package Manager workspace that exposes a `docc2con
 - [x] Create placeholder CLI implementation exposing `--help` so CI builds succeed before feature work.
 - [x] Add initial XCTest that exercises the CLI target wiring.
 - [x] Author `.github/workflows/ci.yml` with `ubuntu-latest` & `macos-latest` matrix executing `swift test`.
-- [x] Document any tooling deviations or fixture needs discovered while bootstrapping (no blockers noted; targeting Swift 5.9).
+- [x] Document any tooling deviations or fixture needs discovered while bootstrapping (no blockers noted; targeting Swift 6.0.1).
 
 ## Blocking Questions
-- Does the provided container include Swift 5.9 or do we need to pin to the latest available patch version?
+- Does the provided container include Swift 6.0.1 or do we need to pin to the latest available patch version?
 - Should CI cache `.build` artifacts immediately or defer until determinism requirements are finalized?
 
 ## Immediate Next Action
-Monitor the refreshed CI runs (Ubuntu 22.04 + macOS) with the Xcode 16.4 selection + Swift 5.9.2 toolchain in place, then prepare the SELECT_NEXT command for task A2 hand-off once both jobs stay green.
+Monitor the refreshed CI runs (Ubuntu 22.04 + macOS) with the unified Swift 6.0.1 toolchain (Xcode 16.4 on macOS, SwiftyLab on Linux), then prepare the SELECT_NEXT command for task A2 hand-off once both jobs stay green.

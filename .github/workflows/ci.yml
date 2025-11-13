@@ -11,7 +11,7 @@ jobs:
     runs-on: ubuntu-22.04
     strategy:
       matrix:
-        swift: ['5.9.2']
+        swift: ['6.0.1']
     steps:
       - uses: actions/checkout@v4
       - name: Install Swift dependencies
@@ -23,7 +23,9 @@ jobs:
         with:
           swift-version: ${{ matrix.swift }}
       - name: Validate Swift toolchain
-        run: swift --version
+        run: |
+          swift --version | tee swift-version.txt
+          grep "${{ matrix.swift }}" swift-version.txt
       - name: Build
         run: swift build --build-tests
       - name: Run tests
@@ -34,19 +36,17 @@ jobs:
     runs-on: macos-latest
     strategy:
       matrix:
-        swift: ['5.9.2']
+        swift: ['6.0.1']
     steps:
       - uses: actions/checkout@v4
       - name: Select Xcode 16.4
         uses: maxim-lobanov/setup-xcode@v1
         with:
           xcode-version: '16.4'
-      - name: Set up Swift ${{ matrix.swift }}
-        uses: swift-actions/setup-swift@v1
-        with:
-          swift-version: ${{ matrix.swift }}
       - name: Validate Swift toolchain
-        run: swift --version
+        run: |
+          swift --version | tee swift-version.txt
+          grep "${{ matrix.swift }}" swift-version.txt
       - name: Build
         run: swift build --build-tests
       - name: Run tests
