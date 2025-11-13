@@ -4,9 +4,9 @@ Use this list for near-term execution. Each entry maps back to the PRD and [work
 
 ## In Progress
 - [ ] **A1** Bootstrap Swift package with CLI/lib/test targets plus GitHub Actions matrix for Linux/macOS. _Depends on:_ none. _Doc:_ PRD §Phase A. _Owner:_ docc2context agent. _Status:_ In Progress (task selection per `COMMANDS/SELECT_NEXT`).
+- [ ] **A2** Create XCTest support utilities (temporary directories, fixture loader) and snapshot harness. _Depends on:_ A1. _Doc:_ PRD §Phase A. _Owner:_ docc2context agent. _Status:_ In Progress (see `DOCS/INPROGRESS/A2_test_utilities.md`).
 
 ## Ready to Start
-- [ ] **A2** Create XCTest support utilities (temporary directories, fixture loader) and snapshot harness. _Depends on:_ A1. _Doc:_ PRD §Phase A.
 - [ ] **B1** Author failing CLI interface tests describing arguments (`--output`, `--force`, `--format`). _Depends on:_ A2. _Doc:_ PRD §Phase B.
 
 ## Under Consideration
