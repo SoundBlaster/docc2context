@@ -10,11 +10,13 @@ Launch the foundational Swift Package Manager workspace that exposes a `docc2con
 ## Dependencies
 - Prerequisites: none. Completion unlocks A2 (XCTest support utilities) and all downstream CLI work.
 - Inputs already reviewed: workplan, TODO list, and absence of conflicting `DOCS/TASK_ARCHIVE` entries.
+- Linux toolchain requirements: `clang`, `libicu-dev`, `libatomic1`, and `libcurl4-openssl-dev` must be installed prior to invoking Swift (mirrors README + CI steps).
 
 ## Test Plan / Validation
-- `swift test` locally and via CI on Ubuntu + macOS runners to ensure cross-platform builds (matrix wired in `.github/workflows/ci.yml`).
-- Verify Swift tools version (target 5.9) during `swift package init` and note deviations in this file if needed (scaffold locked to 5.9).
+- `swift build` and `swift test` locally plus via CI on Ubuntu 22.04 + macOS runners to ensure cross-platform builds (see `.github/workflows/ci.yml`).
+- Verify Swift tools version (target 5.9.2) before every run; CI now logs `swift --version` explicitly.
 - Placeholder unit tests confirming executable + library targets link successfully (`Docc2contextCommandTests`).
+- Document Linux bootstrap guidance (README) so maintainers can reproduce CI locally; update this file if deviations occur.
 
 ## Execution Checklist
 - [x] Scaffold Swift package (`swift package init --type executable`) and expand to CLI + shared library + tests.
@@ -28,4 +30,4 @@ Launch the foundational Swift Package Manager workspace that exposes a `docc2con
 - Should CI cache `.build` artifacts immediately or defer until determinism requirements are finalized?
 
 ## Immediate Next Action
-Monitor the inaugural CI runs once the PR opens and prepare the SELECT_NEXT command for task A2 hand-off after confirming `swift test` passes remotely.
+Monitor the updated CI runs (Ubuntu 22.04 + macOS) after landing the Linux toolchain documentation and new workflow, then prepare the SELECT_NEXT command for task A2 hand-off once both jobs stay green.
