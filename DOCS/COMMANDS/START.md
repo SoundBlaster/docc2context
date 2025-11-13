@@ -23,20 +23,23 @@ Establish a repeatable kick-off ritual so every effort:
 ---
 
 ## ⚙️ EXECUTION STEPS
-1. **Confirm Selection**
+1. **Review SELECT_NEXT Output**
+   - Inspect `DOCS/INPROGRESS/` for the freshly created task note from running [SELECT_NEXT](./SELECT_NEXT.md).
+   - Ensure the note captures the task ID/slug and any triage observations so START picks up exactly where SELECT_NEXT left off.
+2. **Confirm Selection**
    - Verify the task is recorded in `DOCS/todo.md` and not currently assigned.
    - If prerequisites remain unchecked, either complete them first or capture blocking rationale inside the task note.
-2. **Create an INPROGRESS Note**
+3. **Create an INPROGRESS Note**
    - File name pattern: `DOCS/INPROGRESS/{TaskID}_{Slug}.md`.
    - Include sections: _Objective_, _Relevant PRD paragraphs_, _Test Plan_, _Dependencies_, _Blocking Questions_.
    - Paste a checklist of sub-steps (e.g., "write failing CLI test", "implement parser", "update README").
-3. **Define Validation Plan**
+4. **Define Validation Plan**
    - Point to commands that must run (`swift test`, determinism script, etc.).
    - Note fixture inputs and expected outputs for quick reruns.
-4. **Update TODO List**
+5. **Update TODO List**
    - Annotate the entry with "In Progress" or move it to a dedicated heading.
    - Link back to the new INPROGRESS file for context.
-5. **Set Immediate Next Action**
+6. **Set Immediate Next Action**
    - Identify what will happen in the next working session (usually writing or updating tests).
    - Document any coordination needs (e.g., new fixture acquisition) in the INPROGRESS note.
 
