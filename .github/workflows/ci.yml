@@ -1,0 +1,23 @@
+name: CI
+
+on:
+  push:
+    branches: ["main", "master"]
+  pull_request:
+
+jobs:
+  test:
+    name: Swift ${{ matrix.swift }} on ${{ matrix.os }}
+    runs-on: ${{ matrix.os }}
+    strategy:
+      matrix:
+        os: [ubuntu-latest, macos-latest]
+        swift: ['5.9']
+    steps:
+      - uses: actions/checkout@v4
+      - name: Set up Swift ${{ matrix.swift }}
+        uses: swift-actions/setup-swift@v1
+        with:
+          swift-version: ${{ matrix.swift }}
+      - name: Run tests
+        run: swift test --enable-test-discovery
