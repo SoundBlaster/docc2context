@@ -16,6 +16,7 @@ Deliver a shareable status update that:
 
 ## 🔗 REFERENCE MATERIALS
 - [PRD](../PRD/docc2context_prd.md) tables for total tasks per phase.
+- [Phase Checklist Index](../../phases.md) for current checkbox status by phase.
 - [Workplan](../workplan.md) for sequencing notes.
 - [TODO list](../todo.md) for remaining and in-progress tasks.
 - [`DOCS/INPROGRESS/`](../INPROGRESS) files for ongoing work.

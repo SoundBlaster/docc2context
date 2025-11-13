@@ -15,6 +15,7 @@ Establish a repeatable kick-off ritual so every effort:
 
 ## 🔗 REFERENCE MATERIALS
 - [PRD](../PRD/docc2context_prd.md) acceptance criteria for the chosen phase.
+- [Phase Checklist Index](../../phases.md) for the authoritative checkbox list tied to each phase.
 - [Workplan](../workplan.md) for sequencing and dependency notes.
 - [TODO list](../todo.md) entry describing prerequisites.
 - Any existing `DOCS/TASK_ARCHIVE` entries for similar work (reusable lessons learned).
