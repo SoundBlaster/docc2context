@@ -32,3 +32,11 @@ Launch the foundational Swift Package Manager workspace that exposes a `docc2con
 
 ## Immediate Next Action
 Monitor the refreshed CI runs (Ubuntu 22.04 + macOS) with the unified Swift 6.1.2 toolchain (Xcode 16.4 on macOS, SwiftyLab on Linux), then prepare the SELECT_NEXT command for task A2 hand-off once both jobs stay green.
+
+## Validation Evidence
+- 2025-11-13 — `swift test` on Linux container. All package tests passed, confirming the CLI + library + test targets link and run successfully with Swift 6.1.2.
+- GitHub Actions workflow (`.github/workflows/ci.yml`) mirrors the local commands above across Ubuntu 22.04 and macOS (Xcode 16.4) with toolchain validation in place.
+
+## Follow-Ups
+- Task **A2** (XCTest utilities + snapshot harness) is ready to start now that the SwiftPM package and CI matrix are stable.
+- Continue monitoring CI logs for any Swift toolchain bumps so README + workflow configuration stay aligned.

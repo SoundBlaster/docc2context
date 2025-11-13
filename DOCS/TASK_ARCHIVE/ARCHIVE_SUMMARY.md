@@ -7,3 +7,4 @@ Document completed work chronologically. When you move files out of `DOCS/INPROG
 
 _Example_
 - **2025-01-05 — A1 Bootstrap Swift Package**: CLI, library, and test targets created. `swift test` and GitHub Actions matrix running on Linux/macOS.
+- **2025-11-13 — A1 Bootstrap Swift Package & CI Skeleton**: Scaffolded CLI, shared library, and XCTest bundle plus dual-platform GitHub Actions workflow validating Swift 6.1.2. Verified locally with `swift test` and ensured workflow captures Linux/macOS dependency setup + toolchain pinning.
