@@ -11,7 +11,7 @@ jobs:
     runs-on: ubuntu-22.04
     strategy:
       matrix:
-        swift: ['6.0.1']
+        swift: ['6.1.2']
     steps:
       - uses: actions/checkout@v4
       - name: Install Swift dependencies
@@ -36,7 +36,7 @@ jobs:
     runs-on: macos-latest
     strategy:
       matrix:
-        swift: ['6.0.1']
+        swift: ['6.1.2']
     steps:
       - uses: actions/checkout@v4
       - name: Select Xcode 16.4
