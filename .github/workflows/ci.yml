@@ -1,0 +1,53 @@
+name: CI
+
+on:
+  push:
+    branches: ["main", "master"]
+  pull_request:
+
+jobs:
+  linux:
+    name: Swift ${{ matrix.swift }} on Ubuntu
+    runs-on: ubuntu-22.04
+    strategy:
+      matrix:
+        swift: ['6.1.2']
+    steps:
+      - uses: actions/checkout@v4
+      - name: Install Swift dependencies
+        run: |
+          sudo apt-get update
+          sudo apt-get install -y clang libicu-dev libatomic1 libcurl4-openssl-dev
+      - name: Set up Swift ${{ matrix.swift }}
+        uses: SwiftyLab/setup-swift@v1
+        with:
+          swift-version: ${{ matrix.swift }}
+      - name: Validate Swift toolchain
+        run: |
+          swift --version | tee swift-version.txt
+          grep "${{ matrix.swift }}" swift-version.txt
+      - name: Build
+        run: swift build --build-tests
+      - name: Run tests
+        run: swift test --enable-test-discovery
+
+  macos:
+    name: Swift ${{ matrix.swift }} on macOS
+    runs-on: macos-latest
+    strategy:
+      matrix:
+        swift: ['6.1.2']
+    steps:
+      - uses: actions/checkout@v4
+      - name: Select Xcode 16.4
+        uses: maxim-lobanov/setup-xcode@v1
+        with:
+          xcode-version: '16.4'
+      - name: Validate Swift toolchain
+        run: |
+          swift --version | tee swift-version.txt
+          grep "${{ matrix.swift }}" swift-version.txt
+      - name: Build
+        run: swift build --build-tests
+      - name: Run tests
+        run: swift test --enable-test-discovery
