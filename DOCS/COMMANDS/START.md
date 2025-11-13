@@ -42,13 +42,17 @@ Establish a repeatable kick-off ritual so every effort:
 6. **Set Immediate Next Action**
    - Identify what will happen in the next working session (usually writing or updating tests).
    - Document any coordination needs (e.g., new fixture acquisition) in the INPROGRESS note.
+7. **Begin Execution**
+   - Once documentation and TODO updates are complete, explicitly commit to the next action by starting the planned work immediately.
+   - Capture any deviations discovered during this kick-off inside the INPROGRESS note so the task remains traceable.
 
 ---
 
 ## ✅ EXPECTED OUTPUT
-- New or updated Markdown file in `DOCS/INPROGRESS/` capturing scope, plan, and validation.
-- Updated `DOCS/todo.md` reflecting the task’s active state.
+- New or updated Markdown file in `DOCS/INPROGRESS/` capturing scope, plan, validation, and the directive to start work now.
+- Updated `DOCS/todo.md` reflecting the task’s active state and linking back to the INPROGRESS context.
 - Optional README/PRD cross-links if the task clarifies requirements.
+- Evidence that execution has begun (e.g., initial code/tests or other tangible progress tied to the immediate next action).
 
 ---
 
