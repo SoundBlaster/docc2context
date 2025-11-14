@@ -23,10 +23,10 @@ Define the docc2context CLI contract through XCTest cases that exercise required
 
 ## Checklist
 - [x] Capture scope + validation plan in this INPROGRESS note.
-- [ ] Draft failing CLI tests for `--output` requirement and missing input handling.
+- [x] Draft failing CLI tests for `--output` requirement and missing input handling.
 - [ ] Add coverage for `--force` overwrite semantics and confirmation messaging.
-- [ ] Specify supported formats (default `markdown`, future `json`) with failing tests for unsupported values.
-- [ ] Update README/usage docs once CLI contract solidified.
+- [x] Specify supported formats (default `markdown`, future `json`) with failing tests for unsupported values.
+- [x] Update README/usage docs once CLI contract solidified.
 
 ## Immediate Next Action
-Begin writing red tests in `Docc2contextCLITests` covering the missing input and output validation flows, using temporary directory helpers from A2 once stabilized.
+Extend the CLI tests to assert `--force` messaging/behavior, then implement the overwrite confirmation flow so the parser + help text stay in sync.
