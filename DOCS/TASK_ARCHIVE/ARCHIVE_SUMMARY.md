@@ -11,3 +11,4 @@ _Example_
 
 ## 2025 Entries
 - **2025-11-14 — B1 CLI Interface Tests**: Locked the CLI contract via XCTest by covering missing input/output cases, unsupported `--format` values, help text for `--output`/`--force`, and the `--force` overwrite flag behavior. Validated with `swift test` (7 tests, 0 failures) on Linux.
+- **2025-11-14 — A2 TDD Harness**: Added deterministic XCTest utilities for temporary directories, fixture manifest loading, and Markdown snapshot comparisons plus the `HarnessUtilitiesTests` suite. `swift test` (Linux) now runs 10 tests, covering the harness helpers alongside CLI specs.
