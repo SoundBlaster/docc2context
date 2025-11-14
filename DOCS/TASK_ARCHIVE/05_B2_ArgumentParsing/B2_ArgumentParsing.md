@@ -31,13 +31,17 @@ Replace the placeholder argument walker inside `Docc2contextCommand` with a real
 - [x] Refactor `Docc2contextCommand` to delegate parsing to a `ParsableArguments` helper backed by `ArgumentParser` instead of the manual loop.
 - [x] Ensure `--format` validation hooks into the parser while maintaining the markdown-only restriction enforced by custom validation.
 - [x] Preserve the existing `Docc2contextCommandResult` interface so the current tests remain valid; extend tests if parser introduces new behaviors (e.g., version flag), but only after initial green.
-- [ ] Document any follow-up tasks (e.g., CLI logging, `--version`) uncovered while integrating the parser and add TODO entries if necessary.
+- [x] Document any follow-up tasks (e.g., CLI logging, `--version`) uncovered while integrating the parser and add TODO entries if necessary.
 
 ## Progress – 2025-11-14
 - Added the `swift-argument-parser` dependency to both the core and executable targets and resolved it at v1.6.2 via `Package.resolved`.
 - Introduced `Docc2contextCLIOptions` (a `ParsableArguments` helper) and rewired `Docc2contextCommand.run(arguments:)` to translate parser output into the existing `Docc2contextCommandResult` summaries and errors.
 - Preserved the original help rendering while ensuring parser-generated validation errors surface deterministic text (missing input/output, unsupported `--format`, etc.).
-- Verified the CLI contract by running `swift test`, which now reports all prior B1 interface tests passing under the new parser integration.【119f29†L1-L28】
+- Verified the CLI contract by running `swift test`, which now reports all prior B1 interface tests passing under the new parser integration.【8dc085†L1-L33】
+- Reviewed `README.md` to ensure the CLI usage section lists `--output`, `--format`, and `--force` with the behaviors now enforced by the parser; no updates required.
+
+## Follow-ups
+- None. CLI logging and `--version` enhancements will be scoped under later PRD items after the parsing foundation ships.
 
 ## Immediate Next Action
-Review `README.md` and related CLI documentation to confirm the described flags (`--output`, `--force`, `--format`) still match the now-enforced parser behavior, updating docs if discrepancies exist.
+Archive this task (B2) and return to the planning flow to select the next ready item once fixtures (A3) unblock B3.
