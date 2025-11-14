@@ -61,4 +61,19 @@ final class MetadataParsingTests: XCTestCase {
         XCTAssertEqual(references.first?.title, "Docc2contextCommand")
         XCTAssertEqual(references.first?.moduleName, "Docc2contextCore")
     }
+
+    func test_metadataJSONLoadsBundleGenerationInfo() throws {
+        let fixturesURL = FixtureLoader.urlForBundle(named: "TutorialCatalog.doccarchive")
+        let parser = DoccMetadataParser()
+
+        let bundleMetadata = try parser.loadBundleDataMetadata(from: fixturesURL)
+
+        XCTAssertEqual(bundleMetadata.formatVersion, "1.0")
+        XCTAssertEqual(bundleMetadata.generator, "docc2context synthetic fixture")
+        XCTAssertEqual(bundleMetadata.kind, "tutorial")
+
+        let formatter = ISO8601DateFormatter()
+        formatter.formatOptions = [.withInternetDateTime]
+        XCTAssertEqual(bundleMetadata.generatedAt, formatter.date(from: "2025-11-14T00:00:00Z"))
+    }
 }
