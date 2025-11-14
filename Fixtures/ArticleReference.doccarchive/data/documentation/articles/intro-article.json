@@ -1,0 +1,17 @@
+{
+  "identifier": "articlereference/documentation/articles/intro",
+  "kind": "article",
+  "title": "DocC2Context Article Overview",
+  "abstract": [
+    {
+      "type": "text",
+      "text": "Describes how docc2context converts DocC article nodes into Markdown."
+    }
+  ],
+  "topics": [
+    {
+      "title": "Conversion",
+      "identifiers": ["articlereference/documentation/articles/api-walkthrough"]
+    }
+  ]
+}

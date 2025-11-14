@@ -1,0 +1,18 @@
+{
+  "identifier": "tutorialcatalog",
+  "kind": "technology",
+  "title": "DocC2Context Tutorial Catalog",
+  "role": "tutorialCollection",
+  "abstract": [
+    {
+      "type": "text",
+      "text": "Synthetic tutorial bundle used by docc2context tests."
+    }
+  ],
+  "topics": [
+    {
+      "title": "Getting Started",
+      "identifiers": ["tutorialcatalog/tutorials/getting-started"]
+    }
+  ]
+}

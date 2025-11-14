@@ -1,0 +1,12 @@
+{
+  "identifier": "tutorialcatalog/tutorials/catalog",
+  "title": "DocC2Context Tutorials",
+  "estimatedTime": 15,
+  "overview": "Hands-on walkthrough for verifying tutorial conversion.",
+  "chapters": [
+    {
+      "title": "Orientation",
+      "tutorials": ["tutorialcatalog/tutorials/getting-started"]
+    }
+  ]
+}

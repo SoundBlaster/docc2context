@@ -17,5 +17,40 @@
     "size_bytes": 123456,
     "notes": "Tutorial coverage for articles and API docs"
   },
-  "bundles": []
+  "bundles": [
+    {
+      "id": "tutorial-catalog",
+      "name": "DocC2Context Tutorial Catalog",
+      "relative_path": "TutorialCatalog.doccarchive",
+      "type": "tutorial",
+      "source": {
+        "url": "docc2context://synthetic/tutorial",
+        "reference": "Task A3 synthetic content",
+        "license": "CC0-1.0"
+      },
+      "checksum": {
+        "algorithm": "sha256",
+        "value": "df737e3b2ac94e642b956c0461696bef6343f04a3a52691a5ffa97eb12f6809a"
+      },
+      "size_bytes": 2403,
+      "notes": "Tutorial-focused bundle with multi-step lesson and catalog metadata."
+    },
+    {
+      "id": "article-reference",
+      "name": "DocC2Context Article Reference",
+      "relative_path": "ArticleReference.doccarchive",
+      "type": "api",
+      "source": {
+        "url": "docc2context://synthetic/article",
+        "reference": "Task A3 synthetic content",
+        "license": "CC0-1.0"
+      },
+      "checksum": {
+        "algorithm": "sha256",
+        "value": "d6144ac88e0a195509e399c499db121b9c7309dbb7761d9c612b12cb03b7c519"
+      },
+      "size_bytes": 2894,
+      "notes": "Article + symbol graph bundle covering API walkthrough flows."
+    }
+  ]
 }

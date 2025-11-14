@@ -1,7 +1,8 @@
 # Fixtures
 
-This directory will host the deterministic DocC bundles exercised by the test harness.
-It is created as part of task **A3 – Establish DocC Sample Fixtures** (see `DOCS/INPROGRESS/A3_DocCFixtures.md`).
+This directory hosts the deterministic DocC bundles exercised by the test harness.
+It originated from task **A3 – Establish DocC Sample Fixtures** (see the archived
+notes under `DOCS/TASK_ARCHIVE/06_A3_DocCFixtures/`).
 
 ## Layout Plan
 - `<BundleName>.doccarchive/` – canonical DocC bundles checked into the repo.
@@ -22,8 +23,35 @@ It is created as part of task **A3 – Establish DocC Sample Fixtures** (see `DO
 - XCTest utilities from task A2 will load bundles relative to this folder; do not rearrange without updating the helper APIs.
 - The release gate script (`Scripts/release_gates.sh`) invokes `Scripts/validate_fixtures_manifest.py` to ensure the manifest matches the on-disk bundles.
 
-## Pending Work
-- Populate the manifest with at least two bundles (tutorial-focused + API/article-focused).
-- Add provenance paragraphs for each bundle, noting redistribution terms.
-- Document example XCTest code once fixtures land so tests can reference them directly.
-- Update `manifest.json` whenever bundles change so the release gate validation succeeds.
+## Bundles
+
+### Tutorial Catalog (`TutorialCatalog.doccarchive`)
+- **Focus:** Tutorials + knowledge checks that mimic DocC learning paths.
+- **Synthetic source:** Authored specifically for docc2context fixtures; no upstream
+  licensing requirements.
+- **Highlights:**
+  - `data/tutorials/getting-started.json` models a multi-step tutorial with
+    assessments for CLI validation.
+  - `data/documentation/tutorialcatalog.json` links the tutorial collection back to
+    the technology catalog for integration tests.
+- **Usage notes:** Ideal for smoke tests covering tutorial metadata parsing and
+  future Markdown snapshot generation.
+
+### Article Reference (`ArticleReference.doccarchive`)
+- **Focus:** Article + API style content with symbol graph references.
+- **Synthetic source:** Authored in-repo; redistribution approved under CC0.
+- **Highlights:**
+  - `data/documentation/articles/intro-article.json` describes article linking
+    semantics.
+  - `data/symbol-graphs/sample.symbols.json` supplies a lightweight symbol graph
+    to keep the repository size small while enabling symbol parsing coverage.
+- **Usage notes:** Designed for parser/unit tests that need realistic article and
+  symbol payloads without depending on external downloads.
+
+## Maintenance Notes
+- Update `manifest.json` whenever bundles change so the release gate validation
+  succeeds.
+- Record provenance updates (date, author) inside the bundle-specific notes above
+  when adding or editing content.
+- Document example XCTest code once fixtures feed integration tests so future
+  contributors understand how to load the manifest.
