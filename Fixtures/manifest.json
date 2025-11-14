@@ -1,0 +1,21 @@
+{
+  "_schema": 1,
+  "bundles": [
+    {
+      "id": "",
+      "name": "",
+      "source": {
+        "url": "",
+        "reference": "",
+        "license": ""
+      },
+      "type": "tutorial|api",
+      "checksum": {
+        "algorithm": "sha256",
+        "value": ""
+      },
+      "size_bytes": 0,
+      "notes": ""
+    }
+  ]
+}
