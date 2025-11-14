@@ -21,6 +21,7 @@ enum FixtureLoader {
 
             let id: String
             let name: String
+            let relativePath: String
             let source: Source
             let type: String
             let checksum: Checksum
@@ -30,6 +31,7 @@ enum FixtureLoader {
             enum CodingKeys: String, CodingKey {
                 case id
                 case name
+                case relativePath = "relative_path"
                 case source
                 case type
                 case checksum

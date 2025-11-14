@@ -59,6 +59,22 @@ s the same usage and documents each supported flag.
 
 GitHub Actions runs `swift build` and `swift test` on Ubuntu 22.04 and macOS. The Linux job relies on [`SwiftyLab/setup-swift`](https://github.com/SwiftyLab/setup-swift) to install Swift 6.1.2 and mirrors the package dependencies called out above so local and CI environments stay aligned. The macOS job selects Xcode 16.4 and uses its bundled Swift 6.1.2 toolchain to avoid mismatched SDK headers.
 
+## Release gates
+
+Run `Scripts/release_gates.sh` before tagging a release (or opening a PR) to exercise the same checks our CI gate will enforce:
+
+```bash
+Scripts/release_gates.sh
+```
+
+The script performs three steps:
+
+1. Executes `swift test` to ensure the package is healthy on the local toolchain.
+2. Runs a deterministic smoke test twice (defaults to `swift run docc2context --help`) and compares the SHA-256 hashes of the outputs. Override the command with `DETERMINISM_COMMAND="swift run docc2context --help --format markdown" Scripts/release_gates.sh` as more conversion paths come online.
+3. Validates `Fixtures/manifest.json` via `Scripts/validate_fixtures_manifest.py`, confirming that every listed bundle exists, matches the recorded checksum, and reports the expected byte size. Until task A3 lands real fixtures, the validator logs a warning and exits successfully.
+
+All steps must succeed for the script to exit 0, making it suitable for CI wiring or pre-push hooks.
+
 ## Project documentation
 
 Roadmap planning, task coordination, and historical notes live under the `DOCS/` directory (e.g., `DOCS/workplan.md`, `DOCS/todo.md`, and `DOCS/INPROGRESS/`). Consult those files for the latest status instead of treating this README as a task tracker.
