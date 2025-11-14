@@ -1,0 +1,28 @@
+{
+  "identifier": "articlereference/documentation/articles/api-walkthrough",
+  "kind": "article",
+  "title": "API Walkthrough",
+  "sections": [
+    {
+      "title": "Inspect Inputs",
+      "content": [
+        "Resolve whether the path is a directory or .doccarchive.",
+        "Emit structured errors when data is missing."
+      ]
+    },
+    {
+      "title": "Parse Content",
+      "content": [
+        "Read metadata, tutorials, and symbol graphs.",
+        "Return Markdown-friendly models."
+      ]
+    }
+  ],
+  "references": [
+    {
+      "identifier": "articlereference/symbols/Docc2contextCommand",
+      "kind": "symbol",
+      "title": "Docc2contextCommand"
+    }
+  ]
+}

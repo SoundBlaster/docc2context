@@ -1,0 +1,26 @@
+{
+  "metadata": {
+    "formatVersion": {"major": 0, "minor": 5, "patch": 3},
+    "generator": "docc2context synthetic fixture"
+  },
+  "module": {
+    "name": "Docc2contextCore",
+    "platforms": [
+      {
+        "architecture": "arm64",
+        "operatingSystem": {"name": "linux"}
+      }
+    ]
+  },
+  "symbols": [
+    {
+      "identifier": "docc2contextcommand",
+      "kind": "symbol",
+      "names": {
+        "title": "Docc2contextCommand"
+      },
+      "pathComponents": ["Docc2contextCommand"],
+      "abstract": [{"type": "text", "text": "Entrypoint for the CLI."}]
+    }
+  ]
+}

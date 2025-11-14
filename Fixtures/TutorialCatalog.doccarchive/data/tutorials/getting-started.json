@@ -1,0 +1,37 @@
+{
+  "identifier": "tutorialcatalog/tutorials/getting-started",
+  "title": "Build the First Page",
+  "introduction": "Create a simple documentation page that links out to tutorials and symbols.",
+  "steps": [
+    {
+      "title": "Scaffold a DocC bundle",
+      "content": [
+        "Use swift-docc to generate initial metadata.",
+        "Confirm Info.plist values before shipping."
+      ]
+    },
+    {
+      "title": "Add tutorial content",
+      "content": [
+        "Write callouts for highlights.",
+        "Use the Fixtures manifest to locate assets."
+      ]
+    }
+  ],
+  "assessments": [
+    {
+      "title": "Knowledge Check",
+      "items": [
+        {
+          "prompt": "Which command validates the fixture manifest?",
+          "choices": [
+            "Scripts/validate_fixtures_manifest.py",
+            "swift run docc2context --inspect",
+            "xcodebuild docc"
+          ],
+          "answer": 0
+        }
+      ]
+    }
+  ]
+}

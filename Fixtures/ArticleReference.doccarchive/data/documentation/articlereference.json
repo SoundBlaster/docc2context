@@ -1,0 +1,21 @@
+{
+  "identifier": "articlereference",
+  "kind": "technology",
+  "title": "DocC2Context Article Reference",
+  "role": "collection",
+  "abstract": [
+    {
+      "type": "text",
+      "text": "Synthetic API + article bundle for integration tests."
+    }
+  ],
+  "topics": [
+    {
+      "title": "Articles",
+      "identifiers": [
+        "articlereference/documentation/articles/intro",
+        "articlereference/documentation/articles/api-walkthrough"
+      ]
+    }
+  ]
+}
