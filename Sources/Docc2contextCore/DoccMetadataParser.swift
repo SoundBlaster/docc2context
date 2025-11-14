@@ -8,12 +8,14 @@ public struct DoccBundleMetadata: Equatable {
     public let doccVersion: String?
     public let projectVersion: String?
 
-    public init(identifier: String,
-                displayName: String,
-                technologyRoot: String,
-                locales: [String],
-                doccVersion: String?,
-                projectVersion: String?) {
+    public init(
+        identifier: String,
+        displayName: String,
+        technologyRoot: String,
+        locales: [String],
+        doccVersion: String?,
+        projectVersion: String?
+    ) {
         self.identifier = identifier
         self.displayName = displayName
         self.technologyRoot = technologyRoot
@@ -68,23 +70,23 @@ public enum DoccMetadataParserError: Error, LocalizedError, Equatable {
 
     public var errorDescription: String? {
         switch self {
-        case let .infoPlistMissing(url):
+        case .infoPlistMissing(let url):
             return "Info.plist not found at \(url.path)."
-        case let .invalidInfoPlist(url):
+        case .invalidInfoPlist(let url):
             return "Info.plist at \(url.path) is not a valid property list."
-        case let .missingRequiredField(field):
+        case .missingRequiredField(let field):
             return "Info.plist is missing required key '\(field)'."
-        case let .invalidFieldType(key, expected):
+        case .invalidFieldType(let key, let expected):
             return "Info.plist key '\(key)' does not match expected type \(expected)."
-        case let .renderMetadataMissing(url):
+        case .renderMetadataMissing(let url):
             return "Render metadata missing at \(url.path)."
-        case let .invalidRenderMetadata(url):
+        case .invalidRenderMetadata(let url):
             return "Render metadata at \(url.path) is not valid JSON."
-        case let .documentationCatalogMissing(url):
+        case .documentationCatalogMissing(let url):
             return "Documentation catalog missing at \(url.path)."
-        case let .invalidDocumentationCatalog(url):
+        case .invalidDocumentationCatalog(let url):
             return "Documentation catalog at \(url.path) is not valid JSON."
-        case let .invalidSymbolGraph(url):
+        case .invalidSymbolGraph(let url):
             return "Symbol graph at \(url.path) is malformed."
         }
     }
@@ -105,9 +107,10 @@ public struct DoccMetadataParser {
 
         let plistObject: Any
         do {
-            plistObject = try PropertyListSerialization.propertyList(from: plistData,
-                                                                     options: [],
-                                                                     format: nil)
+            plistObject = try PropertyListSerialization.propertyList(
+                from: plistData,
+                options: [],
+                format: nil)
         } catch {
             throw DoccMetadataParserError.invalidInfoPlist(infoPlistURL)
         }
@@ -123,16 +126,18 @@ public struct DoccMetadataParser {
         let doccVersion = try optionalValue(forKey: "DocCVersion", in: plist)
         let projectVersion = try optionalValue(forKey: "ProjectVersion", in: plist)
 
-        return DoccBundleMetadata(identifier: identifier,
-                                  displayName: displayName,
-                                  technologyRoot: technologyRoot,
-                                  locales: locales,
-                                  doccVersion: doccVersion,
-                                  projectVersion: projectVersion)
+        return DoccBundleMetadata(
+            identifier: identifier,
+            displayName: displayName,
+            technologyRoot: technologyRoot,
+            locales: locales,
+            doccVersion: doccVersion,
+            projectVersion: projectVersion)
     }
 
     public func loadRenderMetadata(from bundleURL: URL) throws -> DoccRenderMetadata {
-        let metadataURL = bundleURL
+        let metadataURL =
+            bundleURL
             .appendingPathComponent("data", isDirectory: true)
             .appendingPathComponent("metadata", isDirectory: true)
             .appendingPathComponent("metadata.json", isDirectory: false)
@@ -152,9 +157,12 @@ public struct DoccMetadataParser {
         }
     }
 
-    public func loadDocumentationCatalog(from bundleURL: URL,
-                                          technologyRoot: String) throws -> DoccDocumentationCatalog {
-        let documentationURL = bundleURL
+    public func loadDocumentationCatalog(
+        from bundleURL: URL,
+        technologyRoot: String
+    ) throws -> DoccDocumentationCatalog {
+        let documentationURL =
+            bundleURL
             .appendingPathComponent("data", isDirectory: true)
             .appendingPathComponent("documentation", isDirectory: true)
             .appendingPathComponent("\(technologyRoot).json", isDirectory: false)
@@ -175,7 +183,8 @@ public struct DoccMetadataParser {
     }
 
     public func loadSymbolGraphReferences(from bundleURL: URL) throws -> [DoccSymbolReference] {
-        let symbolGraphsDirectory = bundleURL
+        let symbolGraphsDirectory =
+            bundleURL
             .appendingPathComponent("data", isDirectory: true)
             .appendingPathComponent("symbol-graphs", isDirectory: true)
 
@@ -201,14 +210,16 @@ public struct DoccMetadataParser {
 
             for symbol in symbolGraph.symbols {
                 guard let identifier = symbol.identifier,
-                      let title = symbol.names?.title,
-                      !identifier.isEmpty,
-                      !title.isEmpty else {
+                    let title = symbol.names?.title,
+                    !identifier.isEmpty,
+                    !title.isEmpty
+                else {
                     continue
                 }
-                let reference = DoccSymbolReference(identifier: identifier,
-                                                    title: title,
-                                                    moduleName: symbolGraph.module.name)
+                let reference = DoccSymbolReference(
+                    identifier: identifier,
+                    title: title,
+                    moduleName: symbolGraph.module.name)
                 references.append(reference)
             }
         }
@@ -249,7 +260,8 @@ public struct DoccMetadataParser {
 
         let trimmed = languages.map { $0.trimmingCharacters(in: .whitespacesAndNewlines) }
         if trimmed.contains(where: { $0.isEmpty }) {
-            throw DoccMetadataParserError.invalidFieldType(key: "Languages", expected: "non-empty strings")
+            throw DoccMetadataParserError.invalidFieldType(
+                key: "Languages", expected: "non-empty strings")
         }
         return trimmed
     }
