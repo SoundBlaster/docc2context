@@ -3,7 +3,11 @@ name: CI
 on:
   push:
     branches: ["main", "master"]
+    paths-ignore:
+      - 'DOCS/**'
   pull_request:
+    paths-ignore:
+      - 'DOCS/**'
 
 jobs:
   linux:
