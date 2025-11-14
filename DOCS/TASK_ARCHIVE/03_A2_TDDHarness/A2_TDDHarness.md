@@ -19,8 +19,19 @@
 - Decide whether to vendor a snapshot-testing dependency vs custom helper to keep SwiftPM dependencies minimal.
 - Need representative DocC fixtures (A3) soon; harness should tolerate missing fixtures by providing stubs/mocks.
 
-## Next Steps
-1. Review XCTest helper patterns used in similar Swift CLI projects for determinism guarantees.
-2. Prototype temp-directory utility and add unit tests verifying cleanup + collision resistance.
-3. Evaluate snapshot strategy (hash vs textual diff) and document choice in this file.
-4. Update README/testing docs once utilities land so subsequent tasks know how to invoke harness.
+## Completion Summary – 2025-11-14
+- Added a reusable XCTest support surface under `Tests/Docc2contextCoreTests/Support/` that exposes deterministic temporary
+  directories, fixture manifest loading, and Markdown snapshot helpers.
+- Created `HarnessUtilitiesTests` to prove that the helpers create/clean temporary directories, parse `Fixtures/manifest.json`,
+  and enforce Markdown snapshot comparisons with committed references.
+- Seeded the inaugural snapshot under `Tests/__Snapshots__/HarnessUtilitiesTests/` to document how markdown specs will evolve
+  once DocC conversion logic materializes.
+
+## Validation Evidence
+- `swift test` (Linux) exercises both the existing CLI spec tests and the new harness utilities (`HarnessUtilitiesTests`).
+
+## Follow-Ups
+1. Task **A3** will replace the placeholder entries inside `Fixtures/manifest.json` with real DocC bundles and use the loader
+   helpers to validate checksum + provenance fields.
+2. Snapshot coverage currently focuses on Markdown text; future tasks should extend helpers for JSON graph comparisons once the
+   converter emits metadata files.

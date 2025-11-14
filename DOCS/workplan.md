@@ -4,7 +4,7 @@ The workplan distills the execution order of the phases defined in [DOCS/PRD/doc
 
 ## Phase A – Quality & Deployment Foundations
 - ✅ **A1 Bootstrap Swift Package & CI Skeleton** — establish SwiftPM targets and CI workflows for Linux + macOS. Archived under `DOCS/TASK_ARCHIVE/01_A1_BootstrapSwiftPMCI/`.
-- **A2 Provision TDD Harness** — add XCTest utilities and snapshot helpers so every feature begins with failing tests.
+- ✅ **A2 Provision TDD Harness** — add XCTest utilities and snapshot helpers so every feature begins with failing tests. Archived under `DOCS/TASK_ARCHIVE/03_A2_TDDHarness/`.
 - **A3 Establish DocC Sample Fixtures** — gather DocC bundles under `Fixtures/` covering articles, tutorials, and symbol graphs.
 - **A4 Define Deployment & Release Gates** — describe release checklist and scripts that guard determinism, lint, and tests.
 
