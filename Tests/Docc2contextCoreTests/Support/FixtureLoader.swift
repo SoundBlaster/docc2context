@@ -47,8 +47,6 @@ enum FixtureLoader {
         }
     }
 
-    private static let fileManager = FileManager.default
-
     static func fixturesDirectory() -> URL {
         TestSupportPaths.fixturesDirectory
     }

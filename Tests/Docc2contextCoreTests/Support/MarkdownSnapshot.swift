@@ -13,8 +13,6 @@ enum MarkdownSnapshot {
         }
     }
 
-    private static let fileManager = FileManager.default
-
     static func assertSnapshot(
         _ testCase: XCTestCase,
         matching text: String,
@@ -24,6 +22,7 @@ enum MarkdownSnapshot {
         line: UInt = #line
     ) throws {
         let normalized = normalize(text)
+        let fileManager = FileManager.default
         let snapshotURL = url(for: testCase, named: snapshotName)
         let directory = snapshotURL.deletingLastPathComponent()
         if !fileManager.fileExists(atPath: directory.path) {
