@@ -1,27 +1,37 @@
 # A3 – Establish DocC Sample Fixtures
 
-## Purpose & Scope
-- **PRD Reference:** Phase A "Establish DocC Sample Fixtures" (DOCS/PRD/docc2context_prd.md §Phase A, ID A3).
-- **Goal:** Collect at least two representative DocC bundles (e.g., SwiftUI Tutorials, SampleKit) and store them under `Fixtures/` with provenance documentation so tests can exercise tutorials, articles, and symbol-rich content.
-- **Dependencies:** Requires TDD harness from A2 so fixture loaders + snapshot helpers already exist; unlocks B-phase parser/extractor work plus Markdown snapshot specs in Phase C.
+## Objective
+Stand up the canonical `Fixtures/` directory with at least two DocC bundles (tutorial-focused + API/article-focused) plus provenance notes so downstream parser/CLI work has deterministic sample inputs.
 
-## Current Context
-- TODO entry A3 promoted from "Under Consideration" to "In Progress" per SELECT_NEXT run.
-- No fixtures currently in repo; tests referencing DocC bundles would fail without these assets.
+## Relevant PRD References
+- `DOCS/PRD/docc2context_prd.md` – Phase A, item A3 "Establish DocC Sample Fixtures" (deterministic bundles + manifest).
+- `DOCS/workplan.md` – Phase A sequencing (A2 utilities precede fixture ingestion, A3 unblocks B-phase parsing specs).
 
-## Deliverables & Acceptance Criteria
-1. `Fixtures/` directory populated with at least two DocC bundles (one tutorial heavy, one API/article heavy) plus README describing source and licensing.
-2. Metadata manifest (e.g., `Fixtures/README.md` or JSON) enumerating bundle names, sizes, content coverage, and checksums for determinism.
-3. Verification steps showing XCTest harness (A2) can load fixtures without disk errors (sample helper test or documented command output).
-4. Guidance for future tasks on how to request additional fixtures or regenerate archives.
+## Dependencies
+- [ ] **A2 – XCTest utilities / snapshot harness**: still in progress; fixture loader APIs must align with the utilities defined there.
+- [ ] Licensing confirmation for chosen bundles (SwiftUI Tutorials snapshot, SamplePackage, or equivalent) – required before adding archives to Git.
 
-## Risks / Open Questions
-- Need to confirm redistribution rights for any Apple-provided DocC bundles; may need to create synthesized sample if redistribution restricted.
-- Repository bloat: must ensure fixtures are reasonably sized and possibly compressed while still deterministic.
-- Might require scripting to convert `.doccarchive` into directory form; clarify desired canonical storage format.
+## Test Plan
+- `swift test --filter FixturesTests` (to be added) will verify the harness loads each bundle path listed in `Fixtures/manifest.json`.
+- Determinism check: `find Fixtures -name '*.doccarchive' -print0 | xargs -0 shasum -a 256` must match the manifest checksums.
+- Once CLI wiring exists, run `swift run docc2context --input Fixtures/<bundle> --output .build/fixture-smoke` to ensure fixtures cover tutorials/articles.
 
-## Next Steps
-1. Inventory publicly available DocC bundles (SwiftUI Tutorials, SampleKit) and verify licenses for inclusion.
-2. Define storage format and directory structure inside `Fixtures/` plus checksum workflow (e.g., `shasum -a 256`).
-3. Draft provenance notes + manifest template in `Fixtures/README.md` and commit placeholder if fixture download is deferred.
-4. Coordinate with A2 harness work to ensure fixture loader APIs expect this layout; add TODOs/tests referencing the fixtures once available.
+## Validation Inputs & Artifacts
+- `Fixtures/README.md` documents storage/layout/provenance expectations. ✅
+- `Fixtures/manifest.json` currently contains a schema stub; future commits will replace placeholder entries with real bundles. ✅
+- Target bundles: (1) tutorial-heavy sample (SwiftUI Tutorials, Scrumdinger, etc.), (2) API/article-heavy sample (SamplePackage, DocC article example).
+
+## Subtasks Checklist
+- [x] Draft fixture layout, provenance checklist, and manifest schema (`Fixtures/README.md`, `Fixtures/manifest.json`).
+- [ ] Inventory publicly redistributable DocC bundles, capture their licenses, and choose two primary fixtures.
+- [ ] Normalize selected bundles into `.doccarchive/` directories under `Fixtures/` plus checksum files.
+- [ ] Populate `Fixtures/manifest.json` with bundle metadata and determinism data.
+- [ ] Add README sections per bundle describing coverage and how to refresh it.
+- [ ] Write smoke XCTest covering the manifest-driven loader from task A2.
+
+## Blocking Questions / Risks
+- Apple-supplied tutorial bundles may have redistribution limits—need clarity before checking in archives.
+- Repository size could bloat; may need trimming strategy or `git lfs` decision.
+
+## Immediate Next Action
+Research licensing/permitted redistribution for candidate DocC bundles (SwiftUI Tutorials, SamplePackage) and capture findings in this note before attempting downloads/imports.
