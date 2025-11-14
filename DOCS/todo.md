@@ -12,6 +12,7 @@ Use this list for near-term execution. Each entry maps back to the PRD and [work
 - [x] **D1** Implement logging & progress instrumentation so the CLI reports detection/extraction/generation phases with snapshot-tested structure. _Depends on:_ B2. _Doc:_ PRD §Phase D. _Owner:_ docc2context agent. _Status:_ Complete – archived under `DOCS/TASK_ARCHIVE/08_D1_StructuredLogging/`; logging facade + CLI integration validated via `swift test --filter LoggingTests` and release gates.
 - [x] **A1** Bootstrap Swift package with CLI/lib/test targets plus GitHub Actions matrix for Linux/macOS. _Depends on:_ none. _Doc:_ PRD §Phase A. _Owner:_ docc2context agent. _Status:_ Complete – archived under `DOCS/TASK_ARCHIVE/01_A1_BootstrapSwiftPMCI/`.
 - [ ] **B4** Extract archive inputs into deterministic temporary directories with cleanup validation. _Depends on:_ B3. _Doc:_ PRD §Phase B. _Owner:_ docc2context agent. _Status:_ In Progress – see [`DOCS/INPROGRESS/B4_ArchiveExtraction.md`](./INPROGRESS/B4_ArchiveExtraction.md) for scope, validation plan, and next actions.
+- [ ] **B5** Parse DocC metadata (Info.plist, documentation data, symbol graphs) into native models with fixture-driven failure coverage. _Depends on:_ B3. _Doc:_ PRD §Phase B. _Owner:_ docc2context agent. _Status:_ Newly selected – see [`DOCS/INPROGRESS/B5_DoccMetadataParsing.md`](./INPROGRESS/B5_DoccMetadataParsing.md) for scope, dependencies, and validation plan.
 
 ## Ready to Start
 - _None – see In Progress for the current execution queue._
