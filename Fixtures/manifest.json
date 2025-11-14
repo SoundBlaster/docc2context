@@ -1,21 +1,21 @@
 {
   "_schema": 1,
-  "bundles": [
-    {
-      "id": "",
-      "name": "",
-      "source": {
-        "url": "",
-        "reference": "",
-        "license": ""
-      },
-      "type": "tutorial|api",
-      "checksum": {
-        "algorithm": "sha256",
-        "value": ""
-      },
-      "size_bytes": 0,
-      "notes": ""
-    }
-  ]
+  "_example": {
+    "id": "sample-package",
+    "name": "Sample Package",
+    "relative_path": "SamplePackage.doccarchive",
+    "type": "api",
+    "source": {
+      "url": "https://github.com/apple/swift-docc-sample",
+      "reference": "commit abc123",
+      "license": "MIT"
+    },
+    "checksum": {
+      "algorithm": "sha256",
+      "value": "<calculated sha256 digest>"
+    },
+    "size_bytes": 123456,
+    "notes": "Tutorial coverage for articles and API docs"
+  },
+  "bundles": []
 }

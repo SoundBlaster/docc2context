@@ -6,7 +6,7 @@ The workplan distills the execution order of the phases defined in [DOCS/PRD/doc
 - ✅ **A1 Bootstrap Swift Package & CI Skeleton** — establish SwiftPM targets and CI workflows for Linux + macOS. Archived under `DOCS/TASK_ARCHIVE/01_A1_BootstrapSwiftPMCI/`.
 - ✅ **A2 Provision TDD Harness** — add XCTest utilities and snapshot helpers so every feature begins with failing tests. Archived under `DOCS/TASK_ARCHIVE/03_A2_TDDHarness/`.
 - **A3 Establish DocC Sample Fixtures** — gather DocC bundles under `Fixtures/` covering articles, tutorials, and symbol graphs.
-- **A4 Define Deployment & Release Gates** — describe release checklist and scripts that guard determinism, lint, and tests.
+- ✅ **A4 Define Deployment & Release Gates** — archived under `DOCS/TASK_ARCHIVE/04_A4_ReleaseGates/`; `Scripts/release_gates.sh` now runs `swift test`, determinism hashing, and fixture manifest validation.
 
 ## Phase B – CLI Contract & Input Validation
 - ✅ **B1 Specify CLI Interface via Failing Tests** — archived under `DOCS/TASK_ARCHIVE/02_B1_CLIInterfaceTests/`; test suite locks CLI arguments, help text, `--force`, and error paths.
