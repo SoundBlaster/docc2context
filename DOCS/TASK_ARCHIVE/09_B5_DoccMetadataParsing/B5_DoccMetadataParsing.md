@@ -42,8 +42,8 @@ Design and implement the metadata parsing layer that ingests normalized DocC bun
 - [x] Flesh out additional failing tests for documentation catalogs and symbol graph references.
 - [x] Define parser-facing domain models (metadata structs/enums) with validation helpers.
 - [x] Implement parser to satisfy tests, ensuring deterministic ordering and locale handling.
-- [ ] Document assumptions + integration notes (README/CLI) if parser requires additional flags or environment setup.
-- [ ] Update TODO + ARCHIVE entries once work completes.
+- [x] Document assumptions + integration notes (README/CLI) if parser requires additional flags or environment setup.
+- [x] Update TODO + ARCHIVE entries once work completes.
 
 ## Immediate Next Actions
 1. ✅ Added `MetadataParsingTests.test_renderMetadataLoadsBundleInformation`, `test_documentationCatalogLoadsTechnologyOverview`, and `test_symbolGraphReferencesLoadFromArticleReferenceBundle` so `metadata.json`, technology catalog JSON, and symbol graphs now drive parser behavior alongside the Info.plist spec.
@@ -53,8 +53,17 @@ Design and implement the metadata parsing layer that ingests normalized DocC bun
 ### Notes
 - Symbol graph references are sorted deterministically by identifier/module to keep CI output stable regardless of filesystem ordering.
 - Documentation catalog parsing currently targets the technology root JSON; follow-up integration work will wire tutorial/article nodes once Phase B tasks unblock.
+- Parser entry points assume upstream detection/extraction provides a normalized bundle directory and therefore require no extra CLI flags beyond the existing `--input`/`--output` contract.
 
-## Blocking Questions / Coordination Notes
-- Sync periodically with the B4 effort so parser input paths align with extracted archive layout (e.g., relative resource locations).
-- Confirm whether metadata parsing should normalize locale identifiers (`en`, `en-US`) up front or defer until Markdown rendering (impacts test fixtures).
-- Ensure any new helper utilities live under `Sources/Docc2contextCore` with mirrored test helpers inside `Tests/Docc2contextCoreTests/Support/`.
+## Completion Summary — 2025-11-14
+- Authored fixture-backed tests for Info.plist, render metadata, technology overview catalogs, and symbol graph references so DocC bundles now have end-to-end coverage in `MetadataParsingTests`.
+- Implemented `DoccMetadataParser` domain models and loaders that surface typed errors for missing/invalid assets, normalize locales, and return deterministically ordered symbol references.
+- Documented the metadata pipeline and parser assumptions in `README.md` so downstream tasks understand expectations for normalized bundle directories.
+
+## Validation Evidence
+- `swift test --filter MetadataParsingTests`
+- `swift test`
+- `Scripts/release_gates.sh`
+
+## Follow-Ups
+- Integration tasks (B6/C1) will consume the parser output to build Markdown nodes once tutorial/article graph rendering begins.
