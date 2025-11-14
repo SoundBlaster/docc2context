@@ -40,4 +40,18 @@ final class Docc2contextCLITests: XCTestCase {
         XCTAssertTrue(result.output.contains("--force"), "B1 spec: help text must document --force flag.")
         XCTAssertTrue(result.output.contains("--format"), "B1 spec: help text must document --format flag.")
     }
+
+    func testForceFlagEnablesOverwriteMode() throws {
+        let command = Docc2contextCommand()
+        let result = command.run(arguments: [
+            "docc2context",
+            "/tmp/MyDocs.doccarchive",
+            "--output",
+            "/tmp/out",
+            "--force"
+        ])
+
+        XCTAssertEqual(result.exitCode, 0, "B1 spec: --force flag should be accepted without additional values.")
+        XCTAssertTrue(result.output.contains("force: enabled"), "B1 spec: summaries/help should reflect overwrite intent when --force is passed.")
+    }
 }

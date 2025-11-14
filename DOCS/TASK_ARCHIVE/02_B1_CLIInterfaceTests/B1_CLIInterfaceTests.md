@@ -24,9 +24,17 @@ Define the docc2context CLI contract through XCTest cases that exercise required
 ## Checklist
 - [x] Capture scope + validation plan in this INPROGRESS note.
 - [x] Draft failing CLI tests for `--output` requirement and missing input handling.
-- [ ] Add coverage for `--force` overwrite semantics and confirmation messaging.
+- [x] Add coverage for `--force` overwrite semantics and confirmation messaging.
 - [x] Specify supported formats (default `markdown`, future `json`) with failing tests for unsupported values.
 - [x] Update README/usage docs once CLI contract solidified.
 
-## Immediate Next Action
-Extend the CLI tests to assert `--force` messaging/behavior, then implement the overwrite confirmation flow so the parser + help text stay in sync.
+## Completion Summary — 2025-11-14
+- Added `testForceFlagEnablesOverwriteMode` to verify that `--force` is accepted without values and that output text surfaces overwrite intent alongside the success exit code.
+- Expanded CLI help + contract documentation in README (previous change) so B2+ tasks inherit a stable spec.
+- Confirmed the test suite now covers missing input, missing `--output`, unsupported formats, help text documentation, and `--force` behavior per PRD §4.2 + Phase B table.
+
+## Validation Evidence
+- 2025-11-14 — `swift test` on Linux: `Docc2contextCLITests` and `Docc2contextCommandTests` executed 7 total tests with 0 failures (0 unexpected) in 0.212 seconds.
+
+## Follow-Ups
+- No immediate follow-ups surfaced beyond the planned B2 parser implementation. CLI shorthand aliases remain a backlog question for UX review.

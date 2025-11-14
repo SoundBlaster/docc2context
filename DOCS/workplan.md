@@ -9,7 +9,7 @@ The workplan distills the execution order of the phases defined in [DOCS/PRD/doc
 - **A4 Define Deployment & Release Gates** — describe release checklist and scripts that guard determinism, lint, and tests.
 
 ## Phase B – CLI Contract & Input Validation
-- **B1 Specify CLI Interface via Failing Tests** — write tests that capture argument parsing, help text, and error paths.
+- ✅ **B1 Specify CLI Interface via Failing Tests** — archived under `DOCS/TASK_ARCHIVE/02_B1_CLIInterfaceTests/`; test suite locks CLI arguments, help text, `--force`, and error paths.
 - **B2 Implement Argument Parsing to Satisfy Tests** — implement CLI options using `swift-argument-parser` until B1 passes.
 - **B3 Detect Input Type** — ensure directories vs `.doccarchive` inputs normalize to bundle paths, covered by tests.
 - **B4 Extract Archive Inputs** — add deterministic extraction with cleanup validated via fixture-based tests.
