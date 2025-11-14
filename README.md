@@ -37,10 +37,28 @@ swift test
 
 The tests exercise the CLI target and keep the Linux/macOS builds honest.
 
+## CLI usage (bootstrap)
+
+The current CLI exposes the argument contract verified by the initial CLI test suite so downstream implementation work has a stable spec.
+
+```
+docc2context <input-path> --output <directory> [--format markdown] [--force]
+```
+
+- `<input-path>` – Required positional argument that points to a DocC bundle or `.doccarchive` to convert.
+- `--output <directory>` – Required option describing where Markdown/link graph artifacts should be written.
+- `--format <value>` – Optional output format selector. For now only `markdown` is accepted; other values exit with code 64 and
+  include the supported list in the error text.
+- `--force` – Optional boolean flag that indicates the output directory may be overwritten when later stages implement file sys
+  tem writes.
+
+Parsing errors exit with `EX_USAGE`/64 and human-readable guidance so scripts can detect misconfigurations early. `--help` print
+s the same usage and documents each supported flag.
+
 ## Continuous Integration
 
 GitHub Actions runs `swift build` and `swift test` on Ubuntu 22.04 and macOS. The Linux job relies on [`SwiftyLab/setup-swift`](https://github.com/SwiftyLab/setup-swift) to install Swift 6.1.2 and mirrors the package dependencies called out above so local and CI environments stay aligned. The macOS job selects Xcode 16.4 and uses its bundled Swift 6.1.2 toolchain to avoid mismatched SDK headers.
 
-## Next steps
+## Project documentation
 
-Active task **A1** tracks the ongoing bootstrap of the CLI, shared library, and CI skeleton. See [`DOCS/INPROGRESS/A1_bootstrap_swiftpm_ci.md`](DOCS/INPROGRESS/A1_bootstrap_swiftpm_ci.md) for the latest execution notes.
+Roadmap planning, task coordination, and historical notes live under the `DOCS/` directory (e.g., `DOCS/workplan.md`, `DOCS/todo.md`, and `DOCS/INPROGRESS/`). Consult those files for the latest status instead of treating this README as a task tracker.
