@@ -1,3 +1,4 @@
+import ArgumentParser
 import Foundation
 
 public struct Docc2contextCommandResult {
@@ -57,60 +58,59 @@ public struct Docc2contextCommand {
         }
 
         do {
-            let options = try parse(trimmedArguments)
+            let parsedArguments = try Docc2contextCLIOptions.parse(trimmedArguments)
+            let options = try resolveOptions(from: parsedArguments)
+            let forceLabel = options.forceOverwrite ? "enabled" : "disabled"
             let summary = "CLI not yet implemented. Input: \(options.inputPath!), output: \(options.outputPath!), " +
-                "format: \(options.format), force: \(options.forceOverwrite ? "enabled" : "disabled")."
+                "format: \(options.format), force: \(forceLabel)."
             return Docc2contextCommandResult(exitCode: 0, output: summary)
         } catch let error as CLIError {
             return Docc2contextCommandResult(exitCode: ExitCode.usageError, output: error.description)
+        } catch let error as ValidationError {
+            return Docc2contextCommandResult(exitCode: ExitCode.usageError, output: error.description)
         } catch {
-            return Docc2contextCommandResult(exitCode: ExitCode.usageError, output: "Unable to parse arguments.")
+            if let localizedError = error as? LocalizedError, let description = localizedError.errorDescription {
+                return Docc2contextCommandResult(exitCode: ExitCode.usageError, output: description)
+            }
+            let fallbackDescription = String(describing: error)
+            return Docc2contextCommandResult(exitCode: ExitCode.usageError, output: fallbackDescription)
         }
     }
 
-    private func parse(_ arguments: [String]) throws -> CLIOptions {
+    private func resolveOptions(from parsedArguments: Docc2contextCLIOptions) throws -> CLIOptions {
         var options = CLIOptions()
-        var index = 0
-        while index < arguments.count {
-            let token = arguments[index]
-            switch token {
-            case "--output":
-                index += 1
-                guard index < arguments.count else { throw CLIError.missingValue(flag: "--output") }
-                options.outputPath = arguments[index]
-            case "--format":
-                index += 1
-                guard index < arguments.count else { throw CLIError.missingValue(flag: "--format") }
-                let value = arguments[index]
-                guard value.lowercased() == "markdown" else { throw CLIError.unsupportedFormat(value) }
-                options.format = value.lowercased()
-            case "--force":
-                options.forceOverwrite = true
-            case "--help", "-h":
-                // already handled earlier, ignore
-                break
-            default:
-                if token.hasPrefix("-") {
-                    throw CLIError.unknownFlag(token)
-                }
-                if options.inputPath == nil {
-                    options.inputPath = token
-                } else {
-                    throw CLIError.unexpectedArgument(token)
-                }
-            }
-            index += 1
-        }
-
-        guard options.inputPath?.isEmpty == false else {
+        guard let input = parsedArguments.inputPath?.trimmingCharacters(in: .whitespacesAndNewlines), !input.isEmpty else {
             throw CLIError.missingInput
         }
-        guard options.outputPath?.isEmpty == false else {
+        guard let output = parsedArguments.outputPath?.trimmingCharacters(in: .whitespacesAndNewlines), !output.isEmpty else {
             throw CLIError.missingOutput
         }
 
+        let normalizedFormat = parsedArguments.format.lowercased()
+        guard normalizedFormat == "markdown" else {
+            throw CLIError.unsupportedFormat(parsedArguments.format)
+        }
+
+        options.inputPath = input
+        options.outputPath = output
+        options.forceOverwrite = parsedArguments.force
+        options.format = normalizedFormat
         return options
     }
+}
+
+struct Docc2contextCLIOptions: ParsableArguments {
+    @Argument(help: "DocC bundle or archive to convert.")
+    var inputPath: String?
+
+    @Option(name: .customLong("output"), help: "Target directory that will contain Markdown + link graph outputs.")
+    var outputPath: String?
+
+    @Flag(name: .long, help: "Overwrite the output directory if it already exists.")
+    var force: Bool = false
+
+    @Option(name: .customLong("format"), help: "Output format. Supported values: markdown (default).")
+    var format: String = "markdown"
 }
 
 public struct Docc2contextHelp {
