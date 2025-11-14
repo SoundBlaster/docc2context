@@ -56,3 +56,17 @@ Expand the placeholder `LoggingTests` into concrete failing specs for the "happy
 ## Progress Log
 - 2024-03-09 — SELECT_NEXT command run: chose D1 to parallelize with B3 so observability exists before archive extraction and parsing tasks ramp up.
 - 2024-03-10 — START ritual: refreshed this plan, added blocking questions + execution checklist, updated TODO entry, and introduced `LoggingTests` scaffolding to begin TDD work.
+- 2025-11-14 — Finalized the structured logging pipeline, added deterministic sinks, and threaded event emission through the CLI so every pipeline stage announces start/finish plus errors.
+
+## Completion Summary (2025-11-14)
+- Added `Logger`, `LogEvent`, and memory-backed sink types under `Sources/docc2contextCore/Logging/` so tests can snapshot structured payloads.
+- CLI now emits detection/extraction/parsing/generation lifecycle events and summarizes bundle + page counts deterministically.
+- Documented verbosity controls and sample output in the README to set user expectations for the logging contract.
+
+## Validation Evidence
+- `swift test --filter LoggingTests` (Linux).【0923bb†L1-L18】
+- `Scripts/release_gates.sh` including the deterministic CLI smoke command and fixture verification.【04ad80†L1-L43】【a19e87†L1-L10】
+
+## Follow-Ups
+- Once B3/B4 stabilize, update logging snapshots to cover real bundle stats rather than stubs.
+- Evaluate exposing `--log-format json` flag so automation can parse events without relying on stdout formatting.

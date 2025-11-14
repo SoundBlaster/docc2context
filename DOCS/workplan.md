@@ -11,7 +11,7 @@ The workplan distills the execution order of the phases defined in [DOCS/PRD/doc
 ## Phase B – CLI Contract & Input Validation
 - ✅ **B1 Specify CLI Interface via Failing Tests** — archived under `DOCS/TASK_ARCHIVE/02_B1_CLIInterfaceTests/`; test suite locks CLI arguments, help text, `--force`, and error paths.
 - ✅ **B2 Implement Argument Parsing to Satisfy Tests** — archived under `DOCS/TASK_ARCHIVE/05_B2_ArgumentParsing/`; CLI options now run through `Docc2contextCLIOptions` and satisfy the B1 tests.
-- **B3 Detect Input Type** — ensure directories vs `.doccarchive` inputs normalize to bundle paths, covered by tests.
+- ✅ **B3 Detect Input Type** — archived under `DOCS/TASK_ARCHIVE/07_B3_InputDetection/`; detection enum + CLI wiring now normalize DocC directories and `.doccarchive` paths with deterministic error handling.
 - **B4 Extract Archive Inputs** — add deterministic extraction with cleanup validated via fixture-based tests.
 - **B5 Parse DocC Metadata** — read Info.plist, tutorials, and symbol graphs into native models.
 - **B6 Build Internal Model** — define structs representing DocC pages and references.
@@ -24,7 +24,7 @@ The workplan distills the execution order of the phases defined in [DOCS/PRD/doc
 - **C5 Verify Determinism** — double-run conversions in CI and compare hashes.
 
 ## Phase D – Quality Gates, Packaging, and Documentation
-- **D1 Implement Logging & Progress** — structured logging with snapshot tests.
+- ✅ **D1 Implement Logging & Progress** — archived under `DOCS/TASK_ARCHIVE/08_D1_StructuredLogging/`; CLI emits deterministic phase lifecycle events and summary counts with tests + release gates enforcing the contract.
 - **D2 Harden Test Coverage** — drive coverage >90% on critical paths before release.
 - **D3 Document Usage & Testing Workflow** — README updates for CLI usage, fixtures, and automation.
 - **D4 Package Distribution & Release Automation** — release script that builds and publishes binaries only after gates succeed.

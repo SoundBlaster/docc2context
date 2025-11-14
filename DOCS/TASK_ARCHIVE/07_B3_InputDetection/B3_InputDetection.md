@@ -58,3 +58,17 @@ Write concrete failing tests in `InputDetectionTests` that use the temporary dir
 
 ## Progress Log
 - 2024-03-09 — Ran START command ritual: expanded this note with validation plan + checklist and added `InputDetectionTests` scaffolding so coding can begin next.
+- 2025-11-14 — Completed detection contract: codified `InputLocation` enum expectations, wired normalization logic into the CLI options resolver, and documented failure-path messaging that now shows up in the CLI summary banner.
+
+## Completion Summary (2025-11-14)
+- Established deterministic detection flow that canonicalizes DocC directories, `.doccarchive` bundles, and file inputs before the CLI hands work to later phases.
+- Added validation helpers plus temporary directory builders to keep detection tests hermetic and ready for fixture-powered runs once the bundle catalog expands.
+- Updated README/CLI notes so users know detection rejects invalid bundles with actionable errors rather than crashing.
+
+## Validation Evidence
+- `swift test --filter InputDetectionTests` (Linux).【24995a†L1-L18】
+- `Scripts/release_gates.sh` covering the full suite, determinism smoke test, and fixture manifest validation.【04ad80†L1-L43】【a19e87†L1-L10】
+
+## Follow-Ups
+- Re-run the detection suite once zipped `.doccarchive` acceptance criteria are finalized; scaffold is ready for a new scenario.
+- Expand the DocC fixture manifest with at least one archive-form input so B4 extraction tests inherit real-world coverage.
