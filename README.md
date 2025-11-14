@@ -39,7 +39,7 @@ The tests exercise the CLI target and keep the Linux/macOS builds honest.
 
 ## CLI usage (bootstrap)
 
-The current CLI exposes the argument contract defined in task **B1** so downstream implementation work (B2+) has a stable spec.
+The current CLI exposes the argument contract verified by the initial CLI test suite so downstream implementation work has a stable spec.
 
 ```
 docc2context <input-path> --output <directory> [--format markdown] [--force]
@@ -59,7 +59,6 @@ s the same usage and documents each supported flag.
 
 GitHub Actions runs `swift build` and `swift test` on Ubuntu 22.04 and macOS. The Linux job relies on [`SwiftyLab/setup-swift`](https://github.com/SwiftyLab/setup-swift) to install Swift 6.1.2 and mirrors the package dependencies called out above so local and CI environments stay aligned. The macOS job selects Xcode 16.4 and uses its bundled Swift 6.1.2 toolchain to avoid mismatched SDK headers.
 
-## Next steps
+## Project documentation
 
-Tasks **A2** (shared XCTest helpers) and **B1** (CLI contract tests & parsing skeleton) are in progress. Follow their execution n
-otes inside [`DOCS/INPROGRESS/A2_TDDHarness.md`](DOCS/INPROGRESS/A2_TDDHarness.md) and [`DOCS/INPROGRESS/B1_CLIInterfaceTests.md`](DOCS/INPROGRESS/B1_CLIInterfaceTests.md) for coordination details.
+Roadmap planning, task coordination, and historical notes live under the `DOCS/` directory (e.g., `DOCS/workplan.md`, `DOCS/todo.md`, and `DOCS/INPROGRESS/`). Consult those files for the latest status instead of treating this README as a task tracker.
