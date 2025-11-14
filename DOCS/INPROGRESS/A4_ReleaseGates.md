@@ -1,37 +1,37 @@
 # A4 – Define Deployment & Release Gates
 
 ## Objective
-Establish a documented release checklist and supporting automation so every publish/build run revalidates the `docc2context` pipeline before artifacts are tagged. Scope includes determinism hashing, fixture integrity checks, and enforcement that `swift test` + lint routines exit successfully, aligning with the PRD Phase A requirement for release gates.
+Establish an enforceable release checklist plus automation so every publish/build run revalidates the `docc2context` pipeline before artifacts are tagged. Scope includes determinism hashing, fixture integrity checks, and enforcement that `swift test` + lint routines exit successfully, aligning with the PRD Phase A requirement for release gates.
 
-## Reference Material
-- `DOCS/PRD/docc2context_prd.md` — Phase A table entry **A4** plus acceptance criteria (release gate script enforces lint, determinism, and tests).
-- `DOCS/workplan.md` — Phase A sequencing showing A4 can run in parallel with A3 after A1 is complete.
-- `DOCS/TASK_ARCHIVE/` entries for A1/A2 that provide the current CI + TDD harness context.
+## Relevant PRD Paragraphs
+- `DOCS/PRD/docc2context_prd.md` — Phase A table entry **A4** describing deterministic release gating, fixture checksum verification, and mandatory CI test execution.
+- `DOCS/PRD/phases.md` — Phase A checklist rows for A4 referencing determinism hash comparison and fixture manifest validation.
 
-## Dependencies & Assumptions
-- [x] **A1 – SwiftPM + CI bootstrap**: gate script will extend the existing workflow.
-- [x] **A2 – TDD harness utilities**: determinism + fixture checks will call into these helpers where possible.
-- [ ] **A3 – Fixture population**: until bundles land, checksum/fixture validation will operate on placeholder manifest entries; script must tolerate missing archives but flag once fixtures exist.
+## Test Plan
+- Run `swift test` locally (Linux container) and via the planned gate script.
+- Add command(s) in the gate script to compute determinism hash by hashing the repository outputs twice and comparing results (placeholder until Markdown generation lands).
+- Use fixture manifest checksums (A3 deliverable) to validate `Fixtures/` integrity; until real fixtures exist, the script logs a warning but succeeds.
+- Verify the gate script exits non-zero when any subprocess fails (tested via deliberate failure injection once logic exists).
 
-## Deliverables
-1. Markdown checklist covering mandatory steps before tagging a release (tests, determinism hash comparison, fixture verification, lint/format, artifact checksum capture).
-2. Automation script(s) under `Scripts/` (likely Bash + Swift) that:
-   - Run `swift test` and fail-fast on errors.
-   - Invoke a determinism helper (double-run hash comparison or placeholder stub until Phase C/C5 implement data).
-   - Recompute fixture checksums from `Fixtures/manifest.json` and compare to stored values.
-   - Emit summarized status + exit non-zero when any gate fails.
-3. Documentation update hooks (README/workflow notes) once the script exists (captured as follow-up once implementation begins via START command).
+## Dependencies
+- [x] **A1 – SwiftPM + CI bootstrap** (script will reuse existing package + CI structure).
+- [x] **A2 – TDD harness utilities** (checksum helpers and fixture loaders live here once implemented).
+- [ ] **A3 – Fixture population** (gate script must degrade gracefully until manifest entries exist).
 
-## Validation Plan
-- Dry-run the script locally on Linux container to ensure all commands succeed with current repo state.
-- Add (or extend) XCTest/SwiftPM tests for any Swift helper types introduced to support determinism hashing.
-- Record shasum output for fixtures and compare against manifest as part of the script to ensure determinism gate is meaningful even before Markdown generation arrives.
+## Blocking Questions
+1. Should lint/format checks (e.g., `swift format`) run inside the same gate script or a separate CI job? Pending decision.
+2. What deterministic artifact(s) should be hashed before conversion pipeline exists? Currently planning to hash fixture directories as placeholder.
 
-## Open Questions / Risks
-- Determinism verification currently lacks real conversion outputs; may need to introduce a placeholder double-run on fixtures directory hashing until conversion pipeline exists.
-- Need to decide whether lint/formatting is enforced (e.g., `swift format` or `swiftlint`), or if the initial gate focuses on tests + determinism only.
+## Sub-task Checklist
+- [ ] Inventory existing scripts/tooling gaps and confirm directory layout for release gates.
+- [ ] Draft release gate checklist sections (tests, determinism hash, fixture verification, reporting).
+- [ ] Implement shell script scaffolding that runs `swift test` and placeholder determinism checks.
+- [ ] Define fixture manifest verification logic (stub until fixtures arrive).
+- [ ] Document how to invoke the gate script inside README/CI once functionality stabilizes.
 
-## Immediate Next Actions
-1. Inventory existing scripts/tooling to avoid duplication and sketch the release checklist outline (sections + required commands).
-2. Decide on script language(s) and directory layout (e.g., `Scripts/release_gate.sh` plus helper Swift target) and capture that plan.
-3. Identify any missing dependencies (e.g., need for `shasum` availability in CI) and add TODOs if prerequisites are unmet.
+## Current Progress Notes
+- SELECT_NEXT identified A4 as the next Phase A priority. START session initiated to capture scope and begin execution.
+- Created `Scripts/release_gates.sh` scaffold (initial run step) to serve as the automation entry point.
+
+## Immediate Next Action
+Inventory commands required for the release gate checklist, flesh out the script with TODO markers for each section, and add README/CI references once behavior is verified.
