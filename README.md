@@ -55,6 +55,17 @@ docc2context <input-path> --output <directory> [--format markdown] [--force]
 Parsing errors exit with `EX_USAGE`/64 and human-readable guidance so scripts can detect misconfigurations early. `--help` print
 s the same usage and documents each supported flag.
 
+## Metadata parsing pipeline
+
+`DoccMetadataParser` in the core library currently covers every metadata artifact that ships with DocC bundles so downstream Markdown rendering has strongly typed inputs without needing additional CLI flags. The parser expects the B3 input detection stage (and eventually the B4 archive extractor) to hand it a normalized bundle directory; within that directory it loads:
+
+- `Info.plist` for bundle identifiers, localized display names, technology roots, and optional DocC/project version strings with typed errors for missing keys or invalid field types.
+- `data/metadata/metadata.json` for render metadata describing generator details and format versions.
+- `data/documentation/<TechnologyRoot>.json` for technology overview nodes, including abstracts and topic identifiers used to seed Markdown navigation.
+- `data/symbol-graphs/*.json` for symbol references that are sorted deterministically by identifier/module names so later phases produce stable Markdown regardless of filesystem ordering.
+
+These entry points power the `MetadataParsingTests` suite, which reads both tutorial and article fixtures to validate the behavior today while B6+ tasks wire the data into Markdown generation.
+
 ## Continuous Integration
 
 GitHub Actions runs `swift build` and `swift test` on Ubuntu 22.04 and macOS. The Linux job relies on [`SwiftyLab/setup-swift`](https://github.com/SwiftyLab/setup-swift) to install Swift 6.1.2 and mirrors the package dependencies called out above so local and CI environments stay aligned. The macOS job selects Xcode 16.4 and uses its bundled Swift 6.1.2 toolchain to avoid mismatched SDK headers.
