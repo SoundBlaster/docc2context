@@ -73,6 +73,30 @@ public struct DoccDocumentationCatalog: Equatable, Codable {
     public let topics: [TopicSection]
 }
 
+public struct DoccTutorial: Equatable, Codable {
+    public struct Step: Equatable, Codable {
+        public let title: String
+        public let content: [String]
+    }
+
+    public struct Assessment: Equatable, Codable {
+        public let title: String
+        public let items: [AssessmentItem]
+    }
+
+    public struct AssessmentItem: Equatable, Codable {
+        public let prompt: String
+        public let choices: [String]
+        public let answer: Int
+    }
+
+    public let identifier: String
+    public let title: String
+    public let introduction: String?
+    public let steps: [Step]
+    public let assessments: [Assessment]
+}
+
 public struct DoccSymbolReference: Equatable, Codable {
     public let identifier: String
     public let title: String
@@ -115,6 +139,8 @@ public enum DoccMetadataParserError: Error, LocalizedError, Equatable {
     case invalidSymbolGraph(URL)
     case metadataJSONMissing(URL)
     case invalidMetadataJSON(URL)
+    case tutorialPageMissing(URL)
+    case invalidTutorialPage(URL)
 
     public var errorDescription: String? {
         switch self {
@@ -140,6 +166,10 @@ public enum DoccMetadataParserError: Error, LocalizedError, Equatable {
             return "metadata.json not found at \(url.path)."
         case .invalidMetadataJSON(let url):
             return "metadata.json at \(url.path) is not valid JSON."
+        case .tutorialPageMissing(let url):
+            return "Tutorial page not found at \(url.path)."
+        case .invalidTutorialPage(let url):
+            return "Tutorial page at \(url.path) is not valid JSON."
         }
     }
 }
@@ -322,6 +352,26 @@ public struct DoccMetadataParser {
             kind: rawMetadata.kind)
     }
 
+    public func loadTutorialPage(
+        withIdentifier identifier: String,
+        from bundleURL: URL
+    ) throws -> DoccTutorial {
+        let tutorialURL = makeTutorialFileURL(for: identifier, bundleURL: bundleURL)
+        let data: Data
+        do {
+            data = try Data(contentsOf: tutorialURL)
+        } catch {
+            throw DoccMetadataParserError.tutorialPageMissing(tutorialURL)
+        }
+
+        let decoder = JSONDecoder()
+        do {
+            return try decoder.decode(DoccTutorial.self, from: data)
+        } catch {
+            throw DoccMetadataParserError.invalidTutorialPage(tutorialURL)
+        }
+    }
+
     private func value(forKey key: String, in plist: [String: Any]) throws -> String {
         guard let rawValue = plist[key] else {
             throw DoccMetadataParserError.missingRequiredField(key)
@@ -374,6 +424,14 @@ public struct DoccMetadataParser {
 // MARK: - Private helpers
 
 extension DoccMetadataParser {
+    private func makeTutorialFileURL(for identifier: String, bundleURL: URL) -> URL {
+        let slug = identifier.split(separator: "/").last.map(String.init) ?? identifier
+        return bundleURL
+            .appendingPathComponent("data", isDirectory: true)
+            .appendingPathComponent("tutorials", isDirectory: true)
+            .appendingPathComponent("\(slug).json", isDirectory: false)
+    }
+
     private func logSkippedSymbols(count: Int, fileURL: URL) {
         let message =
             "DoccMetadataParser: skipped \(count) symbol(s) in \(fileURL.lastPathComponent) due to missing identifiers or titles.\n"

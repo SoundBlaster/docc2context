@@ -50,3 +50,22 @@ Define the executable spec for tutorial chapter Markdown output so the renderer 
 - Todo entry updated to call out the tutorial chapter snapshot focus.
 - This note reviewed/linked from `DOCS/INPROGRESS/C1_MarkdownSnapshotSpecs.md`.
 - Clear answers to open questions or a follow-up task identified if unknowns remain when coding starts.
+
+## Implementation Update — 2025-11-15
+- Authored `MarkdownSnapshotSpecsTests.test_tutorialChapterPageMatchesSnapshot` covering the "Getting Started" chapter pulled
+  from `Fixtures/TutorialCatalog.doccarchive`. Snapshot stored at `Tests/__Snapshots__/MarkdownSnapshotSpecsTests/test_tutorialCh
+  apterPageMatchesSnapshot().md` describes chapter metadata, ordered steps, and assessments.
+- Extended `DoccMetadataParser` with `DoccTutorial` models plus `loadTutorialPage(withIdentifier:from:)` so snapshot tests and f
+  uture renderer work consume normalized tutorial JSON rather than ad-hoc fixture parsing.
+- Added `DoccMarkdownRenderer.renderTutorialChapterPage` to render:
+  - Chapter metadata (volume title/identifier, tutorial count) and a deterministic tutorials section.
+  - Ordered steps with nested bullet content and assessment blocks that enumerate choices + 1-based answer indices.
+  - Navigation footer that links to previous/next chapters or `_None_` when at the edges; this resolved the earlier navigation f
+    ooter open question.
+- Snapshot harness exercised via `swift test --filter MarkdownSnapshotSpecsTests.test_tutorialChapterPageMatchesSnapshot`, then
+  validated with the full `swift test` run before recording.
+
+## Outstanding Follow-Ups
+- Reference article snapshot specs remain outstanding (tracked in `C1_MarkdownSnapshotSpecs.md`).
+- Tutorial asset placeholders currently manifest as descriptive text; revisit when fixtures introduce inline media that need nor
+  malized URLs.

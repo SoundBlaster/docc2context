@@ -21,6 +21,24 @@ public struct DoccMarkdownRenderer {
         return sections.joined(separator: "\n\n") + "\n"
     }
 
+    public func renderTutorialChapterPage(
+        catalog: DoccDocumentationCatalog,
+        volume: DoccTutorialVolume,
+        chapter: DoccTutorialChapter,
+        tutorials: [DoccTutorial]
+    ) -> String {
+        var sections: [String] = []
+        sections.append("# \(chapter.title)")
+        sections.append(makeChapterMetadataSection(
+            catalog: catalog,
+            volume: volume,
+            chapter: chapter,
+            tutorialCount: tutorials.count))
+        sections.append(makeTutorialsSection(from: tutorials))
+        sections.append(makeNavigationSection(in: volume, chapter: chapter))
+        return sections.joined(separator: "\n\n") + "\n"
+    }
+
     private func makeMetadataSection(
         catalog: DoccDocumentationCatalog,
         volume: DoccTutorialVolume
@@ -54,6 +72,109 @@ public struct DoccMarkdownRenderer {
                 lines.append("- \(identifier)")
             }
         }
+        return lines.joined(separator: "\n")
+    }
+
+    private func makeChapterMetadataSection(
+        catalog: DoccDocumentationCatalog,
+        volume: DoccTutorialVolume,
+        chapter: DoccTutorialChapter,
+        tutorialCount: Int
+    ) -> String {
+        var lines: [String] = ["## Chapter Metadata"]
+        lines.append("- **Volume Title:** \(volume.title)")
+        lines.append("- **Volume Identifier:** \(volume.identifier)")
+        lines.append("- **Chapter Title:** \(chapter.title)")
+        lines.append("- **Tutorial Count:** \(tutorialCount)")
+        return lines.joined(separator: "\n")
+    }
+
+    private func makeTutorialsSection(from tutorials: [DoccTutorial]) -> String {
+        var lines: [String] = ["## Tutorials"]
+        guard !tutorials.isEmpty else {
+            lines.append("_No tutorial content available for this chapter._")
+            return lines.joined(separator: "\n")
+        }
+
+        for tutorial in tutorials {
+            lines.append("")
+            lines.append("### \(tutorial.title)")
+
+            if let introduction = tutorial.introduction?.trimmingCharacters(in: .whitespacesAndNewlines),
+                !introduction.isEmpty {
+                lines.append("")
+                lines.append("#### Introduction")
+                lines.append(introduction)
+            }
+
+            if !tutorial.steps.isEmpty {
+                lines.append("")
+                lines.append("#### Steps")
+                lines.append(contentsOf: makeStepLines(for: tutorial.steps))
+            }
+
+            if !tutorial.assessments.isEmpty {
+                lines.append("")
+                lines.append("#### Assessments")
+                lines.append(contentsOf: makeAssessmentLines(for: tutorial.assessments))
+            }
+        }
+
+        return lines.joined(separator: "\n")
+    }
+
+    private func makeStepLines(for steps: [DoccTutorial.Step]) -> [String] {
+        var lines: [String] = []
+        for (index, step) in steps.enumerated() {
+            lines.append("\(index + 1). **\(step.title)**")
+            let normalizedContent = step.content
+                .map { $0.trimmingCharacters(in: .whitespacesAndNewlines) }
+                .filter { !$0.isEmpty }
+            for entry in normalizedContent {
+                lines.append("   - \(entry)")
+            }
+        }
+        return lines
+    }
+
+    private func makeAssessmentLines(for assessments: [DoccTutorial.Assessment]) -> [String] {
+        var lines: [String] = []
+        for (index, assessment) in assessments.enumerated() {
+            lines.append("##### \(assessment.title)")
+            for item in assessment.items {
+                lines.append("- Prompt: \(item.prompt)")
+                if !item.choices.isEmpty {
+                    lines.append("- Choices:")
+                    for (choiceIndex, choice) in item.choices.enumerated() {
+                        lines.append("  \(choiceIndex + 1). \(choice)")
+                    }
+                }
+                lines.append("- Answer Index: \(item.answer + 1)")
+            }
+            if index < assessments.count - 1 {
+                lines.append("")
+            }
+        }
+        return lines
+    }
+
+    private func makeNavigationSection(
+        in volume: DoccTutorialVolume,
+        chapter: DoccTutorialChapter
+    ) -> String {
+        let chapterIndex = volume.chapters.firstIndex(of: chapter)
+        let previousTitle = chapterIndex.flatMap { index -> String? in
+            guard index - 1 >= 0 else { return nil }
+            return volume.chapters[index - 1].title
+        }
+        let nextTitle = chapterIndex.flatMap { index -> String? in
+            guard index + 1 < volume.chapters.count else { return nil }
+            return volume.chapters[index + 1].title
+        }
+
+        var lines: [String] = ["## Navigation"]
+        lines.append("- **Previous Chapter:** \(previousTitle ?? "_None_")")
+        lines.append("- **Next Chapter:** \(nextTitle ?? "_None_")")
         return lines.joined(separator: "\n")
     }
 }

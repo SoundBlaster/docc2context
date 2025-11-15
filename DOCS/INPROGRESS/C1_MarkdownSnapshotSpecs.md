@@ -26,13 +26,13 @@ Translate the Phase C requirement for deterministic Markdown exports into execut
 ## Subtasks & Checklist
 - [x] Finalize snapshot directory layout by adding `Tests/__Snapshots__/MarkdownSnapshotSpecsTests/` alongside the shared harness docs.
 - [x] Implement the tutorial overview snapshot spec + renderer entry point described above.
-- [ ] Expand fixtures/tests for tutorial chapters and reference articles following the same harness.
+- [x] Expand fixtures/tests for tutorial chapters following the same harness (`test_tutorialChapterPageMatchesSnapshot`).
+- [ ] Record reference article snapshot specs using `Fixtures/ArticleReference.doccarchive`.
 - [ ] Document normalization/diff helpers (line endings, code block fences) once discovered.
 
-### Active Focus: Tutorial Chapter Snapshot
-- Planning note: `DOCS/INPROGRESS/C1_TutorialChapterSnapshot.md` captures the scope, dependencies, and acceptance criteria for `MarkdownSnapshotSpecsTests.test_tutorialChapterPageMatchesSnapshot`.
-- Snapshot expectations: include chapter title, description, ordered steps with numbered headings, normalized asset references, and navigation footer linking to adjacent content.
-- Outstanding decisions (assets vs. placeholders, step granularity) are tracked in the planning note and must be resolved before recording the snapshot.
+### Active Focus: Reference Article Snapshot
+- Next up: capture reference/article Markdown contracts using `ArticleReference.doccarchive` once tutorial coverage stabilizes.
+- Ensure article snapshots document metadata, relationships, and any inline symbol references to unblock Phase C renderer work.
 
 ## Blocking Questions
 - Do tutorial chapters require separate Markdown files for each step, or a single aggregated page for snapshotting?
