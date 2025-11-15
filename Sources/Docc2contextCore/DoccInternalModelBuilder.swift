@@ -1,6 +1,6 @@
 import Foundation
 
-public struct DoccBundleModel: Equatable {
+public struct DoccBundleModel: Equatable, Codable {
     public let bundleMetadata: DoccBundleMetadata
     public let renderMetadata: DoccRenderMetadata
     public let bundleDataMetadata: DoccBundleDataMetadata
@@ -25,7 +25,7 @@ public struct DoccBundleModel: Equatable {
     }
 }
 
-public struct DoccTutorialVolume: Equatable {
+public struct DoccTutorialVolume: Equatable, Codable {
     public let identifier: String
     public let title: String
     public let chapters: [DoccTutorialChapter]
@@ -37,7 +37,7 @@ public struct DoccTutorialVolume: Equatable {
     }
 }
 
-public struct DoccTutorialChapter: Equatable {
+public struct DoccTutorialChapter: Equatable, Codable {
     public let title: String
     public let pageIdentifiers: [String]
 
