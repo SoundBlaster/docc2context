@@ -20,10 +20,10 @@ Document and execute the work needed to serialize the internal DocC model (PRD P
 - Are there ordering guarantees for topic sections beyond what `DoccDocumentationCatalog` already provides, or do we sort explicitly before encoding?
 
 ## Checklist & Sub-Steps
-- [ ] Add `Tests/Docc2contextCoreTests/InternalModelSerializationTests.swift` containing `DoccInternalModelSerializationTests.test_bundleModelIsCodable` (failing now because the structs do **not** conform to `Codable`).
+- [x] Add `Tests/Docc2contextCoreTests/InternalModelSerializationTests.swift` containing `DoccInternalModelSerializationTests.test_bundleModelIsCodable` (now green after wiring up `Codable` conformance).
 - [ ] Introduce a deterministic JSON encoder helper under `Tests/Docc2contextCoreTests/Support/DeterministicJSONEncoder.swift` (planned after conformance lands).
 - [ ] Expand serialization tests to round-trip the tutorial catalog model and compare SHA-256 hashes of the encoded payload.
-- [ ] Update `DoccBundleModel` + nested types to conform to `Codable` and enforce sorted arrays so determinism holds.
+- [x] Update `DoccBundleModel` + nested types to conform to `Codable` so serialization tests can encode tutorial catalogs (array ordering already enforced by `DoccInternalModelBuilder`).
 - [ ] Wire serialization helper into future Markdown snapshot harnesses once tests pass.
 
 ## Validation Plan
@@ -32,4 +32,4 @@ Document and execute the work needed to serialize the internal DocC model (PRD P
 - `Scripts/release_gates.sh` to revalidate determinism + fixture hashes after serialization helpers ship.
 
 ## Immediate Next Action
-Begin editing `Tests/Docc2contextCoreTests/InternalModelSerializationTests.swift` to replace the temporary conformance assertion with a full round-trip test that encodes the tutorial catalog bundle using `DoccInternalModelBuilder` once the Codable conformance is implemented.
+Introduce the deterministic JSON encoder helper under `Tests/Docc2contextCoreTests/Support/DeterministicJSONEncoder.swift` so upcoming serialization tests can share consistent date formatting and sorted key output.

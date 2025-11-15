@@ -1,6 +1,6 @@
 import Foundation
 
-public struct DoccBundleMetadata: Equatable {
+public struct DoccBundleMetadata: Equatable, Codable {
     public let identifier: String
     public let displayName: String
     public let technologyRoot: String
@@ -25,7 +25,7 @@ public struct DoccBundleMetadata: Equatable {
     }
 }
 
-public struct DoccRenderMetadata: Equatable, Decodable {
+public struct DoccRenderMetadata: Equatable, Codable {
     public let formatVersion: String
     public let generatedAt: String
     public let generator: String
@@ -44,8 +44,8 @@ public struct DoccRenderMetadata: Equatable, Decodable {
     }
 }
 
-public struct DoccDocumentationCatalog: Equatable, Decodable {
-    public struct AbstractItem: Equatable, Decodable {
+public struct DoccDocumentationCatalog: Equatable, Codable {
+    public struct AbstractItem: Equatable, Codable {
         public let type: String
         public let text: String
 
@@ -55,7 +55,7 @@ public struct DoccDocumentationCatalog: Equatable, Decodable {
         }
     }
 
-    public struct TopicSection: Equatable, Decodable {
+    public struct TopicSection: Equatable, Codable {
         public let title: String
         public let identifiers: [String]
 
@@ -73,7 +73,7 @@ public struct DoccDocumentationCatalog: Equatable, Decodable {
     public let topics: [TopicSection]
 }
 
-public struct DoccSymbolReference: Equatable {
+public struct DoccSymbolReference: Equatable, Codable {
     public let identifier: String
     public let title: String
     public let moduleName: String
@@ -89,7 +89,7 @@ public struct DoccSymbolReference: Equatable {
     }
 }
 
-public struct DoccBundleDataMetadata: Equatable {
+public struct DoccBundleDataMetadata: Equatable, Codable {
     public let formatVersion: String
     public let generatedAt: Date
     public let generator: String
