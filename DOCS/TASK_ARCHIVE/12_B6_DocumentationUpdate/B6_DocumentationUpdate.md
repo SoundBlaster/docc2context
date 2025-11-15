@@ -42,4 +42,4 @@ Document the internal model produced by `DoccInternalModelBuilder` so downstream
 - `swift test` (Linux) — regression suite covering the full CLI, parser, and documentation contracts.
 
 ## Follow-Ups
-- Serialization coverage for the internal model remains tracked in `DOCS/INPROGRESS/B6_SerializationCoverage.md` and must land before Phase C Markdown work starts so the README can embed a stable JSON example.
+- Serialization coverage for the internal model landed under `DOCS/TASK_ARCHIVE/13_B6_SerializationCoverage/`; reuse that snapshot/encoder tooling when the README starts embedding JSON excerpts during Phase C work.

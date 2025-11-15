@@ -44,7 +44,7 @@
 - `swift test` (Linux) — covers `DoccInternalModelBuilderTests` along with the existing CLI, parsing, and harness suites (see 2025-11-15 run in shell history).
 
 ## Follow-Ups
-- Serialization determinism tests are still pending (checklist item above). Add JSON round-trip coverage for `DoccBundleModel` before C1 work begins.
+- Serialization determinism tests now live under `DOCS/TASK_ARCHIVE/13_B6_SerializationCoverage/` and should be referenced by any future model changes.
 - Update the README / developer docs with the internal model mapping notes so future phases understand the available fields.
 
 ## Immediate Next Action

@@ -84,6 +84,8 @@ Ordering guarantees:
 3. Each `DoccTutorialChapter` retains the `pageIdentifiers` ordering provided by DocC so Markdown snapshots mirror DocC navigation.
 
 This README section is validated by `InternalModelDocumentationTests` to keep the documentation synchronized with the internal model contract as serialization coverage expands.
+
+Deterministic JSON encoding of `DoccBundleModel` is guarded by `DoccInternalModelSerializationTests` and the recorded snapshot at `Tests/__Snapshots__/DoccInternalModelSerializationTests/tutorial-catalog.json`, so Phase C Markdown generators can rely on a stable serialized representation.
 <!-- INTERNAL_MODEL_DOC_END -->
 
 ## Continuous Integration

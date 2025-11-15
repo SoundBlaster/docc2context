@@ -15,6 +15,7 @@ The workplan distills the execution order of the phases defined in [DOCS/PRD/doc
 - ✅ **B4 Extract Archive Inputs** — archived under `DOCS/TASK_ARCHIVE/10_B4_ArchiveExtraction/`; `ArchiveExtractor` now unpacks `.doccarchive` inputs into hash-derived temp directories with cleanup handles validated via fixture-backed tests and release gates.
 - ✅ **B5 Parse DocC Metadata** — archived under `DOCS/TASK_ARCHIVE/09_B5_DoccMetadataParsing/`; parser entry points cover Info.plist, render metadata, and symbol graphs.
 - ✅ **B6 Build Internal Model** — archived under `DOCS/TASK_ARCHIVE/11_B6_InternalModel/`; `DoccInternalModelBuilder` now emits deterministic tutorial volumes + symbol reference ordering validated by `DoccInternalModelBuilderTests` and `swift test`.
+- ✅ **B6 Serialization Coverage** — archived under `DOCS/TASK_ARCHIVE/13_B6_SerializationCoverage/`; deterministic encoder helpers, JSON snapshots, and serialization tests enforce stable `DoccBundleModel` outputs for downstream Markdown work.
 
 ## Phase C – Markdown Generation
 - **C1 Author Snapshot Specs for Markdown Output** — golden Markdown fixtures for each DocC entity type.
