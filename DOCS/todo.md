@@ -4,6 +4,7 @@ Use this list for near-term execution. Each entry maps back to the PRD and [work
 
 ## In Progress
 - [ ] **C1 Markdown Rendering Strategy Outline** Define the snapshot/fixture scope for tutorials vs. articles so Markdown generation tasks have clear specs. _Depends on:_ B6 internal model + serialization readiness. _Doc:_ PRD §Phase C, workplan §Phase C. _Owner:_ docc2context agent. _Status:_ In Progress – drafting outline + required fixtures/tests before implementing generators.
+- [ ] **C1 Markdown Snapshot Specs** Author failing Markdown snapshot tests plus fixture layout covering tutorial volumes, chapters, and articles before renderer code begins. _Depends on:_ B6 internal model + serialization readiness, C1 outline. _Doc:_ PRD §Phase C, workplan §Phase C. _Owner:_ docc2context agent. _Status:_ In Progress – defining snapshot directory structure, placeholder tests, and remaining open questions inside `DOCS/INPROGRESS/C1_MarkdownSnapshotSpecs.md`.
 
 ## Completed
 - [x] **B6 Serialization Coverage** Add JSON serialization + determinism tests for `DoccBundleModel` and tutorial volumes. _Depends on:_ B6. _Doc:_ PRD §Phase B acceptance criteria. _Owner:_ docc2context agent. _Status:_ Complete – archived under `DOCS/TASK_ARCHIVE/13_B6_SerializationCoverage/`; deterministic encoder helpers, JSON snapshots, and `DoccInternalModelSerializationTests` guard internal model serialization.
