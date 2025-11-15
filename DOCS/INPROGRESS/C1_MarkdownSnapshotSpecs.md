@@ -39,4 +39,4 @@ Translate the Phase C requirement for deterministic Markdown exports into execut
 - How should inline assets (images, callouts) be represented in Markdown snapshots—do we strip them, replace with placeholders, or include deterministic references?
 
 ## Immediate Next Action
-Use the planning output from `C1_TutorialChapterSnapshot.md` to draft `MarkdownSnapshotSpecsTests.test_tutorialChapterPageMatchesSnapshot` targeting the `tutorialcatalog/tutorials/getting-started` Chapter 1 page, ensuring snapshot contents align with the documented heading/order/asset decisions before any renderer implementation begins.
+Use the planning output from `DOCS/TASK_ARCHIVE/15_C1_TutorialChapterSnapshot/C1_TutorialChapterSnapshot.md` to draft `MarkdownSnapshotSpecsTests.test_tutorialChapterPageMatchesSnapshot` targeting the `tutorialcatalog/tutorials/getting-started` Chapter 1 page, ensuring snapshot contents align with the documented heading/order/asset decisions before any renderer implementation begins.
