@@ -4,6 +4,7 @@ Use this list for near-term execution. Each entry maps back to the PRD and [work
 
 ## In Progress
 - [ ] **B6 Serialization Coverage** Add JSON serialization + determinism tests for `DoccBundleModel` and tutorial volumes. _Depends on:_ B6. _Doc:_ PRD §Phase B acceptance criteria. _Owner:_ docc2context agent. _Status:_ In Progress – targeting deterministic `JSONEncoder` output before Phase C work.
+- [ ] **C1 Markdown Rendering Strategy Outline** Define the snapshot/fixture scope for tutorials vs. articles so Markdown generation tasks have clear specs. _Depends on:_ B6 internal model + serialization readiness. _Doc:_ PRD §Phase C, workplan §Phase C. _Owner:_ docc2context agent. _Status:_ In Progress – drafting outline + required fixtures/tests before implementing generators.
 - [x] **B6 Documentation Update** Capture the internal model mapping + tutorial ordering guarantees inside `README.md` and developer docs. _Depends on:_ B6. _Doc:_ PRD §Phase B (documentation readiness). _Owner:_ docc2context agent. _Status:_ Complete – archived under `DOCS/TASK_ARCHIVE/12_B6_DocumentationUpdate/`; README section + `InternalModelDocumentationTests` enforce the contract.
 - [x] **A2** Create XCTest support utilities (temporary directories, fixture loader) and snapshot harness. _Depends on:_ A1. _Doc:_ PRD §Phase A. _Owner:_ docc2context agent. _Status:_ Complete – archived under `DOCS/TASK_ARCHIVE/03_A2_TDDHarness/`.
 - [x] **A3** Establish DocC sample fixtures (tutorial-focused + API/article bundle) under `Fixtures/` with provenance manifest. _Depends on:_ A2. _Doc:_ PRD §Phase A. _Owner:_ docc2context agent. _Status:_ Complete – archived under `DOCS/TASK_ARCHIVE/06_A3_DocCFixtures/`; fixtures + manifest hashes committed.
@@ -21,7 +22,7 @@ Use this list for near-term execution. Each entry maps back to the PRD and [work
 - _None – tasks promoted to "In Progress" once documentation work kicked off._
 
 ## Under Consideration
-- [ ] Outline Markdown rendering strategy for tutorials vs articles in preparation for C1 snapshot specs.
+- _None – waiting on new proposals once C1 outline lands._
 
 ## Backlog Ideas
 - [ ] Explore incremental conversion to stream Markdown output for very large DocC bundles.
