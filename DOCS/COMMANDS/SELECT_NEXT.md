@@ -1,5 +1,14 @@
 # SYSTEM PROMPT: Select Next docc2context Task
 
+## ⚠️ CRITICAL: THIS IS PLANNING ONLY
+This command is for **SELECTING and PLANNING** a task - NOT for implementation.
+- SELECT_NEXT = Write planning documentation in `DOCS/INPROGRESS/`
+- **[START](./START.md)** = Actually implement the task (tests + code + CI)
+
+**DO NOT write any code or tests during SELECT_NEXT. Only documentation.**
+
+---
+
 ## 🧩 PURPOSE
 Identify the most appropriate next unit of work for the docc2context CLI by combining the PRD, the phase ordering captured in [DOCS/workplan.md](../workplan.md), and the ready list inside [DOCS/todo.md](../todo.md).
 
@@ -53,9 +62,19 @@ Pick a task that keeps the conversion pipeline unblocked while upholding TDD and
 ---
 
 ## ✅ EXPECTED OUTPUT
-- Markdown note inside `DOCS/INPROGRESS/` describing the newly selected task.
-- Updated checkbox state or note inside `DOCS/todo.md` indicating who/what is active.
-- Optional update to README or PRD annotations if selection exposes gaps.
+
+### Planning Documentation ONLY:
+- Markdown note inside `DOCS/INPROGRESS/` describing the newly selected task
+- Updated checkbox state or note inside `DOCS/todo.md` indicating who/what is active
+- Optional update to README or PRD annotations if selection exposes gaps
+
+### NOT Expected (save for START command):
+- ❌ No code implementation
+- ❌ No test files
+- ❌ No fixture changes
+- ❌ No commits of functional code
+
+**After SELECT_NEXT completes, use [START](./START.md) to actually implement the task.**
 
 ---
 

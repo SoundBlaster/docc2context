@@ -1,16 +1,82 @@
 # SYSTEM PROMPT: Start docc2context Task
 
+## ⚠️ CRITICAL: UNDERSTAND THE DIFFERENCE
+- **[SELECT_NEXT](./SELECT_NEXT.md)** = Choose a task and write planning documentation ONLY
+- **START** (this command) = FULLY IMPLEMENT the task from start to finish
+
+**If you are only writing documentation or only writing tests, YOU ARE DOING IT WRONG.**
+
+This command requires COMPLETE implementation: tests + code + passing CI. No half-measures.
+
+---
+
 ## 🧩 PURPOSE
-Move a selected task from the TODO list into execution with a laser focus on creating failing tests first, then writing the code that satisfies them, without re-litigating tasks that are already represented inside `DOCS/INPROGRESS/`.
+**EXECUTE AND COMPLETE** a selected task from start to finish: write failing tests, implement the code to make them pass, verify CI passes, and prepare for archival. This is NOT a planning command — planning happens in [SELECT_NEXT](./SELECT_NEXT.md). START means **SHIP THE FEATURE**.
 
 ---
 
 ## 🎯 GOAL
-Establish a repeatable kick-off ritual so every effort:
-- references the authoritative docs ([PRD](../PRD/docc2context_prd.md), [workplan](../workplan.md), [todo](../todo.md)),
-- frames the very next failing XCTest/snapshot/determinism check that will drive implementation,
-- records what "done" means inside `DOCS/INPROGRESS/` before touching Swift files,
-- respects existing `DOCS/INPROGRESS/` assignments by adding new work rather than rewriting someone else’s plan.
+Complete the FULL implementation cycle for the selected task:
+1. **Write failing tests first** (TDD red phase) — but DO NOT commit only red tests
+2. **Implement the code** to make tests pass (TDD green phase)
+3. **Verify ALL tests pass** including CI pipelines
+4. **Refactor if needed** (TDD refactor phase)
+5. **Ensure the feature is complete and shippable**
+
+Key principles:
+- Reference authoritative docs ([PRD](../PRD/docc2context_prd.md), [workplan](../workplan.md), [todo](../todo.md))
+- Follow TDD: red → green → refactor, but NEVER stop at red
+- Respect existing `DOCS/INPROGRESS/` assignments
+- Deliver working, tested code that passes CI
+
+---
+
+## 📋 EXAMPLES
+
+### ✅ CORRECT Usage
+```
+Agent: "I'll implement task B1.2 - Add snapshot testing for Symbol documentation.
+1. First, I'll write failing snapshot tests for Symbol docs
+2. Then implement the Symbol documentation generator
+3. Verify tests pass and CI is green
+4. Update tracking docs"
+
+[Agent proceeds to write tests, implement code, run swift test, verify everything passes, commit]
+```
+
+### ❌ INCORRECT Usage (Anti-patterns)
+
+**Anti-pattern 1: Only writing documentation**
+```
+Agent: "I've created DOCS/INPROGRESS/B1.2_SymbolSnapshots.md with the plan.
+Task complete!" ❌ WRONG - No code was written!
+```
+
+**Anti-pattern 2: Only writing tests**
+```
+Agent: "I've written failing tests for Symbol snapshots. They're red as expected.
+Committing..." ❌ WRONG - Tests must be made green before commit!
+```
+
+**Anti-pattern 3: Stopping at planning**
+```
+Agent: "I've analyzed the task and here's what needs to be done: [list].
+Ready to proceed when you are." ❌ WRONG - Just do it, don't ask!
+```
+
+**Anti-pattern 4: Implementation without tests**
+```
+Agent: "I've implemented the Symbol documentation generator. Done!"
+❌ WRONG - Where are the tests?
+```
+
+### 🔧 Handling Large Tasks
+If a task seems too large to complete in one session:
+1. **STOP** - Don't start the task yet
+2. Break it down into smaller sub-tasks in `DOCS/todo.md`
+3. Run [SELECT_NEXT](./SELECT_NEXT.md) on the first sub-task
+4. Then run START on that smaller piece
+5. Each sub-task should be completable with tests + code + green CI
 
 ---
 
@@ -24,36 +90,91 @@ Establish a repeatable kick-off ritual so every effort:
 ---
 
 ## ⚙️ EXECUTION STEPS
-1. **Review SELECT_NEXT Output**
-   - Inspect `DOCS/INPROGRESS/` for the freshly created task note from running [SELECT_NEXT](./SELECT_NEXT.md).
-   - Confirm the note captures the task ID/slug and explicitly states it is available; if another teammate already owns it, stop here.
-2. **Confirm Selection**
-   - Verify the task is recorded in `DOCS/todo.md` and not currently assigned or in conflict with another INPROGRESS entry.
-   - If prerequisites remain unchecked, either complete them first or capture blocking rationale inside the task note before proceeding.
-3. **Create an INPROGRESS Note**
-   - File name pattern: `DOCS/INPROGRESS/{TaskID}_{Slug}.md`.
-   - Include sections: _Objective_, _Relevant PRD paragraphs_, _First Failing Test to Author_, _Dependencies_, _Blocking Questions_.
-   - Paste a checklist of sub-steps emphasizing test/code creation (e.g., "write failing CLI test", "expand fixture", "implement parser to satisfy new assertions").
-4. **Define Validation Plan**
-   - Point to commands that must run (`swift test`, determinism script, etc.) and describe the exact new test names or fixtures being added.
-   - Note fixture inputs and expected outputs for quick reruns, including where new fixtures will be stored.
-5. **Update TODO List**
-   - Annotate the entry with "In Progress" or move it to a dedicated heading, linking back to the INPROGRESS file.
-   - Explicitly mention the first failing test that will verify success so reviewers know work has moved beyond planning.
-6. **Set Immediate Next Action**
-   - Identify the precise test file/class/function that will be edited next and record it in the INPROGRESS note.
-   - Document any coordination needs (e.g., fixture acquisition, dependency decisions) to unblock the test-first workflow.
-7. **Begin Execution**
-   - Once documentation and TODO updates are complete, immediately start writing the planned test or code that makes it pass.
-   - Capture any deviations discovered during this kick-off inside the INPROGRESS note so the task remains traceable without rewriting existing assignments.
+
+### Phase 1: Planning & Setup (Quick Review)
+1. **Review Task Context**
+   - Inspect `DOCS/INPROGRESS/` for the task note created by [SELECT_NEXT](./SELECT_NEXT.md)
+   - Confirm task is not owned by another teammate
+   - Verify prerequisites in `DOCS/todo.md` are satisfied
+   - If INPROGRESS note doesn't exist, create it with: _Objective_, _PRD references_, _Test plan_, _Dependencies_
+
+### Phase 2: TDD Red — Write Failing Tests
+2. **Author Failing Tests**
+   - Create or update test files (XCTest, snapshot tests, determinism checks)
+   - Write specific test cases that validate the acceptance criteria from PRD
+   - Run tests locally to confirm they FAIL with expected error messages
+   - **CRITICAL**: Do NOT commit at this stage — red tests alone break CI
+
+### Phase 3: TDD Green — Implement Code
+3. **Implement Feature Code**
+   - Write the minimal code needed to make all new tests pass
+   - Follow existing code patterns and architecture
+   - Update fixtures, parsers, CLI logic, or Markdown generators as needed
+   - Run `swift test` frequently to verify progress
+
+4. **Verify All Tests Pass Locally**
+   - Run full test suite: `swift test`
+   - Run determinism checks if applicable
+   - Ensure no existing tests were broken
+   - Fix any regressions immediately
+
+### Phase 4: TDD Refactor — Polish & Verify
+5. **Refactor & Document**
+   - Clean up code (remove duplication, improve naming, add comments)
+   - Update relevant documentation if public APIs changed
+   - Ensure code follows project conventions
+
+6. **Final Validation**
+   - Run complete test suite one more time
+   - Verify CI pipeline will pass (check for common issues: formatting, warnings, etc.)
+   - Update INPROGRESS note with completion status
+
+### Phase 5: Finalize
+7. **Update Tracking Documents**
+   - Mark task as complete in `DOCS/todo.md`
+   - Update INPROGRESS note with final status and outcomes
+   - Note any follow-up tasks discovered during implementation
 
 ---
 
 ## ✅ EXPECTED OUTPUT
-- New or updated Markdown file in `DOCS/INPROGRESS/` capturing scope, validation, and the specific failing test/code sequence that will start the work.
-- Updated `DOCS/todo.md` reflecting the task’s active state, linking back to the INPROGRESS context, and noting the first test being authored.
-- Optional README/PRD cross-links if the task clarifies requirements.
-- Evidence that execution has begun (e.g., initial failing test commit, fixture scaffold, or other tangible progress tied to the immediate next action).
+
+### Deliverables (ALL required, not optional):
+1. **Working, Tested Code**
+   - Complete feature implementation that satisfies PRD acceptance criteria
+   - All tests passing (both new and existing)
+   - Code follows project conventions and patterns
+
+2. **Comprehensive Test Coverage**
+   - New test cases covering the implemented functionality
+   - Tests validate acceptance criteria from PRD
+   - Both positive and negative test cases where applicable
+   - Snapshot/determinism tests if required by the feature
+
+3. **CI Verification**
+   - Local test suite passes: `swift test` ✅
+   - No warnings or errors that would break CI
+   - Determinism checks pass if applicable
+
+4. **Documentation Updates**
+   - INPROGRESS note updated with completion status
+   - `DOCS/todo.md` marked complete or moved to appropriate section
+   - Code comments added for complex logic
+   - README/API docs updated if public interface changed
+
+### Quality Gates (must pass before considering task complete):
+- ✅ All new tests pass
+- ✅ All existing tests still pass (no regressions)
+- ✅ Code review-ready (clean, documented, follows conventions)
+- ✅ Ready for archival via [ARCHIVE](./ARCHIVE.md) command
+
+### NOT Acceptable:
+- ❌ Only tests without implementation
+- ❌ Only implementation without tests
+- ❌ Red/failing tests (even if "by design")
+- ❌ Partial implementation "to be finished later"
+- ❌ Breaking existing tests
+- ❌ Code that would fail CI pipelines
 
 ---
 
