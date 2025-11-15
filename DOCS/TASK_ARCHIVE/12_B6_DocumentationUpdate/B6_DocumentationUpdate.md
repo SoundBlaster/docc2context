@@ -32,5 +32,14 @@ Document the internal model produced by `DoccInternalModelBuilder` so downstream
 - Full `swift test`
 - `Scripts/release_gates.sh` once README + doc tests are green to ensure determinism/fixtures remain intact.
 
-## Immediate Next Action
-Create `InternalModelDocumentationTests` under `Tests/Docc2contextCoreTests/` with helpers that load README via `TestSupportPaths` and assert the new documentation markers/phrases exist. This test should fail until the README section lands, enforcing the documentation contract.
+## Completion Summary
+- Added the "Internal model overview" section to `README.md`, bounded by `<!-- INTERNAL_MODEL_DOC_START -->` / `<!-- INTERNAL_MODEL_DOC_END -->`, describing every struct that makes up `DoccBundleModel` plus the ordering guarantees for tutorial volumes, chapters, and page identifiers.
+- Introduced `InternalModelDocumentationTests.test_readmeDocumentsInternalModelMapping` so the README section is continuously verified for the required phrases.
+- Confirmed the documentation test fails without the README section and passes once it exists, creating a guardrail for future B/C phase work.
+
+## Validation Evidence — 2025-11-15
+- `swift test --filter InternalModelDocumentationTests/test_readmeDocumentsInternalModelMapping` (Linux) — ensures the README documentation markers and required phrases are present.
+- `swift test` (Linux) — regression suite covering the full CLI, parser, and documentation contracts.
+
+## Follow-Ups
+- Serialization coverage for the internal model remains tracked in `DOCS/INPROGRESS/B6_SerializationCoverage.md` and must land before Phase C Markdown work starts so the README can embed a stable JSON example.
