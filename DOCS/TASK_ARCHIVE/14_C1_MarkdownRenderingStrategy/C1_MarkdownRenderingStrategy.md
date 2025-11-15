@@ -30,3 +30,18 @@
 - Need clarity on whether tutorials/articles require different Markdown front matter or metadata blocks.
 - Media asset handling may require streaming or placeholder references; need to confirm with fixtures.
 - Deterministic ordering for navigation sections may require additional internal model sorting.
+
+## Completion Summary (2025-11-16)
+- Cataloged Markdown page types for tutorial volume overviews, per-chapter detail pages, standalone articles, and hybrid tutorial/article symbols while mapping each one back to the Phase C acceptance criteria.
+- Locked the snapshot layout by defining `Tests/__Snapshots__/MarkdownSnapshotSpecsTests/{testName}.md` along with fixture-driven naming that mirrors DocC identifiers so failing specs can be recorded deterministically.
+- Outlined the helper utilities (Markdown normalizer, deterministic diff harness, chapter/article loaders) that the renderer and snapshot suites will require, feeding them directly into the `C1_MarkdownSnapshotSpecs.md` note for execution.
+- Captured outstanding metadata and media questions so follow-up TODO items can resolve them without losing context.
+
+## Validation Evidence
+- Reviewed `PRD/docc2context_prd.md` Phase C scope plus the workplan entries to ensure every Markdown entity expected in C1 is represented in this outline.
+- Cross-checked the fixture coverage from `Fixtures/TutorialCatalog.doccarchive` and `Fixtures/ArticleReference.doccarchive` along with the existing `MarkdownSnapshotSpecsTests.test_tutorialOverviewMatchesSnapshot` spec to verify the snapshot layout is compatible with the shipping harness.
+- Confirmed that no new code/tests were required for this planning task beyond referencing the archived B6 internal model + serialization helpers already validated by `swift test`.
+
+## Follow-Ups
+- Continue executing `C1 Markdown Snapshot Specs` so tutorial chapter and reference article Markdown outputs gain recorded snapshots (tracked in `DOCS/todo.md`).
+- Revisit media asset handling during renderer implementation to decide whether placeholders or streamed references keep Markdown deterministic; promote a TODO entry once the preferred approach is selected.

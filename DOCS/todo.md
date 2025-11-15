@@ -3,7 +3,6 @@
 Use this list for near-term execution. Each entry maps back to the PRD and [workplan](./workplan.md).
 
 ## In Progress
-- [ ] **C1 Markdown Rendering Strategy Outline** Define the snapshot/fixture scope for tutorials vs. articles so Markdown generation tasks have clear specs. _Depends on:_ B6 internal model + serialization readiness. _Doc:_ PRD §Phase C, workplan §Phase C. _Owner:_ docc2context agent. _Status:_ In Progress – drafting outline + required fixtures/tests before implementing generators.
 - [ ] **C1 Markdown Snapshot Specs** Author failing Markdown snapshot tests plus fixture layout covering tutorial volumes, chapters, and articles before renderer code begins. _Depends on:_ B6 internal model + serialization readiness, C1 outline. _Doc:_ PRD §Phase C, workplan §Phase C. _Owner:_ docc2context agent. _Status:_ In Progress – `MarkdownSnapshotSpecsTests.test_tutorialOverviewMatchesSnapshot` now records deterministic Markdown via `DoccMarkdownRenderer.renderTutorialVolumeOverview`; next spec targets the first tutorial chapter page per `DOCS/INPROGRESS/C1_MarkdownSnapshotSpecs.md`.
 
 ## Completed
@@ -20,6 +19,7 @@ Use this list for near-term execution. Each entry maps back to the PRD and [work
 - [x] **B4** Extract archive inputs into deterministic temporary directories with cleanup validation. _Depends on:_ B3. _Doc:_ PRD §Phase B. _Owner:_ docc2context agent. _Status:_ Complete – archived under `DOCS/TASK_ARCHIVE/10_B4_ArchiveExtraction/`; `ArchiveExtractor` + CLI wiring validated via `swift test --filter ArchiveExtractionTests`, full `swift test`, and `Scripts/release_gates.sh`.
 - [x] **B5** Parse DocC metadata (Info.plist, documentation data, symbol graphs) into native models with fixture-driven failure coverage. _Depends on:_ B3. _Doc:_ PRD §Phase B. _Owner:_ docc2context agent. _Status:_ Complete – archived under `DOCS/TASK_ARCHIVE/09_B5_DoccMetadataParsing/`; parser entry points + README integration notes validated by `MetadataParsingTests` and release gates.
 - [x] **B6** Build internal DocC model to bridge parsed metadata and future Markdown generation. _Depends on:_ B5. _Doc:_ PRD §Phase B; `PRD/phase_b.md`. _Owner:_ docc2context agent. _Status:_ Complete – archived under `DOCS/TASK_ARCHIVE/11_B6_InternalModel/`; `DoccInternalModelBuilder` emits deterministic bundle models validated via `DoccInternalModelBuilderTests.test_buildsTutorialVolumeOrderingFromCatalogFixture` and `swift test`.
+- [x] **C1 Markdown Rendering Strategy Outline** Define the snapshot/fixture scope for tutorials vs. articles so Markdown generation tasks have clear specs. _Depends on:_ B6 internal model + serialization readiness. _Doc:_ PRD §Phase C, workplan §Phase C. _Owner:_ docc2context agent. _Status:_ Complete – archived under `DOCS/TASK_ARCHIVE/14_C1_MarkdownRenderingStrategy/` with validation evidence pointing to the Phase C PRD scope, DocC fixtures, and the initial `MarkdownSnapshotSpecsTests` snapshot harness; follow-up execution tracked via the C1 snapshot specs task.
 
 ## Ready to Start
 - _None – tasks promoted to "In Progress" once documentation work kicked off._

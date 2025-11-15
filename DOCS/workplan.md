@@ -18,7 +18,7 @@ The workplan distills the execution order of the phases defined in [DOCS/PRD/doc
 - ✅ **B6 Serialization Coverage** — archived under `DOCS/TASK_ARCHIVE/13_B6_SerializationCoverage/`; deterministic encoder helpers, JSON snapshots, and serialization tests enforce stable `DoccBundleModel` outputs for downstream Markdown work.
 
 ## Phase C – Markdown Generation
-- **C1 Author Snapshot Specs for Markdown Output** — golden Markdown fixtures for each DocC entity type.
+- **C1 Author Snapshot Specs for Markdown Output** — golden Markdown fixtures for each DocC entity type. Planning outline archived under `DOCS/TASK_ARCHIVE/14_C1_MarkdownRenderingStrategy/`; executable snapshot specs continue under the active TODO entry.
 - **C2 Generate Markdown Files** — convert each DocC page into Markdown matching DocC semantics.
 - **C3 Create Link Graph** — emit JSON metadata linking pages and references.
 - **C4 Emit TOC and Index** — deterministic ordering of navigation files.
