@@ -27,26 +27,35 @@ Deterministically extract `.doccarchive` inputs into sanitized temporary directo
 ## Dependencies & Preconditions
 - ✅ **B1–B3** complete: CLI arguments, parsing, and basic input detection already exist.
 - ✅ **A2/A3** deliver harness utilities + DocC bundle fixtures needed to synthesize `.doccarchive` test inputs.
-- 🔜 Need an `ArchiveExtractor` type plus CLI plumbing before Markdown conversion can consume normalized bundle paths.
+- ✅ Archive builder helper (`DeterministicArchiveBuilder`) ensures `.doccarchive` fixtures mirror canonical DocC bundles before extraction begins.
 
 ## Execution Checklist
 - [x] Review SELECT_NEXT output and confirm B4 as the active task.
 - [x] Document scope, references, validation strategy, and fixtures within this note.
 - [x] Update `DOCS/todo.md` with an "In Progress" annotation + link back to this plan.
 - [x] Create test scaffolding file (`Tests/Docc2contextCoreTests/ArchiveExtractionTests.swift`) capturing the deterministic extraction scenarios.
-- [ ] Add a deterministic archive-builder helper to `Tests/…/Support` so tests can wrap fixtures into `.doccarchive` inputs.
-- [ ] Author failing tests in `ArchiveExtractionTests` covering deterministic paths, cleanup, and error propagation.
-- [ ] Implement `ArchiveExtractor` (or equivalent module) plus CLI integration that satisfies the tests.
-- [ ] Update README / CLI documentation with archive-specific usage notes if new flags or requirements emerge.
-- [ ] Run the full suite + release gates before archiving this task.
-
-## Blocking Questions / Coordination Notes
-- Confirm whether Phase B must support both zipped `.doccarchive` files and directory-style archives, or if zipped-only coverage suffices until later phases.
-- Decide whether extraction should rely on Foundation-only APIs (`FileManager` + `Compression`) or can shell out to `/usr/bin/unzip` for portability.
-- Determine where generated archives should live during tests (temporary directory per test vs shared cache) to balance determinism with run time.
-
-## Immediate Next Action
-Finish the test harness work: implement a deterministic archive builder helper and convert the placeholder `ArchiveExtractionTests` into concrete failing specs that describe the expected extraction API surface (return type, cleanup handle, error enum). Once the tests clearly define the contract, begin implementing `ArchiveExtractor` to satisfy them.
+- [x] Add a deterministic archive-builder helper to `Tests/…/Support` so tests can wrap fixtures into `.doccarchive` inputs.
+- [x] Author failing tests in `ArchiveExtractionTests` covering deterministic paths, cleanup, and error propagation.
+- [x] Implement `ArchiveExtractor` plus CLI integration that satisfies the tests.
+- [x] Update README / CLI documentation with archive-specific usage notes if new flags or requirements emerge.
+- [x] Run the full suite + release gates before archiving this task.
 
 ## Progress Log
 - 2025-02-14 — Completed START ritual: refreshed INPROGRESS note with scope + validation details, updated TODO entry, and added `ArchiveExtractionTests` scaffolding so failing tests can be authored next.
+- 2025-11-13 — Introduced `DeterministicArchiveBuilder` so fixture DocC bundles can be zipped into canonical `.doccarchive` files with reproducible hashes.
+- 2025-11-14 — Added failing tests for deterministic extraction, cleanup-on-error, and corrupted archive propagation. Tests assert temp directory naming (SHA-256 seeded) plus lifecycle cleanup semantics.
+- 2025-11-15 — Implemented `ArchiveExtractor` with hash-derived temp directories, cleanup handles, and typed errors surfaced through the CLI. Updated README usage examples, validated with `swift test --filter ArchiveExtractionTests`, `swift test`, and `Scripts/release_gates.sh` before moving to ARCHIVE.
+
+## Completion Summary — 2025-11-15
+- Added fixture-backed `ArchiveExtractionTests` that cover deterministic path generation, cleanup on both success/failure, and corrupted archive reporting.
+- Implemented `ArchiveExtractor` + CLI wiring so `.doccarchive` inputs automatically extract into sanitized temporary directories with lifecycle-managed cleanup.
+- Documented archive support in the README and ensured release gates cover double-run determinism plus fixture hash validation for the new `.doccarchive` assets.
+
+## Validation Evidence
+- `swift test --filter ArchiveExtractionTests`
+- `swift test`
+- `Scripts/release_gates.sh`
+
+## Follow-Ups
+- Monitor extraction performance on very large archives; consider streaming unzip if runtimes exceed PRD thresholds.
+- Evaluate caching of extracted archives for Phase C determinism tests once Markdown generation lands.
