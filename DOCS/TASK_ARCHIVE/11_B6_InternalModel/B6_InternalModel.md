@@ -25,9 +25,9 @@
 - When model layer is implemented, run `swift test` and `Scripts/release_gates.sh` for regression + determinism coverage.
 
 ## Checklist
-- [ ] Enumerate required tutorial/article/symbol fields by auditing DocC catalog + render nodes and log decisions in this note.
-- [ ] Write failing `DoccInternalModelBuilderTests.test_buildsTutorialVolumeOrderingFromCatalogFixture` (tutorial catalog fixture) that locks ordering + symbol exposure.
-- [ ] Implement `DoccInternalModelBuilder` + supporting structs so the test passes while keeping ordering deterministic.
+- [x] Enumerate required tutorial/article/symbol fields by auditing DocC catalog + render nodes and log decisions in this note.
+- [x] Write failing `DoccInternalModelBuilderTests.test_buildsTutorialVolumeOrderingFromCatalogFixture` (tutorial catalog fixture) that locks ordering + symbol exposure.
+- [x] Implement `DoccInternalModelBuilder` + supporting structs so the test passes while keeping ordering deterministic.
 - [ ] Add serialization test covering JSON round-trip + deterministic sorting for symbol references/topics.
 - [ ] Update README/inline docs with mapping notes + link graph considerations for C1/C3.
 
@@ -35,5 +35,17 @@
 - Should link graph edges live directly on each `DoccPage` model or be computed lazily per Phase C? (Default: capture outgoing references array per page; revisit once page parsing begins.)
 - How will localized content be represented? (Plan: keep base locale strings now with TODO hooks for locale expansion.)
 
+## Completion Summary
+- Authored `DoccBundleModel`, `DoccTutorialVolume`, and `DoccTutorialChapter` structs that retain the metadata, render info, bundle data metadata, catalog topics, tutorial ordering, and symbol references surfaced by `DoccMetadataParser`.
+- Implemented `DoccInternalModelBuilder.makeBundleModel` to bridge the parsed assets into the internal model, guaranteeing deterministic ordering by sorting catalog topic sections and identifiers.
+- Captured validation through `DoccInternalModelBuilderTests.test_buildsTutorialVolumeOrderingFromCatalogFixture` which exercises the `TutorialCatalog` fixture and asserts volume identifiers, titles, chapter ordering, and symbol passthrough, ensuring Phase C can consume stable identifiers.
+
+## Validation Evidence
+- `swift test` (Linux) — covers `DoccInternalModelBuilderTests` along with the existing CLI, parsing, and harness suites (see 2025-11-15 run in shell history).
+
+## Follow-Ups
+- Serialization determinism tests are still pending (checklist item above). Add JSON round-trip coverage for `DoccBundleModel` before C1 work begins.
+- Update the README / developer docs with the internal model mapping notes so future phases understand the available fields.
+
 ## Immediate Next Action
-- Start `Tests/Docc2contextCoreTests/InternalModelBuilderTests.swift` with the failing tutorial-volume ordering test outlined above, calling `DoccInternalModelBuilder` and asserting the resulting `DoccBundleModel` contents.
+- Schedule serialization determinism coverage + README documentation follow-ups before kicking off Phase C snapshot specs (C1).
