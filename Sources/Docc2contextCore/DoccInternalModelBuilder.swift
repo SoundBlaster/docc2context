@@ -47,10 +47,6 @@ public struct DoccTutorialChapter: Equatable {
     }
 }
 
-public enum DoccInternalModelBuilderError: Error, Equatable {
-    case notImplemented
-}
-
 public struct DoccInternalModelBuilder {
     public init() {}
 
@@ -61,6 +57,45 @@ public struct DoccInternalModelBuilder {
         bundleDataMetadata: DoccBundleDataMetadata,
         symbolReferences: [DoccSymbolReference]
     ) throws -> DoccBundleModel {
-        throw DoccInternalModelBuilderError.notImplemented
+        let tutorialVolumes = makeTutorialVolumes(from: documentationCatalog)
+
+        return DoccBundleModel(
+            bundleMetadata: bundleMetadata,
+            renderMetadata: renderMetadata,
+            bundleDataMetadata: bundleDataMetadata,
+            documentationCatalog: documentationCatalog,
+            tutorialVolumes: tutorialVolumes,
+            symbolReferences: symbolReferences
+        )
+    }
+
+    private func makeTutorialVolumes(
+        from documentationCatalog: DoccDocumentationCatalog
+    ) -> [DoccTutorialVolume] {
+        guard shouldTreatAsTutorialCollection(documentationCatalog) else {
+            return []
+        }
+
+        let chapters = documentationCatalog.topics.map { topic -> DoccTutorialChapter in
+            let identifiers = topic.identifiers
+                .map { $0.trimmingCharacters(in: .whitespacesAndNewlines) }
+                .filter { !$0.isEmpty }
+            return DoccTutorialChapter(title: topic.title, pageIdentifiers: identifiers)
+        }
+
+        let volume = DoccTutorialVolume(
+            identifier: documentationCatalog.identifier,
+            title: documentationCatalog.title,
+            chapters: chapters
+        )
+
+        return [volume]
+    }
+
+    private func shouldTreatAsTutorialCollection(
+        _ documentationCatalog: DoccDocumentationCatalog
+    ) -> Bool {
+        guard let role = documentationCatalog.role else { return false }
+        return role.caseInsensitiveCompare("tutorialCollection") == .orderedSame
     }
 }

@@ -26,8 +26,8 @@
 
 ## Checklist
 - [ ] Enumerate required tutorial/article/symbol fields by auditing DocC catalog + render nodes and log decisions in this note.
-- [ ] Write failing `DoccInternalModelBuilderTests.test_buildsTutorialVolumeOrderingFromCatalogFixture` (tutorial catalog fixture) that locks ordering + symbol exposure.
-- [ ] Implement `DoccInternalModelBuilder` + supporting structs so the test passes while keeping ordering deterministic.
+- [x] Write failing `DoccInternalModelBuilderTests.test_buildsTutorialVolumeOrderingFromCatalogFixture` (tutorial catalog fixture) that locks ordering + symbol exposure.
+- [x] Implement `DoccInternalModelBuilder` + supporting structs so the test passes while keeping ordering deterministic.
 - [ ] Add serialization test covering JSON round-trip + deterministic sorting for symbol references/topics.
 - [ ] Update README/inline docs with mapping notes + link graph considerations for C1/C3.
 
@@ -36,4 +36,4 @@
 - How will localized content be represented? (Plan: keep base locale strings now with TODO hooks for locale expansion.)
 
 ## Immediate Next Action
-- Start `Tests/Docc2contextCoreTests/InternalModelBuilderTests.swift` with the failing tutorial-volume ordering test outlined above, calling `DoccInternalModelBuilder` and asserting the resulting `DoccBundleModel` contents.
+- Capture the remaining tutorial/article/symbol field requirements (checklist item #1) and outline the serialization/determinism tests that will cover them.
