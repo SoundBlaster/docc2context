@@ -1,26 +1,39 @@
 # B6 – Build Internal Model
 
-## Scope & Intent
-- Translate parsed DocC metadata (Info.plist, render nodes, tutorials/articles, symbol graphs) into ergonomic Swift structs that downstream Markdown generation can consume without re-reading bundle files.
-- Mirror the acceptance criteria in [PRD §Phase B](../PRD/docc2context_prd.md) and [phase_b.md](../PRD/phase_b.md) by validating serialization/deserialization of the internal model via XCTest.
-- Capture mapping notes between the internal model and planned Phase C generators so snapshot specs (C1) can reference consistent identifiers, titles, and hierarchy metadata.
+## Objective
+- Convert the parsed DocC metadata (Info.plist, render metadata, technology catalog, symbol graphs) into deterministic Swift structs that describe bundle-level context plus tutorial/article hierarchies ready for Markdown generation.
+- Capture ordering guarantees, serialization hooks, and mapping notes so Phase C snapshot specs (C1) can rely on stable identifiers/titles without re-reading bundle files.
+
+## Relevant PRD Paragraphs
+- `DOCS/PRD/docc2context_prd.md` §2 (Phase B table) + §3 (Execution metadata) — B6 requires custom models validated by serialization tests before Markdown generation begins.
+- `DOCS/PRD/phase_b.md` (B6 bullets) — reiterates that tutorials/articles/symbols must be represented by Swift structs with notes for downstream generators.
+
+## First Failing Test to Author
+- `DoccInternalModelBuilderTests.test_buildsTutorialVolumeOrderingFromCatalogFixture`
+  - Uses `Fixtures/TutorialCatalog.doccarchive`.
+  - Parses bundle metadata (`DoccMetadataParser`) then asserts the internal model builder emits a bundle model whose tutorial volume + chapter ordering mirrors the catalog topics and captures the identifiers needed for Phase C snapshot specs.
+  - Verifies the symbol references are surfaced on the model for future link graph work.
 
 ## Dependencies
-- ✅ **B5** DocC metadata parser provides typed inputs for each document, tutorial, and symbol graph entry.
-- Fixtures created in A3 plus release gates from A4 ensure deterministic sample data for round-trip tests.
+- ✅ B5 (`DoccMetadataParser`) supplies bundle metadata, documentation catalog, bundle data metadata, and symbol references.
+- ✅ Fixtures from A3 ensure deterministic tutorial/article data.
+- 🔜 Determinism scripts from A4 (`Scripts/release_gates.sh`) will be rerun once serialization tests exist.
 
-## Acceptance Criteria
-1. Swift types exist for tutorials, articles, volumes/chapters, symbol references, and shared metadata (identifiers, technology, locale, hierarchy, assets).
-2. Unit tests cover constructing models from parsed metadata plus encoding/decoding (JSON or plist) to guarantee stability for future serialization.
-3. Documentation within the source or tests describes how each model maps onto expected Markdown outputs (headings, callouts, code listings) to unblock C1 snapshot specs.
-4. Model layer exposes deterministic ordering guarantees so downstream generators can iterate pages predictably.
+## Validation Plan
+- Author new XCTests under `Tests/Docc2contextCoreTests/` focused on the internal model builder: `swift test --filter DoccInternalModelBuilderTests`.
+- Extend harness with serialization checks to ensure JSON encoding of `DoccBundleModel` is deterministic.
+- When model layer is implemented, run `swift test` and `Scripts/release_gates.sh` for regression + determinism coverage.
 
-## Execution Plan
-- [ ] Audit current parsed metadata structs (`Sources/Docc2contextKit/Parsing`) to enumerate required fields for tutorials/articles/symbols.
-- [ ] Sketch Swift model definitions plus protocols (e.g., `DocCPage`, `DocCLinkable`) in a draft test to drive implementation (red tests first).
-- [ ] Author serialization tests exercising a representative tutorial, article, and symbol graph entry derived from fixtures, ensuring round-trip fidelity and deterministic ordering.
-- [ ] Update README or inline docs (if needed) summarizing how the model feeds future Markdown generation steps and log any open questions for C1.
+## Checklist
+- [ ] Enumerate required tutorial/article/symbol fields by auditing DocC catalog + render nodes and log decisions in this note.
+- [ ] Write failing `DoccInternalModelBuilderTests.test_buildsTutorialVolumeOrderingFromCatalogFixture` (tutorial catalog fixture) that locks ordering + symbol exposure.
+- [ ] Implement `DoccInternalModelBuilder` + supporting structs so the test passes while keeping ordering deterministic.
+- [ ] Add serialization test covering JSON round-trip + deterministic sorting for symbol references/topics.
+- [ ] Update README/inline docs with mapping notes + link graph considerations for C1/C3.
 
-## Open Questions / Notes
-- Determine whether link graph edges should live in core models or be computed lazily in C3; start by representing outgoing references on each page to simplify later adjacency calculations.
-- Confirm whether localized content should be flattened now or preserved per-locale; default to base locale for initial model with TODO hooks for locale expansion.
+## Blocking Questions
+- Should link graph edges live directly on each `DoccPage` model or be computed lazily per Phase C? (Default: capture outgoing references array per page; revisit once page parsing begins.)
+- How will localized content be represented? (Plan: keep base locale strings now with TODO hooks for locale expansion.)
+
+## Immediate Next Action
+- Start `Tests/Docc2contextCoreTests/InternalModelBuilderTests.swift` with the failing tutorial-volume ordering test outlined above, calling `DoccInternalModelBuilder` and asserting the resulting `DoccBundleModel` contents.
