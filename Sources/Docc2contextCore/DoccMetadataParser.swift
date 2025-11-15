@@ -30,17 +30,39 @@ public struct DoccRenderMetadata: Equatable, Decodable {
     public let generatedAt: String
     public let generator: String
     public let kind: String
+
+    public init(
+        formatVersion: String,
+        generatedAt: String,
+        generator: String,
+        kind: String
+    ) {
+        self.formatVersion = formatVersion
+        self.generatedAt = generatedAt
+        self.generator = generator
+        self.kind = kind
+    }
 }
 
 public struct DoccDocumentationCatalog: Equatable, Decodable {
     public struct AbstractItem: Equatable, Decodable {
         public let type: String
         public let text: String
+
+        public init(type: String, text: String) {
+            self.type = type
+            self.text = text
+        }
     }
 
     public struct TopicSection: Equatable, Decodable {
         public let title: String
         public let identifiers: [String]
+
+        public init(title: String, identifiers: [String]) {
+            self.title = title
+            self.identifiers = identifiers
+        }
     }
 
     public let identifier: String
@@ -55,6 +77,16 @@ public struct DoccSymbolReference: Equatable {
     public let identifier: String
     public let title: String
     public let moduleName: String
+
+    public init(
+        identifier: String,
+        title: String,
+        moduleName: String
+    ) {
+        self.identifier = identifier
+        self.title = title
+        self.moduleName = moduleName
+    }
 }
 
 public struct DoccBundleDataMetadata: Equatable {
@@ -74,6 +106,8 @@ public struct DoccBundleDataMetadata: Equatable {
 public enum DoccMetadataParserError: Error, LocalizedError, Equatable {
     case infoPlistMissing(URL)
     case invalidInfoPlist(URL)
+    case missingRequiredField(String)
+    case invalidFieldType(key: String, expected: String)
     case renderMetadataMissing(URL)
     case invalidRenderMetadata(URL)
     case documentationCatalogMissing(URL)
@@ -81,8 +115,6 @@ public enum DoccMetadataParserError: Error, LocalizedError, Equatable {
     case invalidSymbolGraph(URL)
     case metadataJSONMissing(URL)
     case invalidMetadataJSON(URL)
-    case missingRequiredField(file: String, key: String)
-    case invalidFieldType(file: String, key: String, expected: String)
 
     public var errorDescription: String? {
         switch self {
@@ -90,6 +122,10 @@ public enum DoccMetadataParserError: Error, LocalizedError, Equatable {
             return "Info.plist not found at \(url.path)."
         case .invalidInfoPlist(let url):
             return "Info.plist at \(url.path) is not a valid property list."
+        case .missingRequiredField(let field):
+            return "Info.plist is missing required key '\(field)'."
+        case .invalidFieldType(let key, let expected):
+            return "Info.plist key '\(key)' does not match expected type \(expected)."
         case .renderMetadataMissing(let url):
             return "Render metadata missing at \(url.path)."
         case .invalidRenderMetadata(let url):
@@ -104,10 +140,6 @@ public enum DoccMetadataParserError: Error, LocalizedError, Equatable {
             return "metadata.json not found at \(url.path)."
         case .invalidMetadataJSON(let url):
             return "metadata.json at \(url.path) is not valid JSON."
-        case .missingRequiredField(let file, let key):
-            return "\(file) is missing required key '\(key)'."
-        case .invalidFieldType(let file, let key, let expected):
-            return "\(file) key '\(key)' does not match expected type \(expected)."
         }
     }
 }
@@ -139,13 +171,12 @@ public struct DoccMetadataParser {
             throw DoccMetadataParserError.invalidInfoPlist(infoPlistURL)
         }
 
-        let identifier = try value(forKey: "Identifier", in: plist, file: "Info.plist")
-        let displayName = try value(forKey: "CFBundleName", in: plist, file: "Info.plist")
-        let technologyRoot = try value(forKey: "TechnologyRoot", in: plist, file: "Info.plist")
-        let locales = try languageArray(from: plist, file: "Info.plist")
-        let doccVersion = try optionalValue(forKey: "DocCVersion", in: plist, file: "Info.plist")
-        let projectVersion = try optionalValue(
-            forKey: "ProjectVersion", in: plist, file: "Info.plist")
+        let identifier = try value(forKey: "Identifier", in: plist)
+        let displayName = try value(forKey: "CFBundleName", in: plist)
+        let technologyRoot = try value(forKey: "TechnologyRoot", in: plist)
+        let locales = try languageArray(from: plist)
+        let doccVersion = try optionalValue(forKey: "DocCVersion", in: plist)
+        let projectVersion = try optionalValue(forKey: "ProjectVersion", in: plist)
 
         return DoccBundleMetadata(
             identifier: identifier,
@@ -220,7 +251,8 @@ public struct DoccMetadataParser {
         )
 
         var references: [DoccSymbolReference] = []
-        for fileURL in fileURLs where fileURL.pathExtension == "json" {
+        for fileURL in fileURLs
+        where fileURL.lastPathComponent.lowercased().hasSuffix(".symbols.json") {
             let data = try Data(contentsOf: fileURL)
             let symbolGraph: SymbolGraphFile
             do {
@@ -229,12 +261,14 @@ public struct DoccMetadataParser {
                 throw DoccMetadataParserError.invalidSymbolGraph(fileURL)
             }
 
+            var skippedSymbolsForFile = 0
             for symbol in symbolGraph.symbols {
                 guard let identifier = symbol.identifier,
                     let title = symbol.names?.title,
                     !identifier.isEmpty,
                     !title.isEmpty
                 else {
+                    skippedSymbolsForFile += 1
                     continue
                 }
                 let reference = DoccSymbolReference(
@@ -242,6 +276,10 @@ public struct DoccMetadataParser {
                     title: title,
                     moduleName: symbolGraph.module.name)
                 references.append(reference)
+            }
+
+            if skippedSymbolsForFile > 0 {
+                logSkippedSymbols(count: skippedSymbolsForFile, fileURL: fileURL)
             }
         }
 
@@ -284,40 +322,43 @@ public struct DoccMetadataParser {
             kind: rawMetadata.kind)
     }
 
-    private func value(forKey key: String, in plist: [String: Any], file: String) throws -> String {
+    private func value(forKey key: String, in plist: [String: Any]) throws -> String {
         guard let rawValue = plist[key] else {
-            throw DoccMetadataParserError.missingRequiredField(file: file, key: key)
+            throw DoccMetadataParserError.missingRequiredField(key)
         }
         guard let stringValue = rawValue as? String, !stringValue.isEmpty else {
             throw DoccMetadataParserError.invalidFieldType(
-                file: file, key: key, expected: "non-empty String")
+                key: key,
+                expected: "non-empty String")
         }
         return stringValue
     }
 
-    private func optionalValue(forKey key: String, in plist: [String: Any], file: String) throws
-        -> String?
-    {
+    private func optionalValue(forKey key: String, in plist: [String: Any]) throws -> String? {
         guard let rawValue = plist[key] else { return nil }
         guard let stringValue = rawValue as? String else {
-            throw DoccMetadataParserError.invalidFieldType(file: file, key: key, expected: "String")
+            throw DoccMetadataParserError.invalidFieldType(key: key, expected: "String")
         }
-        return stringValue
+        let trimmedValue = stringValue.trimmingCharacters(in: .whitespacesAndNewlines)
+        if trimmedValue.isEmpty {
+            throw DoccMetadataParserError.invalidFieldType(key: key, expected: "non-empty String")
+        }
+        return trimmedValue
     }
 
-    private func languageArray(from plist: [String: Any], file: String) throws -> [String] {
+    private func languageArray(from plist: [String: Any]) throws -> [String] {
         guard let rawValue = plist["Languages"] else {
-            throw DoccMetadataParserError.missingRequiredField(file: file, key: "Languages")
+            throw DoccMetadataParserError.missingRequiredField("Languages")
         }
         guard let languages = rawValue as? [String] else {
-            throw DoccMetadataParserError.invalidFieldType(
-                file: file, key: "Languages", expected: "[String]")
+            throw DoccMetadataParserError.invalidFieldType(key: "Languages", expected: "[String]")
         }
 
         let trimmed = languages.map { $0.trimmingCharacters(in: .whitespacesAndNewlines) }
         if trimmed.contains(where: { $0.isEmpty }) {
             throw DoccMetadataParserError.invalidFieldType(
-                file: file, key: "Languages", expected: "non-empty strings")
+                key: "Languages",
+                expected: "non-empty strings")
         }
         return trimmed
     }
@@ -331,6 +372,16 @@ public struct DoccMetadataParser {
 }
 
 // MARK: - Private helpers
+
+extension DoccMetadataParser {
+    private func logSkippedSymbols(count: Int, fileURL: URL) {
+        let message =
+            "DoccMetadataParser: skipped \(count) symbol(s) in \(fileURL.lastPathComponent) due to missing identifiers or titles.\n"
+        if let data = message.data(using: .utf8) {
+            FileHandle.standardError.write(data)
+        }
+    }
+}
 
 private struct SymbolGraphFile: Decodable {
     struct Module: Decodable {
