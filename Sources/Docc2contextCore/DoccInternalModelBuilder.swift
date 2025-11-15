@@ -83,23 +83,10 @@ public struct DoccInternalModelBuilder {
     private func makeChapters(
         from topicSections: [DoccDocumentationCatalog.TopicSection]
     ) -> [DoccTutorialChapter] {
-        return topicSections
-            .sorted(by: orderingForTopicSections)
-            .map { topic in
-                DoccTutorialChapter(
-                    title: topic.title,
-                    pageIdentifiers: topic.identifiers.sorted())
-            }
-    }
-
-    private func orderingForTopicSections(
-        lhs: DoccDocumentationCatalog.TopicSection,
-        rhs: DoccDocumentationCatalog.TopicSection
-    ) -> Bool {
-        if lhs.title.caseInsensitiveCompare(rhs.title) == .orderedSame {
-            return lhs.identifiers.lexicographicallyPrecedes(rhs.identifiers)
+        return topicSections.map { topic in
+            DoccTutorialChapter(
+                title: topic.title,
+                pageIdentifiers: topic.identifiers)
         }
-
-        return lhs.title.localizedCaseInsensitiveCompare(rhs.title) == .orderedAscending
     }
 }
