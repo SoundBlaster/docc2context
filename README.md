@@ -66,6 +66,26 @@ s the same usage and documents each supported flag.
 
 These entry points power the `MetadataParsingTests` suite, which reads both tutorial and article fixtures to validate the behavior today while B6+ tasks wire the data into Markdown generation.
 
+## Internal model overview
+
+<!-- INTERNAL_MODEL_DOC_START -->
+`DoccInternalModelBuilder` wires the parsed metadata into a `DoccBundleModel` so subsequent Markdown + link graph generation can treat the internal model as the single source of truth. The model currently exposes:
+
+- `DoccBundleModel` – top-level struct combining bundle metadata, `DoccDocumentationCatalog`, tutorial volumes, and `DoccSymbolReference` arrays.
+- `DoccDocumentationCatalog` – captures the technology catalog identifier, title, and topic sections that seed tutorial ordering.
+- `DoccTutorialVolume` – represents each technology catalog emitted by DocC; tutorial volumes preserve the order established by DocC so determinism is unaffected by filesystem traversal.
+- `DoccTutorialChapter` – each chapter maps to a `DoccDocumentationCatalog.TopicSection`, and chapters maintain the DocC topic order described in the source JSON.
+- `DoccSymbolReference` – symbol references stay sorted by identifier/module names to guarantee deterministic lookups once link graphs are generated.
+
+Ordering guarantees:
+
+1. `DoccTutorialVolume` instances are emitted in the order DocC writes technology catalogs (today fixtures contain a single catalog, but the builder will maintain order once multiple catalogs appear).
+2. The chapters maintain the DocC topic order exposed in the catalog’s `topics` array, ensuring sequential tutorial walkthroughs remain intact.
+3. Each `DoccTutorialChapter` retains the `pageIdentifiers` ordering provided by DocC so Markdown snapshots mirror DocC navigation.
+
+This README section is validated by `InternalModelDocumentationTests` to keep the documentation synchronized with the internal model contract as serialization coverage expands.
+<!-- INTERNAL_MODEL_DOC_END -->
+
 ## Continuous Integration
 
 GitHub Actions runs `swift build` and `swift test` on Ubuntu 22.04 and macOS. The Linux job relies on [`SwiftyLab/setup-swift`](https://github.com/SwiftyLab/setup-swift) to install Swift 6.1.2 and mirrors the package dependencies called out above so local and CI environments stay aligned. The macOS job selects Xcode 16.4 and uses its bundled Swift 6.1.2 toolchain to avoid mismatched SDK headers.
