@@ -13,6 +13,7 @@ Use this list for near-term execution. Each entry maps back to the PRD and [work
 - [x] **A1** Bootstrap Swift package with CLI/lib/test targets plus GitHub Actions matrix for Linux/macOS. _Depends on:_ none. _Doc:_ PRD §Phase A. _Owner:_ docc2context agent. _Status:_ Complete – archived under `DOCS/TASK_ARCHIVE/01_A1_BootstrapSwiftPMCI/`.
 - [x] **B4** Extract archive inputs into deterministic temporary directories with cleanup validation. _Depends on:_ B3. _Doc:_ PRD §Phase B. _Owner:_ docc2context agent. _Status:_ Complete – archived under `DOCS/TASK_ARCHIVE/10_B4_ArchiveExtraction/`; `ArchiveExtractor` + CLI wiring validated via `swift test --filter ArchiveExtractionTests`, full `swift test`, and `Scripts/release_gates.sh`.
 - [x] **B5** Parse DocC metadata (Info.plist, documentation data, symbol graphs) into native models with fixture-driven failure coverage. _Depends on:_ B3. _Doc:_ PRD §Phase B. _Owner:_ docc2context agent. _Status:_ Complete – archived under `DOCS/TASK_ARCHIVE/09_B5_DoccMetadataParsing/`; parser entry points + README integration notes validated by `MetadataParsingTests` and release gates.
+- [ ] **B6** Build internal DocC model to bridge parsed metadata and future Markdown generation. _Depends on:_ B5. _Doc:_ PRD §Phase B; `PRD/phase_b.md`. _Owner:_ docc2context agent. _Status:_ In Progress – defining canonical Swift structs + serialization tests to keep downstream generators deterministic.
 
 ## Ready to Start
 - _None – see In Progress for the current execution queue._
