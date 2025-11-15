@@ -3,7 +3,7 @@
 Use this list for near-term execution. Each entry maps back to the PRD and [workplan](./workplan.md).
 
 ## In Progress
-- [ ] **C1 Markdown Snapshot Specs** Author failing Markdown snapshot tests plus fixture layout covering tutorial volumes, chapters, and articles before renderer code begins. _Depends on:_ B6 internal model + serialization readiness, C1 outline. _Doc:_ PRD §Phase C, workplan §Phase C. _Owner:_ docc2context agent. _Status:_ In Progress – `MarkdownSnapshotSpecsTests.test_tutorialOverviewMatchesSnapshot` now records deterministic Markdown via `DoccMarkdownRenderer.renderTutorialVolumeOverview`; next spec targets the first tutorial chapter page per `DOCS/INPROGRESS/C1_MarkdownSnapshotSpecs.md`.
+- [ ] **C1 Markdown Snapshot Specs** Author failing Markdown snapshot tests plus fixture layout covering tutorial volumes, chapters, and articles before renderer code begins. _Depends on:_ B6 internal model + serialization readiness, C1 outline. _Doc:_ PRD §Phase C, workplan §Phase C. _Owner:_ docc2context agent. _Status:_ In Progress – Tutorial overview snapshot landed; planning note `DOCS/INPROGRESS/C1_TutorialChapterSnapshot.md` now defines the contract for `test_tutorialChapterPageMatchesSnapshot` prior to writing renderer code.
 
 ## Completed
 - [x] **B6 Serialization Coverage** Add JSON serialization + determinism tests for `DoccBundleModel` and tutorial volumes. _Depends on:_ B6. _Doc:_ PRD §Phase B acceptance criteria. _Owner:_ docc2context agent. _Status:_ Complete – archived under `DOCS/TASK_ARCHIVE/13_B6_SerializationCoverage/`; deterministic encoder helpers, JSON snapshots, and `DoccInternalModelSerializationTests` guard internal model serialization.

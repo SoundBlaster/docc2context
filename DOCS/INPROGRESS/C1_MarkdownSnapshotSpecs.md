@@ -29,9 +29,14 @@ Translate the Phase C requirement for deterministic Markdown exports into execut
 - [ ] Expand fixtures/tests for tutorial chapters and reference articles following the same harness.
 - [ ] Document normalization/diff helpers (line endings, code block fences) once discovered.
 
+### Active Focus: Tutorial Chapter Snapshot
+- Planning note: `DOCS/INPROGRESS/C1_TutorialChapterSnapshot.md` captures the scope, dependencies, and acceptance criteria for `MarkdownSnapshotSpecsTests.test_tutorialChapterPageMatchesSnapshot`.
+- Snapshot expectations: include chapter title, description, ordered steps with numbered headings, normalized asset references, and navigation footer linking to adjacent content.
+- Outstanding decisions (assets vs. placeholders, step granularity) are tracked in the planning note and must be resolved before recording the snapshot.
+
 ## Blocking Questions
 - Do tutorial chapters require separate Markdown files for each step, or a single aggregated page for snapshotting?
 - How should inline assets (images, callouts) be represented in Markdown snapshots—do we strip them, replace with placeholders, or include deterministic references?
 
 ## Immediate Next Action
-Author `MarkdownSnapshotSpecsTests.test_tutorialChapterPageMatchesSnapshot` inside `Tests/Docc2contextCoreTests/MarkdownSnapshotSpecsTests.swift`, covering the first tutorial chapter page Markdown (fixture identifier `tutorialcatalog/tutorials/getting-started`). Record the corresponding snapshot under `Tests/__Snapshots__/MarkdownSnapshotSpecsTests/` before implementing renderer logic for chapter steps.
+Use the planning output from `C1_TutorialChapterSnapshot.md` to draft `MarkdownSnapshotSpecsTests.test_tutorialChapterPageMatchesSnapshot` targeting the `tutorialcatalog/tutorials/getting-started` Chapter 1 page, ensuring snapshot contents align with the documented heading/order/asset decisions before any renderer implementation begins.
