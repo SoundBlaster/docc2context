@@ -13,6 +13,7 @@ enum TestSupportPaths {
         return url.deletingLastPathComponent()
     }()
 
+    static let repositoryRootDirectory: URL = repoRootURL
     static let fixturesDirectory: URL = repoRootURL.appendingPathComponent("Fixtures", isDirectory: true)
     static let snapshotsDirectory: URL = repoRootURL
         .appendingPathComponent("Tests", isDirectory: true)
