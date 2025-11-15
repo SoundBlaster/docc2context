@@ -1,4 +1,5 @@
 import XCTest
+
 @testable import Docc2contextCore
 
 final class MetadataParsingTests: XCTestCase {
@@ -15,7 +16,6 @@ final class MetadataParsingTests: XCTestCase {
         XCTAssertEqual(metadata.doccVersion, "1.0")
         XCTAssertEqual(metadata.projectVersion, "1.0")
     }
-
     func test_renderMetadataLoadsBundleInformation() throws {
         let fixturesURL = FixtureLoader.urlForBundle(named: "TutorialCatalog.doccarchive")
         let parser = DoccMetadataParser()
@@ -33,18 +33,21 @@ final class MetadataParsingTests: XCTestCase {
         let parser = DoccMetadataParser()
 
         let info = try parser.loadInfoPlist(from: fixturesURL)
-        let catalog = try parser.loadDocumentationCatalog(from: fixturesURL,
-                                                          technologyRoot: info.technologyRoot)
+        let catalog = try parser.loadDocumentationCatalog(
+            from: fixturesURL,
+            technologyRoot: info.technologyRoot)
 
         XCTAssertEqual(catalog.identifier, "tutorialcatalog")
         XCTAssertEqual(catalog.kind, "technology")
         XCTAssertEqual(catalog.title, "DocC2Context Tutorial Catalog")
         XCTAssertEqual(catalog.role, "tutorialCollection")
-        XCTAssertEqual(catalog.abstract.first?.text, "Synthetic tutorial bundle used by docc2context tests.")
+        XCTAssertEqual(
+            catalog.abstract.first?.text, "Synthetic tutorial bundle used by docc2context tests.")
         XCTAssertEqual(catalog.topics.count, 1)
         XCTAssertEqual(catalog.topics.first?.title, "Getting Started")
-        XCTAssertEqual(catalog.topics.first?.identifiers,
-                       ["tutorialcatalog/tutorials/getting-started"])
+        XCTAssertEqual(
+            catalog.topics.first?.identifiers,
+            ["tutorialcatalog/tutorials/getting-started"])
     }
 
     func test_symbolGraphReferencesLoadFromArticleReferenceBundle() throws {
@@ -57,5 +60,20 @@ final class MetadataParsingTests: XCTestCase {
         XCTAssertEqual(references.first?.identifier, "docc2contextcommand")
         XCTAssertEqual(references.first?.title, "Docc2contextCommand")
         XCTAssertEqual(references.first?.moduleName, "Docc2contextCore")
+    }
+
+    func test_metadataJSONLoadsBundleGenerationInfo() throws {
+        let fixturesURL = FixtureLoader.urlForBundle(named: "TutorialCatalog.doccarchive")
+        let parser = DoccMetadataParser()
+
+        let bundleMetadata = try parser.loadBundleDataMetadata(from: fixturesURL)
+
+        XCTAssertEqual(bundleMetadata.formatVersion, "1.0")
+        XCTAssertEqual(bundleMetadata.generator, "docc2context synthetic fixture")
+        XCTAssertEqual(bundleMetadata.kind, "tutorial")
+
+        let formatter = ISO8601DateFormatter()
+        formatter.formatOptions = [.withInternetDateTime]
+        XCTAssertEqual(bundleMetadata.generatedAt, formatter.date(from: "2025-11-14T00:00:00Z"))
     }
 }
