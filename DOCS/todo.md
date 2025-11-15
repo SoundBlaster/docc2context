@@ -3,6 +3,7 @@
 Use this list for near-term execution. Each entry maps back to the PRD and [workplan](./workplan.md).
 
 ## In Progress
+- [ ] **B6 Serialization Coverage** Add JSON serialization + determinism tests for `DoccBundleModel` and tutorial volumes. _Depends on:_ B6. _Doc:_ PRD §Phase B acceptance criteria. _Owner:_ docc2context agent. _Status:_ In Progress – targeting deterministic `JSONEncoder` output before Phase C work.
 - [x] **A2** Create XCTest support utilities (temporary directories, fixture loader) and snapshot harness. _Depends on:_ A1. _Doc:_ PRD §Phase A. _Owner:_ docc2context agent. _Status:_ Complete – archived under `DOCS/TASK_ARCHIVE/03_A2_TDDHarness/`.
 - [x] **A3** Establish DocC sample fixtures (tutorial-focused + API/article bundle) under `Fixtures/` with provenance manifest. _Depends on:_ A2. _Doc:_ PRD §Phase A. _Owner:_ docc2context agent. _Status:_ Complete – archived under `DOCS/TASK_ARCHIVE/06_A3_DocCFixtures/`; fixtures + manifest hashes committed.
 - [x] **A4** Define deployment & release gates (determinism hash, fixture integrity verification script, `swift test` guard). _Depends on:_ A1. _Doc:_ PRD §Phase A. _Owner:_ docc2context agent. _Status:_ Complete – archived under `DOCS/TASK_ARCHIVE/04_A4_ReleaseGates/`; `Scripts/release_gates.sh` now runs tests, determinism hashes, and fixture validation.
@@ -16,7 +17,6 @@ Use this list for near-term execution. Each entry maps back to the PRD and [work
 - [x] **B6** Build internal DocC model to bridge parsed metadata and future Markdown generation. _Depends on:_ B5. _Doc:_ PRD §Phase B; `PRD/phase_b.md`. _Owner:_ docc2context agent. _Status:_ Complete – archived under `DOCS/TASK_ARCHIVE/11_B6_InternalModel/`; `DoccInternalModelBuilder` emits deterministic bundle models validated via `DoccInternalModelBuilderTests.test_buildsTutorialVolumeOrderingFromCatalogFixture` and `swift test`.
 
 ## Ready to Start
-- [ ] **B6 Serialization Coverage** Add JSON serialization + determinism tests for `DoccBundleModel` and tutorial volumes. _Depends on:_ B6. _Doc:_ PRD §Phase B acceptance criteria. _Owner:_ docc2context agent. _Status:_ Ready – extend `DoccInternalModelBuilderTests` with round-trip assertions before Phase C.
 - [ ] **B6 Documentation Update** Capture the internal model mapping + tutorial ordering guarantees inside `README.md` and/or developer docs. _Depends on:_ B6. _Doc:_ PRD §Phase B (documentation readiness). _Owner:_ docc2context agent. _Status:_ Ready – summarize structs/fields for downstream Markdown work.
 
 ## Under Consideration
