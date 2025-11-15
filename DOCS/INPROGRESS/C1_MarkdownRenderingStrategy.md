@@ -5,7 +5,7 @@
 - **Why now:** Phase B implementation and serialization work are almost complete, and the workplan escalates Phase C next. The PRD requires snapshot-first development for Markdown generation, so we need a written outline before writing tests.
 
 ## Dependencies & Inputs
-- B6 internal model + serialization coverage (in progress) provide canonical data sources for Markdown specs.
+- B6 internal model + serialization coverage (archived under `DOCS/TASK_ARCHIVE/11_B6_InternalModel/` and `DOCS/TASK_ARCHIVE/13_B6_SerializationCoverage/`) provide canonical data sources for Markdown specs.
 - Fixtures: `Fixtures/TutorialCatalog.doccarchive` (tutorial) and existing article/API bundles from A3.
 - PRD §Phase C + workplan expectations describing snapshot-driven Markdown generation.
 - TODO entry promoted to In Progress to track planning effort.

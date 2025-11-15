@@ -49,17 +49,60 @@ final class DoccInternalModelSerializationTests: XCTestCase {
             symbolReferences: []
         )
 
-        let encoder = JSONEncoder()
-        encoder.outputFormatting = [.sortedKeys]
-        encoder.dateEncodingStrategy = .iso8601
-
+        let encoder = DeterministicJSONEncoder.makeEncoder()
         let data = try encoder.encode(model)
         XCTAssertFalse(data.isEmpty)
 
-        let decoder = JSONDecoder()
-        decoder.dateDecodingStrategy = .iso8601
-
+        let decoder = DeterministicJSONEncoder.makeDecoder()
         let decoded = try decoder.decode(DoccBundleModel.self, from: data)
         XCTAssertEqual(decoded, model)
+    }
+
+    func test_tutorialCatalogSerializationMatchesSnapshot() throws {
+        let model = try makeTutorialCatalogBundleModel()
+        let encoder = DeterministicJSONEncoder.makeEncoder()
+        let data = try encoder.encode(model)
+
+        let decoder = DeterministicJSONEncoder.makeDecoder()
+        let decoded = try decoder.decode(DoccBundleModel.self, from: data)
+        XCTAssertEqual(decoded, model)
+
+        let json = try XCTUnwrap(String(data: data, encoding: .utf8))
+        try JSONSnapshot.assertSnapshot(
+            self,
+            matching: json,
+            named: "tutorial-catalog",
+            record: SnapshotRecording.isEnabled
+        )
+    }
+
+    func test_encoderProducesStableDataForTutorialCatalog() throws {
+        let model = try makeTutorialCatalogBundleModel()
+        let encoder = DeterministicJSONEncoder.makeEncoder()
+
+        let first = try encoder.encode(model)
+        let second = try encoder.encode(model)
+        XCTAssertEqual(first, second)
+    }
+
+    private func makeTutorialCatalogBundleModel() throws -> DoccBundleModel {
+        let fixturesURL = FixtureLoader.urlForBundle(named: "TutorialCatalog.doccarchive")
+        let parser = DoccMetadataParser()
+
+        let bundleMetadata = try parser.loadInfoPlist(from: fixturesURL)
+        let renderMetadata = try parser.loadRenderMetadata(from: fixturesURL)
+        let documentationCatalog = try parser.loadDocumentationCatalog(
+            from: fixturesURL,
+            technologyRoot: bundleMetadata.technologyRoot)
+        let bundleDataMetadata = try parser.loadBundleDataMetadata(from: fixturesURL)
+        let symbolReferences = try parser.loadSymbolGraphReferences(from: fixturesURL)
+
+        let builder = DoccInternalModelBuilder()
+        return try builder.makeBundleModel(
+            bundleMetadata: bundleMetadata,
+            renderMetadata: renderMetadata,
+            documentationCatalog: documentationCatalog,
+            bundleDataMetadata: bundleDataMetadata,
+            symbolReferences: symbolReferences)
     }
 }
