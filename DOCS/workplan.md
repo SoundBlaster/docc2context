@@ -13,7 +13,7 @@ The workplan distills the execution order of the phases defined in [DOCS/PRD/doc
 - ✅ **B2 Implement Argument Parsing to Satisfy Tests** — archived under `DOCS/TASK_ARCHIVE/05_B2_ArgumentParsing/`; CLI options now run through `Docc2contextCLIOptions` and satisfy the B1 tests.
 - ✅ **B3 Detect Input Type** — archived under `DOCS/TASK_ARCHIVE/07_B3_InputDetection/`; detection enum + CLI wiring now normalize DocC directories and `.doccarchive` paths with deterministic error handling.
 - ✅ **B4 Extract Archive Inputs** — archived under `DOCS/TASK_ARCHIVE/10_B4_ArchiveExtraction/`; `ArchiveExtractor` now unpacks `.doccarchive` inputs into hash-derived temp directories with cleanup handles validated via fixture-backed tests and release gates.
-- **B5 Parse DocC Metadata** — read Info.plist, tutorials, and symbol graphs into native models.
+- ✅ **B5 Parse DocC Metadata** — archived under `DOCS/TASK_ARCHIVE/09_B5_DoccMetadataParsing/`; parser entry points cover Info.plist, render metadata, and symbol graphs.
 - **B6 Build Internal Model** — define structs representing DocC pages and references.
 
 ## Phase C – Markdown Generation
