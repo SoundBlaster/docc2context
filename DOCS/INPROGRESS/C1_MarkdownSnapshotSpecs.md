@@ -1,31 +1,37 @@
 # C1 Markdown Snapshot Specs
 
-## Summary
-- **Goal:** Author the first set of deterministic Markdown snapshot fixtures + failing tests for tutorials, tutorial chapters, and articles so the renderer implementation (C2) can begin red-green cycles.
-- **Why now:** Phase A/B deliverables plus the `C1 Markdown Rendering Strategy Outline` work-in-progress establish internal model readiness but no executable specs exist yet. Advancing snapshot coverage keeps Phase C unblocked and satisfies the workplan dependency ordering.
+## Objective
+Translate the Phase C requirement for deterministic Markdown exports into executable specs by authoring snapshot fixtures and failing tests that describe tutorial volumes, chapters, and articles before any renderer code lands.
 
-## Dependencies & Inputs
-- PRD §Phase C and workplan §Phase C call for snapshot-driven Markdown development before generator code.
-- B6 internal model implementation + serialization snapshots (see `DOCS/TASK_ARCHIVE/11_B6_InternalModel/` and `DOCS/TASK_ARCHIVE/13_B6_SerializationCoverage/`) supply the structured data these tests will feed into renderers.
-- Fixtures established in A3 (`Fixtures/TutorialCatalog.doccarchive`, `Fixtures/ArticleReference.doccarchive`) and any outline notes captured in `DOCS/INPROGRESS/C1_MarkdownRenderingStrategy.md`.
-- Snapshot harness utilities from A2 plus README conventions for determinism and release gating.
+## Relevant PRD Paragraphs
+- `PRD/docc2context_prd.md` §Phase C (C1 Snapshot Specs) – mandates snapshot-first development and deterministic Markdown artifacts.
+- `PRD/phases.md` → Phase C checklist – calls out snapshot coverage for tutorials and articles as the next gating milestone.
 
-## Success Criteria
-1. Define a directory layout + naming convention for Markdown snapshots that mirrors DocC hierarchy (bundle/volume/chapter/page) and document it in this note + outline.
-2. Add placeholder/failing XCTest cases (e.g., `MarkdownSnapshotSpecsTests`) referencing the planned snapshot files so CI records the pending work.
-3. Capture fixture TODOs for any missing page types (e.g., tutorial intro, chapter article, technology article) and link them to follow-up tasks if out of scope here.
-4. Update `DOCS/todo.md` / `DOCS/INPROGRESS/` when the spec is ready for implementation tasks (handoff to START command).
+## Dependencies
+- ✅ `DOCS/TASK_ARCHIVE/11_B6_InternalModel/` and `13_B6_SerializationCoverage/` supply the canonical internal model + serialization helpers these specs will drive.
+- ✅ Fixtures from A3 (`Fixtures/TutorialCatalog.doccarchive`, `Fixtures/ArticleReference.doccarchive`).
+- ➡️ Outline context stored in `DOCS/INPROGRESS/C1_MarkdownRenderingStrategy.md` to align terminology and page coverage.
 
-## Planned Steps
-1. Re-read the outline + PRD to list all Markdown page types (tutorial overview, chapters, articles, callouts, symbol detail) that require fixtures.
-2. Define deterministic file naming + storage path under `Tests/` (likely `Tests/Docc2contextMarkdownTests/Fixtures/`) and record expectations for hashed output directories.
-3. Sketch failing XCTest cases referencing the snapshots (even if placeholders initially) and describe normalization rules (line endings, whitespace, metadata blocks) to enforce determinism.
-4. Enumerate open questions + future START tasks (e.g., media references, link graph cross-checks) at the bottom of this note.
+## First Failing Test to Author
+- `MarkdownSnapshotSpecsTests.test_tutorialOverviewMatchesSnapshot`
+  - File: `Tests/Docc2contextMarkdownTests/MarkdownSnapshotSpecsTests.swift` (new).
+  - Behavior: load `Fixtures/TutorialCatalog.doccarchive`, build the internal model, render the tutorial volume overview Markdown, and compare it to `Tests/Docc2contextMarkdownTests/Fixtures/Snapshots/TutorialCatalog/volume_overview.md` using the snapshot harness from A2.
+  - Rationale: establishes the first executable spec for tutorial outputs and seeds the directory structure future snapshots will follow.
 
 ## Validation Plan
-- Validation occurs once the START command implements the snapshot files/tests; for this selection task we will review the note + TODO updates during PR review, ensuring dependencies and acceptance criteria tie back to the PRD.
+- Primary guard: `swift test --filter MarkdownSnapshotSpecsTests` once the failing test exists.
+- Full suite + determinism gates: `swift test` and `Scripts/release_gates.sh` before landing snapshots to ensure fixture hashing remains stable.
+- Snapshot files will live under `Tests/Docc2contextMarkdownTests/Fixtures/Snapshots/` with README notes describing hash/diff expectations.
 
-## Open Questions / Risks
-- Need to confirm whether tutorial chapters use multiple Markdown files (intro vs. steps) or a single combined page per DocC semantics.
-- Handling of inline assets (images, code listings) may require additional normalization helpers beyond existing harness utilities.
-- Articles vs. tutorials may require different metadata/front-matter structures; must be clarified before snapshot authoring begins.
+## Subtasks & Checklist
+- [ ] Finalize snapshot directory layout + README under `Tests/Docc2contextMarkdownTests/Fixtures/Snapshots/`.
+- [ ] Implement the failing tutorial overview snapshot test described above.
+- [ ] Expand fixtures/tests for tutorial chapters and reference articles following the same harness.
+- [ ] Document normalization/diff helpers (line endings, code block fences) once discovered.
+
+## Blocking Questions
+- Do tutorial chapters require separate Markdown files for each step, or a single aggregated page for snapshotting?
+- How should inline assets (images, callouts) be represented in Markdown snapshots—do we strip them, replace with placeholders, or include deterministic references?
+
+## Immediate Next Action
+Begin editing `Tests/Docc2contextMarkdownTests/MarkdownSnapshotSpecsTests.swift` to add `test_tutorialOverviewMatchesSnapshot`, referencing the tutorial catalog fixture and pointing the assertion at `Fixtures/Snapshots/TutorialCatalog/volume_overview.md`. Commit the failing test before implementing any renderer code.
