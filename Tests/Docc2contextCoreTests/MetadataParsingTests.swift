@@ -51,6 +51,40 @@ final class MetadataParsingTests: XCTestCase {
             ["tutorialcatalog/tutorials/getting-started"])
     }
 
+    func test_tutorialPageLoadsStepsAndAssessments() throws {
+        let fixturesURL = FixtureLoader.urlForBundle(named: "TutorialCatalog.doccarchive")
+        let parser = DoccMetadataParser()
+
+        let tutorial = try parser.loadTutorialPage(
+            withIdentifier: "tutorialcatalog/tutorials/getting-started",
+            from: fixturesURL)
+
+        XCTAssertEqual(tutorial.identifier, "tutorialcatalog/tutorials/getting-started")
+        XCTAssertEqual(tutorial.title, "Build the First Page")
+        XCTAssertEqual(
+            tutorial.introduction,
+            "Create a simple documentation page that links out to tutorials and symbols.")
+        XCTAssertEqual(tutorial.steps.count, 2)
+        XCTAssertEqual(tutorial.steps.first?.title, "Scaffold a DocC bundle")
+        XCTAssertEqual(
+            tutorial.steps.first?.content,
+            [
+                "Use swift-docc to generate initial metadata.",
+                "Confirm Info.plist values before shipping.",
+            ])
+        XCTAssertEqual(tutorial.assessments.count, 1)
+        XCTAssertEqual(tutorial.assessments.first?.title, "Knowledge Check")
+        XCTAssertEqual(tutorial.assessments.first?.items.count, 1)
+        XCTAssertEqual(
+            tutorial.assessments.first?.items.first?.choices,
+            [
+                "Scripts/validate_fixtures_manifest.py",
+                "swift run docc2context --inspect",
+                "xcodebuild docc",
+            ])
+        XCTAssertEqual(tutorial.assessments.first?.items.first?.answer, 0)
+    }
+
     func test_symbolGraphReferencesLoadFromArticleReferenceBundle() throws {
         let fixturesURL = FixtureLoader.urlForBundle(named: "ArticleReference.doccarchive")
         let parser = DoccMetadataParser()
