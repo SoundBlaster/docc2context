@@ -57,6 +57,89 @@ run_determinism_check() {
   log_step "Determinism hash matched: $first_hash"
 }
 
+run_full_determinism_check() {
+  log_step "Running full output determinism check on TutorialCatalog fixture"
+
+  local output_dir1 output_dir2
+  output_dir1="$(mktemp -d "$TMP_ROOT/determinism_output1.XXXXXX")"
+  output_dir2="$(mktemp -d "$TMP_ROOT/determinism_output2.XXXXXX")"
+
+  # Get fixture path
+  local fixture_path="$REPO_ROOT/Tests/Docc2contextCoreTests/Fixtures/TutorialCatalog.doccarchive"
+
+  if [[ ! -d "$fixture_path" ]]; then
+    log_warn "Tutorial fixture not found, skipping full determinism check"
+    rm -rf "$output_dir1" "$output_dir2"
+    return 0
+  fi
+
+  # First conversion run
+  log_step "Running first markdown conversion..."
+  if ! swift run docc2context "$fixture_path" --output "$output_dir1" --format markdown >/dev/null 2>&1; then
+    rm -rf "$output_dir1" "$output_dir2"
+    log_error "First determinism conversion run failed"
+    exit 1
+  fi
+
+  # Second conversion run
+  log_step "Running second markdown conversion..."
+  if ! swift run docc2context "$fixture_path" --output "$output_dir2" --format markdown >/dev/null 2>&1; then
+    rm -rf "$output_dir1" "$output_dir2"
+    log_error "Second determinism conversion run failed"
+    exit 1
+  fi
+
+  # Compare outputs using find and checksums
+  log_step "Comparing output directory checksums..."
+  local found_diff=0
+
+  # Get sorted list of all files in first output
+  local files1 files2
+  files1=$(find "$output_dir1" -type f 2>/dev/null | sort)
+  files2=$(find "$output_dir2" -type f 2>/dev/null | sort)
+
+  # Check if file lists are identical
+  if [[ "$files1" != "$files2" ]]; then
+    log_error "File lists differ between runs"
+    log_error "First run files: $(echo "$files1" | wc -l) files"
+    log_error "Second run files: $(echo "$files2" | wc -l) files"
+    found_diff=1
+  fi
+
+  # Compare file checksums
+  if [[ $found_diff -eq 0 ]]; then
+    while IFS= read -r file1; do
+      local rel_path="${file1#$output_dir1/}"
+      local file2="$output_dir2/$rel_path"
+
+      if [[ ! -f "$file2" ]]; then
+        log_error "File missing in second run: $rel_path"
+        found_diff=1
+        break
+      fi
+
+      local hash1 hash2
+      hash1=$(shasum -a 256 "$file1" | awk '{print $1}')
+      hash2=$(shasum -a 256 "$file2" | awk '{print $1}')
+
+      if [[ "$hash1" != "$hash2" ]]; then
+        log_error "Content differs for file: $rel_path"
+        found_diff=1
+        break
+      fi
+    done <<< "$files1"
+  fi
+
+  rm -rf "$output_dir1" "$output_dir2"
+
+  if [[ $found_diff -ne 0 ]]; then
+    log_error "Full output determinism check failed"
+    exit 1
+  fi
+
+  log_step "Full output determinism check passed"
+}
+
 verify_fixture_manifest() {
   log_step "Validating fixture manifest at $MANIFEST_PATH"
   if [[ ! -f "$MANIFEST_PATH" ]]; then
@@ -73,6 +156,7 @@ verify_fixture_manifest() {
 main() {
   run_swift_tests
   run_determinism_check
+  run_full_determinism_check
   verify_fixture_manifest
   log_step "Release gate checks completed successfully"
 }

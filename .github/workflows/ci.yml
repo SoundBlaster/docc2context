@@ -54,3 +54,26 @@ jobs:
         run: swift build --build-tests
       - name: Run tests
         run: swift test --enable-test-discovery
+
+  determinism:
+    name: Determinism Verification
+    runs-on: ubuntu-22.04
+    steps:
+      - uses: actions/checkout@v4
+      - name: Install Swift dependencies
+        run: |
+          sudo apt-get update
+          sudo apt-get install -y clang libicu-dev libatomic1 libcurl4-openssl-dev
+      - name: Set up Swift 6.1.2
+        uses: SwiftyLab/setup-swift@v1
+        with:
+          swift-version: '6.1.2'
+      - name: Validate Swift toolchain
+        run: |
+          swift --version
+      - name: Build for release
+        run: swift build
+      - name: Run release gates (determinism checks)
+        run: bash Scripts/release_gates.sh
+        env:
+          DETERMINISM_TMP_DIR: /tmp/docc2context-determinism
