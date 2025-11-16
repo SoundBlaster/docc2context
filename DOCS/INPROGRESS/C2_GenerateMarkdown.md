@@ -65,3 +65,10 @@
 2. Outline new XCTest cases mentioned above (failing first) before touching production code.
 3. Coordinate with TODO list (done) and ensure no other tasks conflict with C2 scope.
 4. Prepare temporary directories + fixture loaders needed for CLI end-to-end tests.
+
+## Implementation Notes – 2025-02-14
+- Added a `MarkdownGenerationPipeline` coordinator that loads DocC metadata, renders tutorial volumes/chapters + reference articles, and writes deterministic files into `<output>/markdown/`.
+- Integrated the pipeline into `Docc2contextCommand` so the CLI now creates Markdown outputs, enforces `--force` semantics, and prints generation counts.
+- Introduced `MarkdownGenerationPipelineTests` plus CLI/command integration tests that assert files land on disk and match the existing Markdown snapshots.
+- Recorded new snapshots for the pipeline harness to keep the renderer + file layout deterministic.
+- Updated README + TODO status to reflect the completed C2 milestone; ready for ARCHIVE once reviewed.

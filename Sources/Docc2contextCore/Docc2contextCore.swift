@@ -45,10 +45,10 @@ public struct Docc2contextCommand {
     }
 
     struct CLIOptions {
-        var inputPath: String?
-        var outputPath: String?
-        var forceOverwrite: Bool = false
-        var format: String = "markdown"
+        let inputPath: String
+        let outputPath: String
+        let forceOverwrite: Bool
+        let format: String
     }
 
     public func run(arguments: [String]) -> Docc2contextCommandResult {
@@ -60,10 +60,15 @@ public struct Docc2contextCommand {
         do {
             let parsedArguments = try Docc2contextCLIOptions.parse(trimmedArguments)
             let options = try resolveOptions(from: parsedArguments)
-            let forceLabel = options.forceOverwrite ? "enabled" : "disabled"
-            let summary = "CLI not yet implemented. Input: \(options.inputPath!), output: \(options.outputPath!), " +
-                "format: \(options.format), force: \(forceLabel)."
-            return Docc2contextCommandResult(exitCode: 0, output: summary)
+            let pipeline = MarkdownGenerationPipeline()
+            let summary = try pipeline.generateMarkdown(
+                from: options.inputPath,
+                to: options.outputPath,
+                forceOverwrite: options.forceOverwrite)
+            let formattedSummary = "Generated \(summary.tutorialVolumeCount) tutorial volume(s), " +
+                "\(summary.chapterCount) chapter(s), and \(summary.referenceArticleCount) reference article(s) into " +
+                "\(summary.outputDirectory.path)."
+            return Docc2contextCommandResult(exitCode: 0, output: formattedSummary)
         } catch let error as CLIError {
             return Docc2contextCommandResult(exitCode: ExitCode.usageError, output: error.description)
         } catch let error as ValidationError {
@@ -78,7 +83,6 @@ public struct Docc2contextCommand {
     }
 
     private func resolveOptions(from parsedArguments: Docc2contextCLIOptions) throws -> CLIOptions {
-        var options = CLIOptions()
         guard let input = parsedArguments.inputPath?.trimmingCharacters(in: .whitespacesAndNewlines), !input.isEmpty else {
             throw CLIError.missingInput
         }
@@ -91,11 +95,11 @@ public struct Docc2contextCommand {
             throw CLIError.unsupportedFormat(parsedArguments.format)
         }
 
-        options.inputPath = input
-        options.outputPath = output
-        options.forceOverwrite = parsedArguments.force
-        options.format = normalizedFormat
-        return options
+        return CLIOptions(
+            inputPath: input,
+            outputPath: output,
+            forceOverwrite: parsedArguments.force,
+            format: normalizedFormat)
     }
 }
 
