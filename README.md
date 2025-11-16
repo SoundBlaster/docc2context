@@ -37,6 +37,27 @@ swift test
 
 The tests exercise the CLI target and keep the Linux/macOS builds honest.
 
+### 4. Enforce coverage thresholds
+
+Phase D requires both the CLI and the core library to maintain at least 90% line coverage. Generate coverage data and enforce the threshold locally before opening a PR:
+
+```bash
+swift test --enable-code-coverage
+python3 Scripts/enforce_coverage.py --threshold 90
+```
+
+The helper script wraps `llvm-cov export -summary-only` and aggregates per-target coverage for the `Sources/docc2context` and `Sources/Docc2contextCore` trees. It fails fast when either target dips below the configured threshold so engineers can tighten tests before CI does.
+
+### 5. Lint documentation
+
+Documentation changes ship through the same guardrails as code. Run the Markdown lint helper before opening a PR so structural regressions (missing sections, trailing spaces, tabs) are caught locally:
+
+```bash
+python3 Scripts/lint_markdown.py README.md
+```
+
+Pass additional Markdown paths as arguments (for example, `DOCS/PRD/phase_d.md`) whenever you update deeper documentation trees.
+
 ## CLI usage
 
 `docc2context` now executes the DocC → Markdown pipeline end-to-end. Running the command populates `<output>/markdown/` with deterministic files grouped into `tutorials/` (tutorial volumes + chapters) and `articles/` (reference content). Each invocation prints a concise summary showing how many tutorial volumes, chapters, and reference articles were rendered so scripts can validate expectations.
@@ -51,6 +72,24 @@ docc2context <input-path> --output <directory> [--format markdown] [--force]
 - `--force` – Optional boolean flag that allows the CLI to delete an existing output directory before writing fresh Markdown files.
 
 Parsing errors exit with `EX_USAGE`/64 and human-readable guidance so scripts can detect misconfigurations early. `--help` prints the same usage and documents each supported flag. Successful conversions exit 0 after creating Markdown files on disk.
+
+## Fixtures & sample DocC bundles
+
+The repository ships two curated DocC bundles in `Fixtures/` (`TutorialCatalog.doccarchive` and `ArticleReference.doccarchive`). Each fixture entry is tracked inside `Fixtures/manifest.json` with its SHA-256 checksum and byte size so determinism tests can verify provenance.
+
+- **Inspecting fixtures** – Run `python3 Scripts/validate_fixtures_manifest.py Fixtures/manifest.json` to confirm hashes before recording new data. `swift test` depends on these bundles, so a mismatch indicates accidental edits.
+- **Adding fixtures** – Compress the `.doccarchive`, calculate its SHA-256 hash (`shasum -a 256`), and append the metadata to the manifest. Update `Fixtures/README.md` with provenance notes so future contributors know the origin of each bundle.
+- **Using fixtures in tests** – Leverage the harness utilities under `Tests/Shared/` to load fixture paths without duplicating boilerplate. `HarnessTemporaryDirectory` exposes scratch space for deterministic copy tests.
+
+## Testing & automation overview
+
+Most contributions touch multiple automation layers. Keep the following workflow handy:
+
+1. `swift build` – Confirm the package compiles before running tests.
+2. `swift test` – Executes the entire suite, including CLI integration, determinism, and documentation guards such as `DocumentationGuidanceTests` and `InternalModelDocumentationTests`.
+3. `swift test --enable-code-coverage` – Produces `.profdata` for coverage enforcement. Follow up with `python3 Scripts/enforce_coverage.py --threshold 90` to ensure both the CLI and core targets remain above the D2 floor.
+4. `python3 Scripts/lint_markdown.py README.md DOCS/PRD/phase_d.md` – Validates Markdown formatting and asserts that required README sections exist. The script exits non-zero when a rule fails, matching the CI `docs` job.
+5. `bash Scripts/release_gates.sh` – Runs tests with coverage, determinism smoke + full conversions, fixture validation, and coverage enforcement before you tag a release or push a significant change.
 
 ## Metadata parsing pipeline
 
@@ -99,12 +138,23 @@ Scripts/release_gates.sh
 
 The script performs the following checks:
 
-1. **Tests** – Executes `swift test` to ensure the package is healthy on the local toolchain.
-2. **Determinism Smoke Test** – Runs a deterministic smoke test twice (defaults to `swift run docc2context --help`) and compares the SHA-256 hashes of the outputs. This verifies that command output is deterministic across runs.
-3. **Full Output Determinism** – Converts the TutorialCatalog fixture twice to separate output directories and compares all generated Markdown files byte-for-byte, ensuring that the conversion pipeline produces identical outputs on repeated runs.
-4. **Fixture Validation** – Validates `Fixtures/manifest.json` via `Scripts/validate_fixtures_manifest.py`, confirming that every listed bundle exists, matches the recorded checksum, and reports the expected byte size.
+1. **Tests w/ Coverage** – Executes `swift test --enable-code-coverage` so `.build/debug/codecov/default.profdata` is always available for downstream gates.
+2. **Coverage Enforcement** – Runs `Scripts/enforce_coverage.py --threshold 90` to ensure both the CLI and library targets maintain ≥90% line coverage.
+3. **Determinism Smoke Test** – Runs a deterministic smoke test twice (defaults to `swift run docc2context --help`) and compares the SHA-256 hashes of the outputs. This verifies that command output is deterministic across runs.
+4. **Full Output Determinism** – Converts the TutorialCatalog fixture twice to separate output directories and compares all generated Markdown files byte-for-byte, ensuring that the conversion pipeline produces identical outputs on repeated runs.
+5. **Fixture Validation** – Validates `Fixtures/manifest.json` via `Scripts/validate_fixtures_manifest.py`, confirming that every listed bundle exists, matches the recorded checksum, and reports the expected byte size.
 
 All steps must succeed for the script to exit 0, making it suitable for CI wiring or pre-push hooks.
+
+## Troubleshooting & FAQ
+
+**Coverage script fails below 90%** – Re-run `swift test --enable-code-coverage` and then `python3 Scripts/enforce_coverage.py --threshold 90` to gather the latest data. The JSON summary lists both the CLI and core targets; focus on the lower one. Add failure-path tests (for example, new cases in `MarkdownGenerationPipelineTests`) instead of disabling coverage.
+
+**Release gates cannot find `llvm-cov`** – Ensure the Swift toolchain is first on your `PATH`. The helper script searches for `llvm-cov` in `$(dirname $(xcrun --find swift))/../bin` on macOS and alongside `swift` on Linux. If it still fails, provide the absolute path via `LLVM_COV` before running `Scripts/release_gates.sh`.
+
+**Doc lint job failed in CI** – Reproduce locally with `python3 Scripts/lint_markdown.py README.md` (and any additional Markdown paths you touched). The script prints file/line diagnostics for trailing whitespace, tab characters, CR line endings, and missing README sections. Fix the reported lines and rerun the command until it exits 0.
+
+**Determinism job reports mismatched directories** – Inspect the per-file diff in `determinism.log` (produced by `Scripts/release_gates.sh`). Determinism regressions frequently stem from unordered file system enumerations; apply `sorted()` or deterministic comparators before writing Markdown.
 
 ### Determinism Testing
 

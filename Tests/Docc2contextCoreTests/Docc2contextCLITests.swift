@@ -87,4 +87,25 @@ final class Docc2contextCLITests: XCTestCase {
             XCTAssertTrue(result.output.contains("--force"))
         }
     }
+
+    func testInputThatIsNotDirectorySurfacesPipelineError() throws {
+        try TestTemporaryDirectory.withTemporaryDirectory { temp in
+            let bogusFile = temp.url.appendingPathComponent("not-a-directory.md")
+            try "markdown".write(to: bogusFile, atomically: true, encoding: .utf8)
+            let outputDirectory = temp.childDirectory(named: "cli-output")
+
+            let command = Docc2contextCommand()
+            let result = command.run(arguments: [
+                "docc2context",
+                bogusFile.path,
+                "--output",
+                outputDirectory.path,
+                "--force"
+            ])
+
+            XCTAssertEqual(result.exitCode, 64)
+            XCTAssertTrue(result.output.contains("directory"),
+                          "Pipeline error description should mention directory requirement")
+        }
+    }
 }

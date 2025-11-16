@@ -51,19 +51,52 @@ public struct MarkdownGenerationPipeline {
     private let modelBuilder: DoccInternalModelBuilder
     private let renderer: DoccMarkdownRenderer
     private let linkGraphBuilder: LinkGraphBuilder
+    private let markdownWriter: (String, URL) throws -> Void
+    private let dataWriter: (Data, URL) throws -> Void
 
     public init(
         fileManager: FileManager = .default,
         metadataParser: DoccMetadataParser = .init(),
         modelBuilder: DoccInternalModelBuilder = .init(),
         renderer: DoccMarkdownRenderer = .init(),
-        linkGraphBuilder: LinkGraphBuilder = .init()
+        linkGraphBuilder: LinkGraphBuilder = .init(),
+        markdownWriter: ((String, URL) throws -> Void)? = nil,
+        dataWriter: ((Data, URL) throws -> Void)? = nil
     ) {
         self.fileManager = fileManager
         self.metadataParser = metadataParser
         self.modelBuilder = modelBuilder
         self.renderer = renderer
         self.linkGraphBuilder = linkGraphBuilder
+
+        let ensureDirectory: (URL) throws -> Void = { directory in
+            if fileManager.fileExists(atPath: directory.path) { return }
+            do {
+                try fileManager.createDirectory(at: directory, withIntermediateDirectories: true)
+            } catch {
+                throw Error.failedToCreateOutput(directory, error)
+            }
+        }
+
+        self.markdownWriter = markdownWriter ?? { markdown, url in
+            let directory = url.deletingLastPathComponent()
+            try ensureDirectory(directory)
+            do {
+                try markdown.write(to: url, atomically: true, encoding: .utf8)
+            } catch {
+                throw Error.failedToWriteFile(url, error)
+            }
+        }
+
+        self.dataWriter = dataWriter ?? { data, url in
+            let directory = url.deletingLastPathComponent()
+            try ensureDirectory(directory)
+            do {
+                try data.write(to: url, options: .atomic)
+            } catch {
+                throw Error.failedToWriteFile(url, error)
+            }
+        }
     }
 
     public func generateMarkdown(
@@ -213,20 +246,20 @@ public struct MarkdownGenerationPipeline {
     }
 
     private func write(markdown: String, to url: URL) throws {
-        let directory = url.deletingLastPathComponent()
-        try ensureDirectoryExists(directory)
         do {
-            try markdown.write(to: url, atomically: true, encoding: .utf8)
+            try markdownWriter(markdown, url)
+        } catch let pipelineError as Error {
+            throw pipelineError
         } catch {
             throw Error.failedToWriteFile(url, error)
         }
     }
 
     private func write(data: Data, to url: URL) throws {
-        let directory = url.deletingLastPathComponent()
-        try ensureDirectoryExists(directory)
         do {
-            try data.write(to: url, options: .atomic)
+            try dataWriter(data, url)
+        } catch let pipelineError as Error {
+            throw pipelineError
         } catch {
             throw Error.failedToWriteFile(url, error)
         }

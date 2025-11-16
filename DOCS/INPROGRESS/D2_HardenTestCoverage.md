@@ -67,3 +67,4 @@ implementation.
 
 ## Status
 - **2025-11-18** — Task selected via `SELECT_NEXT`; planning doc created; waiting on C5 completion before START.
+- **2025-11-16** — Implemented coverage enforcement: expanded parser, pipeline, CLI, and determinism tests (69 total) to raise `Docc2contextCore` line coverage to 90.43%; added `Scripts/enforce_coverage.py`, wired it into release gates + CI, and documented the workflow in README.
