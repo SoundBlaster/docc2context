@@ -110,17 +110,17 @@ final class LinkGraphBuilderTests: XCTestCase {
 
     // MARK: - Helper Methods
 
-    private func loadBundleModel(from fixture URL: Foundation.URL) throws -> DoccBundleModel {
+    private func loadBundleModel(from url: Foundation.URL) throws -> DoccBundleModel {
         let parser = DoccMetadataParser()
         let builder = DoccInternalModelBuilder()
 
-        let bundleMetadata = try parser.loadInfoPlist(from: URL)
-        let renderMetadata = try parser.loadRenderMetadata(from: URL)
+        let bundleMetadata = try parser.loadInfoPlist(from: url)
+        let renderMetadata = try parser.loadRenderMetadata(from: url)
         let documentationCatalog = try parser.loadDocumentationCatalog(
-            from: URL,
+            from: url,
             technologyRoot: bundleMetadata.technologyRoot)
-        let bundleDataMetadata = try parser.loadBundleDataMetadata(from: URL)
-        let symbolReferences = try parser.loadSymbolGraphReferences(from: URL)
+        let bundleDataMetadata = try parser.loadBundleDataMetadata(from: url)
+        let symbolReferences = try parser.loadSymbolGraphReferences(from: url)
 
         return try builder.makeBundleModel(
             bundleMetadata: bundleMetadata,
