@@ -20,6 +20,8 @@ public struct DeterminismResult {
 
 /// Validates determinism by computing and comparing file hashes
 public class DeterminismValidator {
+    /// Initialize a new determinism validator
+    public init() {}
 
     /// Compute a hash of file content using a djb2-style algorithm
     /// - Parameter filePath: Path to the file to hash
@@ -66,14 +68,16 @@ public class DeterminismValidator {
                     let pathData = (relativePath).data(using: .utf8) ?? Data()
                     let combined = fileData + pathData
 
-                    // Simple hash function
+                    // Compute hash using djb2-style algorithm
                     var fileHash: UInt64 = 5381
                     for byte in combined {
                         fileHash = ((fileHash << 5) &+ fileHash) &+ UInt64(byte)
                     }
-                    combinedHash = combinedHash ^ fileHash
+                    // Combine hashes using djb2-style to maintain order sensitivity
+                    combinedHash = ((combinedHash << 5) &+ combinedHash) &+ fileHash
                 } catch {
-                    // Skip files that can't be read
+                    // Propagate errors to prevent false positives from unreadable files
+                    throw error
                 }
             }
         }
@@ -86,7 +90,7 @@ public class DeterminismValidator {
     ///   - firstPath: Path to the first directory
     ///   - secondPath: Path to the second directory
     /// - Returns: DeterminismResult with comparison details
-    /// - Throws: FileReadError if files cannot be read
+    /// - Throws: Error if files cannot be read or comparison fails
     public func compareDirectories(
         firstPath: String,
         secondPath: String

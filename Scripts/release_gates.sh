@@ -93,23 +93,24 @@ run_full_determinism_check() {
   log_step "Comparing output directory checksums..."
   local found_diff=0
 
-  # Get sorted list of all files in first output
+  # Get sorted list of relative paths from each output directory
+  # Use relative paths to avoid comparing different temp directory paths
   local files1 files2
-  files1=$(find "$output_dir1" -type f 2>/dev/null | sort)
-  files2=$(find "$output_dir2" -type f 2>/dev/null | sort)
+  files1=$(cd "$output_dir1" && find . -type f 2>/dev/null | sort)
+  files2=$(cd "$output_dir2" && find . -type f 2>/dev/null | sort)
 
-  # Check if file lists are identical
-  if [[ "$files1" != "$files2" ]]; then
-    log_error "File lists differ between runs"
-    log_error "First run files: $(echo "$files1" | wc -l) files"
-    log_error "Second run files: $(echo "$files2" | wc -l) files"
+  # Check if file lists are identical (same number of files)
+  local count1=$(echo "$files1" | wc -l)
+  local count2=$(echo "$files2" | wc -l)
+  if [[ "$count1" != "$count2" ]]; then
+    log_error "Different number of files: $count1 vs $count2"
     found_diff=1
   fi
 
   # Compare file checksums
-  if [[ $found_diff -eq 0 ]]; then
-    while IFS= read -r file1; do
-      local rel_path="${file1#$output_dir1/}"
+  if [[ $found_diff -eq 0 && -n "$files1" ]]; then
+    while IFS= read -r rel_path; do
+      local file1="$output_dir1/$rel_path"
       local file2="$output_dir2/$rel_path"
 
       if [[ ! -f "$file2" ]]; then
@@ -128,6 +129,9 @@ run_full_determinism_check() {
         break
       fi
     done <<< "$files1"
+  elif [[ $found_diff -eq 0 && -z "$files1" ]]; then
+    log_error "No files found in output directories"
+    found_diff=1
   fi
 
   rm -rf "$output_dir1" "$output_dir2"
