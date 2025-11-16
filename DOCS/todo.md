@@ -3,12 +3,14 @@
 Use this list for near-term execution. Each entry maps back to the PRD and [workplan](./workplan.md).
 
 ## In Progress
-- [ ] **C2 Generate Markdown Files** Convert DocC tutorial volumes, chapters, tutorials, and reference articles into Markdown
-  files that match the locked snapshot specs, persisting outputs to the requested directory with deterministic naming. _Depends
-  on:_ C1 snapshot specs + B6 internal model + renderer scaffolding. _Doc:_ PRD §Phase C. _Owner:_ docc2context agent. _Status:_
-  In Progress – planning captured in `DOCS/INPROGRESS/C2_GenerateMarkdown.md`.
+- _None – ready for the next SELECT_NEXT once new scope is prioritized._
 
 ## Completed
+- [x] **C2 Generate Markdown Files** Convert DocC tutorial volumes, chapters, tutorials, and reference articles into Markdown
+  files that match the locked snapshot specs, persisting outputs to the requested directory with deterministic naming. _Depends
+  on:_ C1 snapshot specs + B6 internal model + renderer scaffolding. _Doc:_ PRD §Phase C. _Owner:_ docc2context agent. _Status:_
+  Complete – `MarkdownGenerationPipeline` plus new CLI integration tests write deterministic files that match the Markdown snap
+  shots under `MarkdownGenerationPipelineTests`.
 - [x] **B6 Serialization Coverage** Add JSON serialization + determinism tests for `DoccBundleModel` and tutorial volumes. _Depends on:_ B6. _Doc:_ PRD §Phase B acceptance criteria. _Owner:_ docc2context agent. _Status:_ Complete – archived under `DOCS/TASK_ARCHIVE/13_B6_SerializationCoverage/`; deterministic encoder helpers, JSON snapshots, and `DoccInternalModelSerializationTests` guard internal model serialization.
 - [x] **B6 Documentation Update** Capture the internal model mapping + tutorial ordering guarantees inside `README.md` and developer docs. _Depends on:_ B6. _Doc:_ PRD §Phase B (documentation readiness). _Owner:_ docc2context agent. _Status:_ Complete – archived under `DOCS/TASK_ARCHIVE/12_B6_DocumentationUpdate/`; README section + `InternalModelDocumentationTests` enforce the contract.
 - [x] **C1 Markdown Snapshot Specs** Author failing Markdown snapshot tests plus fixture layout covering tutorial volumes, chapters, and articles before renderer code begins. _Depends on:_ B6 internal model + serialization readiness, C1 outline. _Doc:_ PRD §Phase C, workplan §Phase C. _Owner:_ docc2context agent. _Status:_ Complete – archived under `DOCS/TASK_ARCHIVE/16_C1_MarkdownSnapshotSpecs/`; tutorial overview, chapter, and reference article specs live in `MarkdownSnapshotSpecsTests` with snapshots stored under `Tests/__Snapshots__/MarkdownSnapshotSpecsTests/`.

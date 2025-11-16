@@ -37,23 +37,20 @@ swift test
 
 The tests exercise the CLI target and keep the Linux/macOS builds honest.
 
-## CLI usage (bootstrap)
+## CLI usage
 
-The current CLI exposes the argument contract verified by the initial CLI test suite so downstream implementation work has a stable spec.
+`docc2context` now executes the DocC → Markdown pipeline end-to-end. Running the command populates `<output>/markdown/` with deterministic files grouped into `tutorials/` (tutorial volumes + chapters) and `articles/` (reference content). Each invocation prints a concise summary showing how many tutorial volumes, chapters, and reference articles were rendered so scripts can validate expectations.
 
 ```
 docc2context <input-path> --output <directory> [--format markdown] [--force]
 ```
 
 - `<input-path>` – Required positional argument that points to a DocC bundle or `.doccarchive` to convert.
-- `--output <directory>` – Required option describing where Markdown/link graph artifacts should be written.
-- `--format <value>` – Optional output format selector. For now only `markdown` is accepted; other values exit with code 64 and
-  include the supported list in the error text.
-- `--force` – Optional boolean flag that indicates the output directory may be overwritten when later stages implement file sys
-  tem writes.
+- `--output <directory>` – Required option describing where Markdown/link graph artifacts should be written. The directory is created if it does not already exist.
+- `--format <value>` – Optional output format selector. For now only `markdown` is accepted; other values exit with code 64 and  include the supported list in the error text.
+- `--force` – Optional boolean flag that allows the CLI to delete an existing output directory before writing fresh Markdown files.
 
-Parsing errors exit with `EX_USAGE`/64 and human-readable guidance so scripts can detect misconfigurations early. `--help` print
-s the same usage and documents each supported flag.
+Parsing errors exit with `EX_USAGE`/64 and human-readable guidance so scripts can detect misconfigurations early. `--help` prints the same usage and documents each supported flag. Successful conversions exit 0 after creating Markdown files on disk.
 
 ## Metadata parsing pipeline
 
