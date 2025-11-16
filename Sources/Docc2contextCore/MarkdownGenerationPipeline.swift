@@ -243,7 +243,7 @@ public struct MarkdownGenerationPipeline {
         }
         var directory = root
         for component in components {
-            directory.appendPathComponent(component, isDirectory: true)
+            directory = directory.appendingPathComponent(component, isDirectory: true)
         }
         return directory.appendingPathComponent(fileName).appendingPathExtension("md")
     }
