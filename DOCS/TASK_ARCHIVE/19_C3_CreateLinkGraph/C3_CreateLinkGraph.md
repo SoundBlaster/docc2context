@@ -58,6 +58,7 @@ Complete C3 task as part of cyclic execution workflow:
 ### Files Created/Modified
 1. **New Files:**
    - `Sources/Docc2contextCore/LinkGraphBuilder.swift` - LinkGraphBuilder and LinkGraph model
+   - `Sources/Docc2contextCore/DeterministicJSONEncoder.swift` - Deterministic JSON encoder (moved from test support to library for pipeline use)
    - `Tests/Docc2contextCoreTests/LinkGraphBuilderTests.swift` - LinkGraphBuilder unit tests (7 test methods)
 
 2. **Modified Files:**
@@ -114,9 +115,23 @@ Implementation complete. Code written and tests authored (awaiting `swift test` 
 - ⏳ Test execution (pending swift availability)
 - ⏳ Snapshot generation (pending test run)
 
+### Code Review & Refinements
+
+**Initial Review Issues Identified:**
+1. Unused `AdjacencyEntry` struct in LinkGraph model
+2. Redundant conditional: `sortedAdjacency.isEmpty ? [:] : sortedAdjacency`
+3. Unresolved references logic that would always be empty
+4. Missing DeterministicJSONEncoder in implementation notes
+
+**Refinements Applied:**
+1. ✅ Removed unused `AdjacencyEntry` struct (was defined but never used)
+2. ✅ Simplified adjacency assignment: removed redundant `.isEmpty` check
+3. ✅ Added explanatory comment: Unresolved references would require additional metadata not available in current DoccBundleModel (e.g., explicit link targets in article prose)
+4. ✅ Updated documentation to list DeterministicJSONEncoder as created file
+
 ### Validation Evidence
-Code review summary:
-- ✅ LinkGraph struct properly Codable with required fields
+Code review summary (post-refinement):
+- ✅ LinkGraph struct properly Codable with required fields (simplified)
 - ✅ LinkGraphBuilder correctly extracts adjacency from DoccBundleModel
 - ✅ Deterministic ordering ensured throughout (sorted keys, arrays)
 - ✅ Pipeline integration adds LinkGraphBuilder with dependency injection
@@ -124,6 +139,7 @@ Code review summary:
 - ✅ Tests authored with proper fixtures and assertions
 - ✅ Error handling consistent with existing pipeline patterns
 - ✅ Code follows project conventions
+- ✅ No unused code or redundant logic
 
 ### Validation Commands (To Execute)
 ```bash

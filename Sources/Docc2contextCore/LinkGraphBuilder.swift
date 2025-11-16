@@ -1,17 +1,7 @@
 import Foundation
 
 public struct LinkGraph: Equatable, Codable {
-    public struct AdjacencyEntry: Equatable, Codable {
-        public let source: String
-        public let targets: [String]
-
-        public init(source: String, targets: [String]) {
-            self.source = source
-            self.targets = targets
-        }
-    }
-
-    /// Adjacency map: page identifier → list of linked page identifiers
+    /// Adjacency map: page identifier → list of linked page identifiers (sorted)
     public let adjacency: [String: [String]]
 
     /// All page identifiers discovered in the bundle (tutorials, articles, symbols)
@@ -37,7 +27,6 @@ public struct LinkGraphBuilder {
     public func buildLinkGraph(from bundleModel: DoccBundleModel) throws -> LinkGraph {
         // Collect all page identifiers
         var allPageIds = Set<String>()
-        var allReferencedIds = Set<String>()
         var adjacencyMap = [String: Set<String>]()
 
         // 1. Extract tutorial page identifiers and build adjacency from chapters
@@ -47,7 +36,6 @@ public struct LinkGraphBuilder {
                 // Chapter references its tutorial pages
                 for pageId in chapter.pageIdentifiers {
                     allPageIds.insert(pageId)
-                    allReferencedIds.insert(pageId)
                     // Add link from volume to pages
                     adjacencyMap[volume.identifier, default: Set()].insert(pageId)
                 }
@@ -58,7 +46,6 @@ public struct LinkGraphBuilder {
         for topic in bundleModel.documentationCatalog.topics {
             for identifier in topic.identifiers {
                 allPageIds.insert(identifier)
-                allReferencedIds.insert(identifier)
                 // Catalog itself links to these pages
                 adjacencyMap[bundleModel.documentationCatalog.identifier, default: Set()].insert(identifier)
             }
@@ -72,8 +59,10 @@ public struct LinkGraphBuilder {
         // 4. Add documentation catalog as a page
         allPageIds.insert(bundleModel.documentationCatalog.identifier)
 
-        // 5. Find unresolved references (referenced but not defined)
-        let unresolvedRefs = allReferencedIds.subtracting(allPageIds)
+        // 5. Note: Unresolved references would require additional metadata (e.g., explicit link targets)
+        //    that is not available in the current DoccBundleModel structure. For now, we track
+        //    only the pages and references that are explicitly defined in the bundle.
+        let unresolvedRefs = Set<String>()
 
         // 6. Build deterministic adjacency map (sorted keys and values)
         let sortedAdjacency = adjacencyMap
@@ -83,7 +72,7 @@ public struct LinkGraphBuilder {
             }
 
         let linkGraph = LinkGraph(
-            adjacency: sortedAdjacency.isEmpty ? [:] : sortedAdjacency,
+            adjacency: sortedAdjacency,
             allPageIdentifiers: allPageIds.sorted(),
             unresolvedReferences: unresolvedRefs.sorted()
         )
