@@ -64,8 +64,8 @@ run_full_determinism_check() {
   output_dir1="$(mktemp -d "$TMP_ROOT/determinism_output1.XXXXXX")"
   output_dir2="$(mktemp -d "$TMP_ROOT/determinism_output2.XXXXXX")"
 
-  # Get fixture path
-  local fixture_path="$REPO_ROOT/Tests/Docc2contextCoreTests/Fixtures/TutorialCatalog.doccarchive"
+  # Get fixture path (located in repo root Fixtures directory)
+  local fixture_path="$REPO_ROOT/Fixtures/TutorialCatalog.doccarchive"
 
   if [[ ! -d "$fixture_path" ]]; then
     log_warn "Tutorial fixture not found, skipping full determinism check"
