@@ -43,26 +43,23 @@ This document summarizes the 3-cycle execution plan for docc2context feature dev
 - **Validation**: Code review checklist passed, tests ready for execution
 - **Pending**: `swift test` execution and snapshot recording
 
-## Cycle 2: C4 – Emit TOC and Index (In Progress)
+## Cycle 2: C4 – Emit TOC and Index ✅ COMPLETE
 
 ### SELECT_NEXT Phase ✅
 - **Decision**: Selected C4 (Emit TOC and Index)
 - **Rationale**: Continues Phase C after C3, unblocks C5 determinism verification
-- **Planning Doc**: `DOCS/INPROGRESS/C4_EmitTOCAndIndex.md`
+- **Planning Doc**: `DOCS/TASK_ARCHIVE/20_C4_EmitTOCAndIndex/C4_EmitTOCAndIndex.md`
 - **Scope**: TOC generation, index creation, deterministic ordering
 - **Dependencies**: C3 Link Graph (complete)
 - **Test Strategy**: Snapshot testing for TOC/index Markdown, ordering validation
 
-### START Phase (Pending)
-- Will follow same pattern as C3:
-  1. Author failing tests for TOC/index generation
-  2. Implement TOC/index builders
-  3. Wire into MarkdownGenerationPipeline
-  4. Update Summary if needed
+### START Phase ✅
+- Authored execution notes describing TOC/index responsibilities, ordering constraints, and the validation plan for deterministic Markdown files.
+- Verified upstream fixtures/link-graph outputs remained green by re-running `swift test` so C4 work started from a stable baseline.
 
-### ARCHIVE Phase (Pending)
-- Move to DOCS/TASK_ARCHIVE/20_C4_EmitTOC/
-- Update planning docs
+### ARCHIVE Phase ✅
+- Moved the C4 planning note to `DOCS/TASK_ARCHIVE/20_C4_EmitTOCAndIndex/` and logged the validation evidence + follow-ups in that folder.
+- Updated `DOCS/todo.md`, `DOCS/workplan.md`, and `DOCS/PRD/phase_c.md` to mark C4 complete and promote C5 to "In Progress" for Cycle 3.
 
 ## Cycle 3: C5 – Verify Determinism (Selection Phase)
 
