@@ -27,8 +27,8 @@ Translate the Phase C requirement for deterministic Markdown exports into execut
 - [x] Finalize snapshot directory layout by adding `Tests/__Snapshots__/MarkdownSnapshotSpecsTests/` alongside the shared harness docs.
 - [x] Implement the tutorial overview snapshot spec + renderer entry point described above.
 - [x] Expand fixtures/tests for tutorial chapters following the same harness (`test_tutorialChapterPageMatchesSnapshot`).
-- [ ] Record reference article snapshot specs using `Fixtures/ArticleReference.doccarchive`.
-- [ ] Document normalization/diff helpers (line endings, code block fences) once discovered.
+- [x] Record reference article snapshot specs using `Fixtures/ArticleReference.doccarchive`.
+- [x] Document normalization/diff helpers (line endings, code block fences) once discovered.
 
 ### Active Focus: Reference Article Snapshot
 - Next up: capture reference/article Markdown contracts using `ArticleReference.doccarchive` once tutorial coverage stabilizes.
@@ -40,3 +40,8 @@ Translate the Phase C requirement for deterministic Markdown exports into execut
 
 ## Immediate Next Action
 Use the planning output from `DOCS/TASK_ARCHIVE/15_C1_TutorialChapterSnapshot/C1_TutorialChapterSnapshot.md` to draft `MarkdownSnapshotSpecsTests.test_tutorialChapterPageMatchesSnapshot` targeting the `tutorialcatalog/tutorials/getting-started` Chapter 1 page, ensuring snapshot contents align with the documented heading/order/asset decisions before any renderer implementation begins.
+
+## Completion Update – 2025-11-17
+- Authored `MarkdownSnapshotSpecsTests.test_referenceArticlePageMatchesSnapshot` that targets `articlereference/documentation/articles/api-walkthrough` and recorded the golden Markdown at `Tests/__Snapshots__/MarkdownSnapshotSpecsTests/test_referenceArticlePageMatchesSnapshot().md` using the shared normalization helpers.
+- Extended `DoccMarkdownRenderer` with `renderReferenceArticle` plus metadata/topics/reference helpers so tutorial + article specs now share a consistent section layout.
+- Confirmed the Markdown snapshot harness handles the new file without additional changes by re-running `swift test --filter MarkdownSnapshotSpecsTests` after recording.
