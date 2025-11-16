@@ -64,30 +64,40 @@ run_full_determinism_check() {
   output_dir1="$(mktemp -d "$TMP_ROOT/determinism_output1.XXXXXX")"
   output_dir2="$(mktemp -d "$TMP_ROOT/determinism_output2.XXXXXX")"
 
+  log_step "Output directories: $output_dir1 and $output_dir2"
+
   # Get fixture path (located in repo root Fixtures directory)
   local fixture_path="$REPO_ROOT/Fixtures/TutorialCatalog.doccarchive"
 
   if [[ ! -d "$fixture_path" ]]; then
-    log_warn "Tutorial fixture not found, skipping full determinism check"
+    log_warn "Tutorial fixture not found at $fixture_path, skipping full determinism check"
     rm -rf "$output_dir1" "$output_dir2"
     return 0
   fi
 
+  log_step "Found fixture at $fixture_path"
+
   # First conversion run
   log_step "Running first markdown conversion..."
-  if ! swift run docc2context "$fixture_path" --output "$output_dir1" --format markdown >/dev/null 2>&1; then
-    rm -rf "$output_dir1" "$output_dir2"
-    log_error "First determinism conversion run failed"
+  local first_run_log="$TMP_ROOT/first_run.log"
+  if ! swift run docc2context "$fixture_path" --output "$output_dir1" --format markdown --force >"$first_run_log" 2>&1; then
+    log_error "First determinism conversion run failed. Output:"
+    cat "$first_run_log" >&2
+    rm -rf "$output_dir1" "$output_dir2" "$first_run_log"
     exit 1
   fi
+  rm -f "$first_run_log"
 
   # Second conversion run
   log_step "Running second markdown conversion..."
-  if ! swift run docc2context "$fixture_path" --output "$output_dir2" --format markdown >/dev/null 2>&1; then
-    rm -rf "$output_dir1" "$output_dir2"
-    log_error "Second determinism conversion run failed"
+  local second_run_log="$TMP_ROOT/second_run.log"
+  if ! swift run docc2context "$fixture_path" --output "$output_dir2" --format markdown --force >"$second_run_log" 2>&1; then
+    log_error "Second determinism conversion run failed. Output:"
+    cat "$second_run_log" >&2
+    rm -rf "$output_dir1" "$output_dir2" "$second_run_log"
     exit 1
   fi
+  rm -f "$second_run_log"
 
   # Compare outputs using find and checksums
   log_step "Comparing output directory checksums..."
@@ -98,6 +108,9 @@ run_full_determinism_check() {
   local files1 files2
   files1=$(cd "$output_dir1" && find . -type f 2>/dev/null | sort)
   files2=$(cd "$output_dir2" && find . -type f 2>/dev/null | sort)
+
+  log_step "First run generated $(echo "$files1" | wc -l) files"
+  log_step "Second run generated $(echo "$files2" | wc -l) files"
 
   # Check if file lists are identical (same number of files)
   local count1=$(echo "$files1" | wc -l)
