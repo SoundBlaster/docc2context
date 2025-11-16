@@ -4,6 +4,7 @@ Use this list for near-term execution. Each entry maps back to the PRD and [work
 
 ## In Progress
 - **C5 Verify Determinism** Run the conversion pipeline twice (locally + CI) and fail when hashes differ so releases stay deterministic. _Depends on:_ C4 TOC/index emission. _Doc:_ `DOCS/INPROGRESS/C5_VerifyDeterminism.md`. _Owner:_ docc2context agent. _Status:_ Selected for Cycle 3; scoping/testing approach recorded, awaiting implementation.
+- **D2 Harden Test Coverage** Raise coverage on determinism, failure-path, and pipeline seams to >90% and gate CI on the threshold before release hardening. _Depends on:_ C5 determinism verification landing. _Doc:_ `DOCS/INPROGRESS/D2_HardenTestCoverage.md`. _Owner:_ docc2context agent. _Status:_ Newly selected via `SELECT_NEXT`; planning notes captured for Cycle 4 kickoff.
 
 ## Completed
 - [x] **C4 Emit TOC and Index** Generate deterministic table-of-contents and index Markdown alongside tutorial/article exports, leveraging the link graph for ordering. _Depends on:_ C3 link graph. _Doc:_ `DOCS/TASK_ARCHIVE/20_C4_EmitTOCAndIndex/`. _Owner:_ docc2context agent. _Status:_ Complete – archived under `DOCS/TASK_ARCHIVE/20_C4_EmitTOCAndIndex/`; Cycle 2 notes document validation via `swift test` and outline follow-ups for determinism.
