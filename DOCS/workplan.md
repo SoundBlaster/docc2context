@@ -19,7 +19,7 @@ The workplan distills the execution order of the phases defined in [DOCS/PRD/doc
 
 ## Phase C – Markdown Generation
 - ✅ **C1 Author Snapshot Specs for Markdown Output** — golden Markdown fixtures for each DocC entity type. Planning outline archived under `DOCS/TASK_ARCHIVE/14_C1_MarkdownRenderingStrategy/`, tutorial overview + chapter specs live in `DOCS/TASK_ARCHIVE/15_C1_TutorialChapterSnapshot/`, and the umbrella/tactical notes for tutorial + reference article coverage are now archived under `DOCS/TASK_ARCHIVE/16_C1_MarkdownSnapshotSpecs/` and `DOCS/TASK_ARCHIVE/17_C1_ReferenceArticleSnapshot/` after `MarkdownSnapshotSpecsTests` recorded the golden Markdown files.
-- **C2 Generate Markdown Files** — convert each DocC page into Markdown matching DocC semantics.
+- ✅ **C2 Generate Markdown Files** — archived under `DOCS/TASK_ARCHIVE/18_C2_GenerateMarkdown/`; the new `MarkdownGenerationPipeline` orchestrates detection, extraction, model building, and Markdown rendering to write deterministic files for tutorial volumes/chapters and reference articles while `Docc2contextCommand` integration tests confirm the CLI logs generation counts and honors `--force`. Validated via `swift test` and the CLI pipeline fixtures.
 - **C3 Create Link Graph** — emit JSON metadata linking pages and references.
 - **C4 Emit TOC and Index** — deterministic ordering of navigation files.
 - **C5 Verify Determinism** — double-run conversions in CI and compare hashes.
