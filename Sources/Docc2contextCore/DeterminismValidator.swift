@@ -21,31 +21,31 @@ public struct DeterminismResult {
 /// Validates determinism by computing and comparing file hashes
 public class DeterminismValidator {
 
-    /// Compute a simple hash of file content
+    /// Compute a hash of file content using a djb2-style algorithm
     /// - Parameter filePath: Path to the file to hash
-    /// - Returns: Hex-encoded hash
-    /// - Throws: FileReadError if file cannot be read
+    /// - Returns: Hex-encoded hash string
+    /// - Throws: Error if file cannot be read
     public func hashFile(at filePath: String) throws -> String {
         let fileURL = URL(fileURLWithPath: filePath)
         let data = try Data(contentsOf: fileURL)
 
-        // Use simple but effective hash: combine file size and first/last chunks
+        // Use djb2-style hash algorithm processing all file bytes
         var hashValue: UInt64 = 5381
         for byte in data {
             hashValue = ((hashValue << 5) &+ hashValue) &+ UInt64(byte)
         }
 
-        // Also create a checksum by adding all bytes
+        // Also create a checksum by adding all bytes and XOR with hash
         let checksum = data.reduce(0) { UInt64($0) &+ UInt64($1) }
         let combined = hashValue ^ checksum
 
         return String(format: "%016llx", combined)
     }
 
-    /// Hash a directory recursively (all files in order)
+    /// Hash a directory recursively by processing all files in sorted order
     /// - Parameter directoryPath: Path to the directory to hash
-    /// - Returns: Hex-encoded hash of all files
-    /// - Throws: FileReadError if files cannot be read
+    /// - Returns: Hex-encoded hash combining all files' hashes
+    /// - Throws: Error if files cannot be read
     public func hashDirectory(at directoryPath: String) throws -> String {
         let fileManager = FileManager.default
         var combinedHash: UInt64 = 5381
