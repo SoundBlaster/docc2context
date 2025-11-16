@@ -119,4 +119,33 @@ final class MarkdownGenerationPipelineTests: XCTestCase {
         XCTAssertTrue(firstChapterURL.lastPathComponent.hasPrefix("1-orientation"))
         XCTAssertTrue(secondChapterURL.lastPathComponent.hasPrefix("2-orientation"))
     }
+
+    func test_pipelineWritesLinkGraph() throws {
+        let tutorialFixture = FixtureLoader.urlForBundle(named: "TutorialCatalog.doccarchive")
+        try TestTemporaryDirectory.withTemporaryDirectory { temp in
+            let outputDirectory = temp.childDirectory(named: "output")
+            let pipeline = MarkdownGenerationPipeline()
+            _ = try pipeline.generateMarkdown(
+                from: tutorialFixture.path,
+                to: outputDirectory.path,
+                forceOverwrite: false)
+
+            // Verify link graph file exists
+            let linkGraphURL = outputDirectory
+                .appendingPathComponent("linkgraph", isDirectory: true)
+                .appendingPathComponent("adjacency.json", isDirectory: false)
+
+            XCTAssertTrue(FileManager.default.fileExists(atPath: linkGraphURL.path),
+                         "Link graph JSON file should be written to output")
+
+            // Verify link graph is valid JSON
+            let data = try Data(contentsOf: linkGraphURL)
+            let decoder = JSONDecoder()
+            let linkGraph = try decoder.decode(LinkGraph.self, from: data)
+
+            // Verify link graph has expected structure
+            XCTAssertFalse(linkGraph.allPageIdentifiers.isEmpty,
+                          "Link graph should contain page identifiers")
+        }
+    }
 }
