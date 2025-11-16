@@ -3,7 +3,7 @@
 Use this list for near-term execution. Each entry maps back to the PRD and [workplan](./workplan.md).
 
 ## In Progress
-- _None – ready for the next SELECT_NEXT once new scope is prioritized._
+- **C4 Emit TOC and Index** Generate deterministic table-of-contents and index files with navigation-friendly ordering. _Depends on:_ C3 link graph. _Doc:_ `DOCS/INPROGRESS/C4_EmitTOCAndIndex.md`. _Owner:_ docc2context agent. _Status:_ Selected for Cycle 2; specification and test plan documented.
 
 ## Completed
 - [x] **C3 Create Link Graph** Build cross-document link graph from DocC identifiers and relationships. _Depends on:_ C2 markdown generation. _Doc:_ `DOCS/TASK_ARCHIVE/19_C3_CreateLinkGraph/`. _Owner:_ docc2context agent. _Status:_ Complete – archived under `DOCS/TASK_ARCHIVE/19_C3_CreateLinkGraph/`; `LinkGraphBuilder` + `LinkGraph` model + 8 tests (7 unit + 1 integration) construct deterministic JSON adjacency files per bundle with full relationship extraction (tutorial chapters, catalog topics, symbol references).
