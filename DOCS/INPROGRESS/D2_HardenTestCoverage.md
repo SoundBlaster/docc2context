@@ -26,7 +26,7 @@ implementation.
 - Coverage data: `swift test --enable-code-coverage` output + `llvm-cov report`.
 - Existing automation: `Scripts/release_gates.sh` (currently runs `swift test`, determinism smoke, fixture validation).
 - CI context: `.github/workflows/ci.yml` needs coverage stage/perf thresholds.
-- Potential helper crates: consider lightweight Swift script or Python helper to parse `.profdata` and enforce thresholds.
+- Potential helper packages: consider lightweight Swift script or Python helper to parse `.profdata` and enforce thresholds.
 
 ## Proposed Test Coverage Targets
 | Area | Gap / Risk | Planned Tests |
