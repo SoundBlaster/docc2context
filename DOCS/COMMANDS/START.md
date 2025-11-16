@@ -89,6 +89,29 @@ If a task seems too large to complete in one session:
 
 ---
 
+## 🔧 PRE-REQUISITE: Swift Environment Setup
+
+**BEFORE implementing ANY task that requires `swift build` or `swift test`:**
+
+1. **Verify Swift is Installed**
+   ```bash
+   swift --version
+   ```
+
+2. **If Swift is Missing:**
+   - Follow setup procedure in [DOCS/RULES/SWIFT_SETUP.md](../RULES/SWIFT_SETUP.md)
+   - Or run automated setup script provided in that document
+   - Verify installation: `swift --version` should show Swift 6.0.3
+
+3. **Environment Check**
+   - Confirm PATH includes Swift: `echo $PATH | grep swift`
+   - Test compilation: `swift build` (should complete without errors)
+   - Test suite: `swift test` (should report pass/skip stats)
+
+**Reference:** [DOCS/RULES/SWIFT_SETUP.md](../RULES/SWIFT_SETUP.md) — Complete Swift installation and troubleshooting guide
+
+---
+
 ## ⚙️ EXECUTION STEPS
 
 ### Phase 1: Planning & Setup (Quick Review)
