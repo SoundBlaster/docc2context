@@ -22,7 +22,7 @@ The workplan distills the execution order of the phases defined in [DOCS/PRD/doc
 - ✅ **C2 Generate Markdown Files** — archived under `DOCS/TASK_ARCHIVE/18_C2_GenerateMarkdown/`; the new `MarkdownGenerationPipeline` orchestrates detection, extraction, model building, and Markdown rendering to write deterministic files for tutorial volumes/chapters and reference articles while `Docc2contextCommand` integration tests confirm the CLI logs generation counts and honors `--force`. Validated via `swift test` and the CLI pipeline fixtures.
 - ✅ **C3 Create Link Graph** — archived under `DOCS/TASK_ARCHIVE/19_C3_CreateLinkGraph/`; `LinkGraphBuilder` extracts adjacency relationships from `DoccBundleModel` and writes deterministic JSON to `output/linkgraph/adjacency.json`. 7 unit tests + 1 pipeline integration test validate extraction, determinism, and unresolved reference tracking.
 - ✅ **C4 Emit TOC and Index** — archived under `DOCS/TASK_ARCHIVE/20_C4_EmitTOCAndIndex/`; planning note captures TOC/index generation requirements plus validation evidence from the latest `swift test` run prior to hand-off to C5.
-- **C5 Verify Determinism** — double-run conversions in CI and compare hashes.
+- ✅ **C5 Verify Determinism** — archived under `DOCS/TASK_ARCHIVE/21_C5_VerifyDeterminism/`; determinism validator, release gates hashing, CI job, and README workflow ensure consecutive conversions hash-identically locally and in CI.
 
 ## Phase D – Quality Gates, Packaging, and Documentation
 - ✅ **D1 Implement Logging & Progress** — archived under `DOCS/TASK_ARCHIVE/08_D1_StructuredLogging/`; CLI emits deterministic phase lifecycle events and summary counts with tests + release gates enforcing the contract.
