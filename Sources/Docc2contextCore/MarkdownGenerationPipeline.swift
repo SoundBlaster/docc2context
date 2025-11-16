@@ -126,10 +126,10 @@ public struct MarkdownGenerationPipeline {
                         chapter: chapter,
                         tutorials: tutorials)
 
-                    let chapterSlug = slug(for: chapter.title, fallback: "chapter-\(index + 1)")
-                    let chapterURL = volumeDirectory
-                        .appendingPathComponent("\(chapterSlug).md", isDirectory: false)
-
+                    let chapterURL = makeChapterFileURL(
+                        title: chapter.title,
+                        index: index,
+                        under: volumeDirectory)
                     try write(markdown: chapterMarkdown, to: chapterURL)
                     chapterCount += 1
                 }
@@ -234,6 +234,12 @@ public struct MarkdownGenerationPipeline {
             }
         }
         return identifiers
+    }
+
+    func makeChapterFileURL(title: String, index: Int, under volumeDirectory: URL) -> URL {
+        let numberedTitle = "\(index + 1)-\(title)"
+        let slugValue = slug(for: numberedTitle, fallback: "chapter-\(index + 1)")
+        return volumeDirectory.appendingPathComponent("\(slugValue).md", isDirectory: false)
     }
 
     private func makeArticleFileURL(for identifier: String, under root: URL) -> URL {

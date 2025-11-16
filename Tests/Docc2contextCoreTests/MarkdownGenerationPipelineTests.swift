@@ -16,14 +16,16 @@ final class MarkdownGenerationPipelineTests: XCTestCase {
             XCTAssertEqual(summary.chapterCount, 1)
             XCTAssertEqual(summary.referenceArticleCount, 0)
 
-            let volumeURL = outputDirectory
+            let volumeDirectory = outputDirectory
                 .appendingPathComponent("markdown", isDirectory: true)
                 .appendingPathComponent("tutorials", isDirectory: true)
                 .appendingPathComponent("tutorialcatalog", isDirectory: true)
-                .appendingPathComponent("index.md", isDirectory: false)
 
-            let chapterURL = volumeURL.deletingLastPathComponent()
-                .appendingPathComponent("getting-started.md", isDirectory: false)
+            let volumeURL = volumeDirectory.appendingPathComponent("index.md", isDirectory: false)
+            let chapterURL = pipeline.makeChapterFileURL(
+                title: "Getting Started",
+                index: 0,
+                under: volumeDirectory)
 
             let volumeMarkdown = try String(contentsOf: volumeURL, encoding: .utf8)
             let chapterMarkdown = try String(contentsOf: chapterURL, encoding: .utf8)
@@ -97,5 +99,24 @@ final class MarkdownGenerationPipelineTests: XCTestCase {
                 }
             }
         }
+    }
+
+    func test_chapterFileURLDisambiguatesDuplicateTitles() {
+        let pipeline = MarkdownGenerationPipeline()
+        let volumeDirectory = URL(fileURLWithPath: "/tmp/tutorials/volume", isDirectory: true)
+
+        let firstChapterURL = pipeline.makeChapterFileURL(
+            title: "Orientation",
+            index: 0,
+            under: volumeDirectory)
+
+        let secondChapterURL = pipeline.makeChapterFileURL(
+            title: "Orientation",
+            index: 1,
+            under: volumeDirectory)
+
+        XCTAssertNotEqual(firstChapterURL, secondChapterURL)
+        XCTAssertTrue(firstChapterURL.lastPathComponent.hasPrefix("1-orientation"))
+        XCTAssertTrue(secondChapterURL.lastPathComponent.hasPrefix("2-orientation"))
     }
 }
