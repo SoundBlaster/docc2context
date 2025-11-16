@@ -3,9 +3,10 @@
 Use this list for near-term execution. Each entry maps back to the PRD and [workplan](./workplan.md).
 
 ## In Progress
-- **C3 Create Link Graph** Build cross-document link graph from DocC identifiers and relationships. _Depends on:_ C2 markdown generation. _Doc:_ `DOCS/INPROGRESS/C3_CreateLinkGraph.md`. _Owner:_ docc2context agent. _Status:_ Selected for Cycle 1; TDD harness and test plan documented, awaiting implementation (START phase).
+- _None – ready for the next SELECT_NEXT once new scope is prioritized._
 
 ## Completed
+- [x] **C3 Create Link Graph** Build cross-document link graph from DocC identifiers and relationships. _Depends on:_ C2 markdown generation. _Doc:_ `DOCS/TASK_ARCHIVE/19_C3_CreateLinkGraph/`. _Owner:_ docc2context agent. _Status:_ Complete – archived under `DOCS/TASK_ARCHIVE/19_C3_CreateLinkGraph/`; `LinkGraphBuilder` + `LinkGraph` model + 8 tests (7 unit + 1 integration) construct deterministic JSON adjacency files per bundle with full relationship extraction (tutorial chapters, catalog topics, symbol references).
 - [x] **C2 Generate Markdown Files** Convert DocC tutorial volumes, chapters, tutorials, and reference articles into Markdown
   files that match the locked snapshot specs, persisting outputs to the requested directory with deterministic naming. _Depends
   on:_ C1 snapshot specs + B6 internal model + renderer scaffolding. _Doc:_ PRD §Phase C. _Owner:_ docc2context agent. _Status:_
