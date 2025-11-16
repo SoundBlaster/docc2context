@@ -85,6 +85,33 @@ final class MetadataParsingTests: XCTestCase {
         XCTAssertEqual(tutorial.assessments.first?.items.first?.answer, 0)
     }
 
+    func test_articlePageLoadsSectionsAndReferences() throws {
+        let fixturesURL = FixtureLoader.urlForBundle(named: "ArticleReference.doccarchive")
+        let parser = DoccMetadataParser()
+
+        let article = try parser.loadArticlePage(
+            withIdentifier: "articlereference/documentation/articles/api-walkthrough",
+            from: fixturesURL)
+
+        XCTAssertEqual(article.identifier, "articlereference/documentation/articles/api-walkthrough")
+        XCTAssertEqual(article.kind, "article")
+        XCTAssertEqual(article.title, "API Walkthrough")
+        XCTAssertEqual(article.sections.count, 2)
+        XCTAssertEqual(article.sections.first?.title, "Inspect Inputs")
+        XCTAssertEqual(
+            article.sections.first?.content,
+            [
+                "Resolve whether the path is a directory or .doccarchive.",
+                "Emit structured errors when data is missing.",
+            ])
+        XCTAssertEqual(article.references.count, 1)
+        XCTAssertEqual(article.references.first?.title, "Docc2contextCommand")
+        XCTAssertEqual(article.references.first?.kind, "symbol")
+        XCTAssertEqual(
+            article.references.first?.identifier,
+            "articlereference/symbols/Docc2contextCommand")
+    }
+
     func test_symbolGraphReferencesLoadFromArticleReferenceBundle() throws {
         let fixturesURL = FixtureLoader.urlForBundle(named: "ArticleReference.doccarchive")
         let parser = DoccMetadataParser()

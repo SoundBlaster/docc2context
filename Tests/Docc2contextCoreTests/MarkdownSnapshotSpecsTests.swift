@@ -89,4 +89,41 @@ final class MarkdownSnapshotSpecsTests: XCTestCase {
             named: #function,
             record: SnapshotRecording.isEnabled)
     }
+
+    func test_referenceArticlePageMatchesSnapshot() throws {
+        let fixturesURL = FixtureLoader.urlForBundle(named: "ArticleReference.doccarchive")
+        let parser = DoccMetadataParser()
+
+        let bundleMetadata = try parser.loadInfoPlist(from: fixturesURL)
+        let renderMetadata = try parser.loadRenderMetadata(from: fixturesURL)
+        let documentationCatalog = try parser.loadDocumentationCatalog(
+            from: fixturesURL,
+            technologyRoot: bundleMetadata.technologyRoot)
+        let bundleDataMetadata = try parser.loadBundleDataMetadata(from: fixturesURL)
+        let symbolReferences = try parser.loadSymbolGraphReferences(from: fixturesURL)
+
+        let builder = DoccInternalModelBuilder()
+        let model = try builder.makeBundleModel(
+            bundleMetadata: bundleMetadata,
+            renderMetadata: renderMetadata,
+            documentationCatalog: documentationCatalog,
+            bundleDataMetadata: bundleDataMetadata,
+            symbolReferences: symbolReferences)
+
+        let articleIdentifier = "articlereference/documentation/articles/api-walkthrough"
+        let article = try parser.loadArticlePage(
+            withIdentifier: articleIdentifier,
+            from: fixturesURL)
+
+        let renderer = DoccMarkdownRenderer()
+        let markdown = renderer.renderReferenceArticle(
+            catalog: model.documentationCatalog,
+            article: article)
+
+        try MarkdownSnapshot.assertSnapshot(
+            self,
+            matching: markdown,
+            named: #function,
+            record: SnapshotRecording.isEnabled)
+    }
 }

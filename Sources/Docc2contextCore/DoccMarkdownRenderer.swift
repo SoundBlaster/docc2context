@@ -39,6 +39,26 @@ public struct DoccMarkdownRenderer {
         return sections.joined(separator: "\n\n") + "\n"
     }
 
+    public func renderReferenceArticle(
+        catalog: DoccDocumentationCatalog,
+        article: DoccArticle
+    ) -> String {
+        var sections: [String] = []
+        sections.append("# \(article.title)")
+        sections.append(makeArticleMetadataSection(catalog: catalog, article: article))
+        if let abstract = makeArticleAbstractSection(from: article.abstract) {
+            sections.append(abstract)
+        }
+        sections.append(makeArticleSectionsSection(from: article.sections))
+        if let topicsSection = makeArticleTopicsSection(from: article.topics) {
+            sections.append(topicsSection)
+        }
+        if let referencesSection = makeArticleReferencesSection(from: article.references) {
+            sections.append(referencesSection)
+        }
+        return sections.joined(separator: "\n\n") + "\n"
+    }
+
     private func makeMetadataSection(
         catalog: DoccDocumentationCatalog,
         volume: DoccTutorialVolume
@@ -175,6 +195,92 @@ public struct DoccMarkdownRenderer {
         var lines: [String] = ["## Navigation"]
         lines.append("- **Previous Chapter:** \(previousTitle ?? "_None_")")
         lines.append("- **Next Chapter:** \(nextTitle ?? "_None_")")
+        return lines.joined(separator: "\n")
+    }
+
+    private func makeArticleMetadataSection(
+        catalog: DoccDocumentationCatalog,
+        article: DoccArticle
+    ) -> String {
+        var lines: [String] = ["## Article Metadata"]
+        lines.append("- **Identifier:** \(article.identifier)")
+        lines.append("- **Article Kind:** \(article.kind)")
+        lines.append("- **Catalog Identifier:** \(catalog.identifier)")
+        lines.append("- **Catalog Title:** \(catalog.title)")
+        lines.append("- **Catalog Kind:** \(catalog.kind)")
+        if let role = catalog.role {
+            lines.append("- **Catalog Role:** \(role)")
+        }
+        lines.append("- **Section Count:** \(article.sections.count)")
+        lines.append("- **Reference Count:** \(article.references.count)")
+        return lines.joined(separator: "\n")
+    }
+
+    private func makeArticleAbstractSection(
+        from abstractItems: [DoccArticle.AbstractItem]
+    ) -> String? {
+        guard !abstractItems.isEmpty else { return nil }
+        let text = abstractItems
+            .map { $0.text.trimmingCharacters(in: .whitespacesAndNewlines) }
+            .filter { !$0.isEmpty }
+        guard !text.isEmpty else { return nil }
+        return (["## Abstract"] + text).joined(separator: "\n")
+    }
+
+    private func makeArticleSectionsSection(
+        from sections: [DoccArticle.Section]
+    ) -> String {
+        var lines: [String] = ["## Sections"]
+        guard !sections.isEmpty else {
+            lines.append("_No sections available for this article._")
+            return lines.joined(separator: "\n")
+        }
+
+        for section in sections {
+            lines.append("")
+            lines.append("### \(section.title)")
+            if section.content.isEmpty {
+                lines.append("_No content available for this section._")
+            } else {
+                for entry in section.content {
+                    lines.append("- \(entry)")
+                }
+            }
+        }
+
+        return lines.joined(separator: "\n")
+    }
+
+    private func makeArticleTopicsSection(
+        from topics: [DoccArticle.TopicSection]
+    ) -> String? {
+        guard !topics.isEmpty else { return nil }
+        var lines: [String] = ["## Topics"]
+        for topic in topics {
+            lines.append("")
+            lines.append("### \(topic.title)")
+            if topic.identifiers.isEmpty {
+                lines.append("_No topic identifiers available._")
+            } else {
+                for identifier in topic.identifiers {
+                    lines.append("- \(identifier)")
+                }
+            }
+        }
+        return lines.joined(separator: "\n")
+    }
+
+    private func makeArticleReferencesSection(
+        from references: [DoccArticle.Reference]
+    ) -> String? {
+        guard !references.isEmpty else { return nil }
+        var lines: [String] = ["## References"]
+        for reference in references {
+            lines.append("")
+            lines.append("### \(reference.title)")
+            lines.append("- **Kind:** \(reference.kind)")
+            lines.append("- **Identifier:** \(reference.identifier)")
+        }
         return lines.joined(separator: "\n")
     }
 }

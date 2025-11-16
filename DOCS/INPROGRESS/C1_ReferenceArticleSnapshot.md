@@ -69,3 +69,9 @@ If unanswered by fixture review, promote follow-up TODO entries before START to 
 2. Extend renderer + model loaders to feed the test (likely stubbed output first, then full implementation).
 3. Record the snapshot file via the harness, ensuring deterministic normalization for headings, code listings, and reference tables.
 4. Run `swift test --filter MarkdownSnapshotSpecsTests.test_referenceArticlePageMatchesSnapshot` and the full `swift test` suite before recording snapshots.
+
+## Completion Summary – 2025-11-17
+- Implemented the planned test plus renderer entry point so the `api-walkthrough` article fixture now round-trips to Markdown with metadata, abstract, sections, topics, and symbol references.
+- Snapshot stored at `Tests/__Snapshots__/MarkdownSnapshotSpecsTests/test_referenceArticlePageMatchesSnapshot().md` and guarded by the harness together with the tutorial specs.
+- Parser now exposes `loadArticlePage(withIdentifier:from:)`, giving START tasks a reusable helper for future article-focused specs.
+- Validation: `SNAPSHOT_RECORD=1 swift test --filter MarkdownSnapshotSpecsTests/test_referenceArticlePageMatchesSnapshot` to record, followed by full `swift test`.

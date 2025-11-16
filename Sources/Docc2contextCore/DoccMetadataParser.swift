@@ -73,6 +73,97 @@ public struct DoccDocumentationCatalog: Equatable, Codable {
     public let topics: [TopicSection]
 }
 
+public struct DoccArticle: Equatable, Codable {
+    public struct AbstractItem: Equatable, Codable {
+        public let type: String
+        public let text: String
+
+        public init(type: String, text: String) {
+            self.type = type
+            self.text = text
+        }
+    }
+
+    public struct Section: Equatable, Codable {
+        public let title: String
+        public let content: [String]
+
+        public init(title: String, content: [String]) {
+            self.title = title
+            self.content = content
+        }
+    }
+
+    public struct TopicSection: Equatable, Codable {
+        public let title: String
+        public let identifiers: [String]
+
+        public init(title: String, identifiers: [String]) {
+            self.title = title
+            self.identifiers = identifiers
+        }
+    }
+
+    public struct Reference: Equatable, Codable {
+        public let identifier: String
+        public let kind: String
+        public let title: String
+
+        public init(identifier: String, kind: String, title: String) {
+            self.identifier = identifier
+            self.kind = kind
+            self.title = title
+        }
+    }
+
+    public let identifier: String
+    public let kind: String
+    public let title: String
+    public let abstract: [AbstractItem]
+    public let sections: [Section]
+    public let topics: [TopicSection]
+    public let references: [Reference]
+
+    public init(
+        identifier: String,
+        kind: String,
+        title: String,
+        abstract: [AbstractItem],
+        sections: [Section],
+        topics: [TopicSection],
+        references: [Reference]
+    ) {
+        self.identifier = identifier
+        self.kind = kind
+        self.title = title
+        self.abstract = abstract
+        self.sections = sections
+        self.topics = topics
+        self.references = references
+    }
+
+    private enum CodingKeys: String, CodingKey {
+        case identifier
+        case kind
+        case title
+        case abstract
+        case sections
+        case topics
+        case references
+    }
+
+    public init(from decoder: Decoder) throws {
+        let container = try decoder.container(keyedBy: CodingKeys.self)
+        identifier = try container.decode(String.self, forKey: .identifier)
+        kind = try container.decode(String.self, forKey: .kind)
+        title = try container.decode(String.self, forKey: .title)
+        abstract = try container.decodeIfPresent([AbstractItem].self, forKey: .abstract) ?? []
+        sections = try container.decodeIfPresent([Section].self, forKey: .sections) ?? []
+        topics = try container.decodeIfPresent([TopicSection].self, forKey: .topics) ?? []
+        references = try container.decodeIfPresent([Reference].self, forKey: .references) ?? []
+    }
+}
+
 public struct DoccTutorial: Equatable, Codable {
     public struct Step: Equatable, Codable {
         public let title: String
@@ -141,6 +232,8 @@ public enum DoccMetadataParserError: Error, LocalizedError, Equatable {
     case invalidMetadataJSON(URL)
     case tutorialPageMissing(URL)
     case invalidTutorialPage(URL)
+    case articlePageMissing(URL)
+    case invalidArticlePage(URL)
 
     public var errorDescription: String? {
         switch self {
@@ -170,6 +263,10 @@ public enum DoccMetadataParserError: Error, LocalizedError, Equatable {
             return "Tutorial page not found at \(url.path)."
         case .invalidTutorialPage(let url):
             return "Tutorial page at \(url.path) is not valid JSON."
+        case .articlePageMissing(let url):
+            return "Article page not found at \(url.path)."
+        case .invalidArticlePage(let url):
+            return "Article page at \(url.path) is not valid JSON."
         }
     }
 }
@@ -372,6 +469,26 @@ public struct DoccMetadataParser {
         }
     }
 
+    public func loadArticlePage(
+        withIdentifier identifier: String,
+        from bundleURL: URL
+    ) throws -> DoccArticle {
+        let articleURL = makeArticleFileURL(for: identifier, bundleURL: bundleURL)
+        let data: Data
+        do {
+            data = try Data(contentsOf: articleURL)
+        } catch {
+            throw DoccMetadataParserError.articlePageMissing(articleURL)
+        }
+
+        let decoder = JSONDecoder()
+        do {
+            return try decoder.decode(DoccArticle.self, from: data)
+        } catch {
+            throw DoccMetadataParserError.invalidArticlePage(articleURL)
+        }
+    }
+
     private func value(forKey key: String, in plist: [String: Any]) throws -> String {
         guard let rawValue = plist[key] else {
             throw DoccMetadataParserError.missingRequiredField(key)
@@ -429,6 +546,15 @@ extension DoccMetadataParser {
         return bundleURL
             .appendingPathComponent("data", isDirectory: true)
             .appendingPathComponent("tutorials", isDirectory: true)
+            .appendingPathComponent("\(slug).json", isDirectory: false)
+    }
+
+    private func makeArticleFileURL(for identifier: String, bundleURL: URL) -> URL {
+        let slug = identifier.split(separator: "/").last.map(String.init) ?? identifier
+        return bundleURL
+            .appendingPathComponent("data", isDirectory: true)
+            .appendingPathComponent("documentation", isDirectory: true)
+            .appendingPathComponent("articles", isDirectory: true)
             .appendingPathComponent("\(slug).json", isDirectory: false)
     }
 
