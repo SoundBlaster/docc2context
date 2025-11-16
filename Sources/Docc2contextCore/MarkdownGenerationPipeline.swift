@@ -50,17 +50,20 @@ public struct MarkdownGenerationPipeline {
     private let metadataParser: DoccMetadataParser
     private let modelBuilder: DoccInternalModelBuilder
     private let renderer: DoccMarkdownRenderer
+    private let linkGraphBuilder: LinkGraphBuilder
 
     public init(
         fileManager: FileManager = .default,
         metadataParser: DoccMetadataParser = .init(),
         modelBuilder: DoccInternalModelBuilder = .init(),
-        renderer: DoccMarkdownRenderer = .init()
+        renderer: DoccMarkdownRenderer = .init(),
+        linkGraphBuilder: LinkGraphBuilder = .init()
     ) {
         self.fileManager = fileManager
         self.metadataParser = metadataParser
         self.modelBuilder = modelBuilder
         self.renderer = renderer
+        self.linkGraphBuilder = linkGraphBuilder
     }
 
     public func generateMarkdown(
@@ -155,6 +158,15 @@ public struct MarkdownGenerationPipeline {
             referenceArticleCount += 1
         }
 
+        // Build and write link graph
+        let linkGraph = try linkGraphBuilder.buildLinkGraph(from: bundleModel)
+        let linkGraphRoot = outputURL.appendingPathComponent("linkgraph", isDirectory: true)
+        try ensureDirectoryExists(linkGraphRoot)
+        let linkGraphURL = linkGraphRoot.appendingPathComponent("adjacency.json", isDirectory: false)
+        let encoder = DeterministicJSONEncoder.makeEncoder()
+        let linkGraphData = try encoder.encode(linkGraph)
+        try write(data: linkGraphData, to: linkGraphURL)
+
         return Summary(
             outputDirectory: outputURL,
             tutorialVolumeCount: tutorialVolumeCount,
@@ -205,6 +217,16 @@ public struct MarkdownGenerationPipeline {
         try ensureDirectoryExists(directory)
         do {
             try markdown.write(to: url, atomically: true, encoding: .utf8)
+        } catch {
+            throw Error.failedToWriteFile(url, error)
+        }
+    }
+
+    private func write(data: Data, to url: URL) throws {
+        let directory = url.deletingLastPathComponent()
+        try ensureDirectoryExists(directory)
+        do {
+            try data.write(to: url, options: .atomic)
         } catch {
             throw Error.failedToWriteFile(url, error)
         }

@@ -3,7 +3,7 @@
 Use this list for near-term execution. Each entry maps back to the PRD and [workplan](./workplan.md).
 
 ## In Progress
-- _None – ready for the next SELECT_NEXT once new scope is prioritized._
+- **C3 Create Link Graph** Build cross-document link graph from DocC identifiers and relationships. _Depends on:_ C2 markdown generation. _Doc:_ `DOCS/INPROGRESS/C3_CreateLinkGraph.md`. _Owner:_ docc2context agent. _Status:_ Selected for Cycle 1; TDD harness and test plan documented, awaiting implementation (START phase).
 
 ## Completed
 - [x] **C2 Generate Markdown Files** Convert DocC tutorial volumes, chapters, tutorials, and reference articles into Markdown
