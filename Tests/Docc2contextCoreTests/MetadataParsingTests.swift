@@ -249,7 +249,14 @@ final class MetadataParsingTests: XCTestCase {
 
         let parser = DoccMetadataParser()
         XCTAssertThrowsError(try parser.loadSymbolGraphReferences(from: temporaryBundle)) { error in
-            XCTAssertEqual(error as? DoccMetadataParserError, .invalidSymbolGraph(invalidURL))
+            guard case let .invalidSymbolGraph(actualURL) = error as? DoccMetadataParserError else {
+                XCTFail("Expected invalidSymbolGraph error, got \(String(describing: error))")
+                return
+            }
+            XCTAssertEqual(
+                actualURL.standardizedFileURL,
+                invalidURL.standardizedFileURL,
+                "Symbol graph error should report the invalid file path")
         }
     }
 
