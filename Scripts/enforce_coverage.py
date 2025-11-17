@@ -21,7 +21,7 @@ class CoverageTotals:
     @property
     def percent(self) -> float:
         if self.total == 0:
-            return 100.0
+            return 0.0
         return (self.covered / self.total) * 100.0
 
 
@@ -63,8 +63,30 @@ def find_test_binary(root: Path) -> Path:
     candidates = sorted(root.glob(".build/**/*.xctest"))
     for candidate in candidates:
         if candidate.name == "docc2contextPackageTests.xctest":
-            return candidate
+            return resolve_executable_path(candidate)
     raise SystemExit("Unable to locate docc2contextPackageTests.xctest in .build directory.")
+
+
+def resolve_executable_path(path: Path) -> Path:
+    if path.is_file():
+        return path
+
+    bundle_binary_dir = path / "Contents" / "MacOS"
+    if bundle_binary_dir.is_dir():
+        stem_candidate = bundle_binary_dir / path.stem
+        if stem_candidate.is_file():
+            return stem_candidate
+
+        binaries = [candidate for candidate in bundle_binary_dir.iterdir() if candidate.is_file()]
+        if len(binaries) == 1:
+            return binaries[0]
+
+        if binaries:
+            raise SystemExit(
+                f"Unable to disambiguate binary inside bundle {path}. Candidates: {', '.join(b.name for b in binaries)}"
+            )
+
+    raise SystemExit(f"Unable to locate executable binary inside {path}")
 
 
 def load_coverage_json(llvm_cov: str, profdata: Path, binary: Path) -> Dict:
