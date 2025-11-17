@@ -3,7 +3,7 @@
 Use this list for near-term execution. Each entry maps back to the PRD and [workplan](./workplan.md).
 
 ## In Progress
-_None – select the next Phase D task via SELECT_NEXT before starting._
+- [ ] **D4 Package Distribution & Release Automation** Prepare the release workflow that builds signed binaries for Linux/macOS only after quality gates succeed. _Depends on:_ D1 logging, D2 coverage gate, D3 documentation readiness. _Doc:_ `DOCS/INPROGRESS/D4_PackageDistributionRelease.md`. _Owner:_ docc2context agent. _Status:_ In Progress – SELECT_NEXT planning captured scope, dependencies, and deliverables for the packaging script + CI release automation.
 
 ## Completed
 - [x] **D2 Harden Test Coverage** Raise coverage on determinism, failure-path, and pipeline seams to >90% and gate CI on the threshold before release hardening. _Depends on:_ C5 determinism verification landing. _Doc:_ `DOCS/TASK_ARCHIVE/22_D2_HardenTestCoverage/`. _Owner:_ docc2context agent. _Status:_ Complete – Cycle 4; added CLI/pipeline/metadata parser failure-path tests (69 total), coverage enforcement script + CI job, README updates, and release gate integration. `Docc2contextCore` coverage now 90.43% enforced locally and in CI.
