@@ -13,7 +13,7 @@
 5. Each tagged release appends a checklist entry under `DOCS/TASK_ARCHIVE/` (or CHANGELOG) referencing build logs and hashes.
 
 ## Dependencies & Inputs
-- Existing automation (`Scripts/release_gates.sh`, coverage + determinism jobs) act as prereqs.
+- Existing automation (`Scripts/release_gates.sh`, coverage + determinism jobs) act as prerequisites.
 - Git tags / semantic versioning source of truth (needs alignment with Package.swift `docc2context` version string).
 - GitHub Actions credentials for uploading release assets + macOS signing identity (store via repository secrets when implementing).
 - Fixture archives must remain unchanged so release artifacts stay deterministic; rely on manifest validation before packaging.
