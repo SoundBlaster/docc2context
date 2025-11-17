@@ -2,7 +2,7 @@
 
 ## Task Overview
 - **PRD Reference:** [`DOCS/PRD/phase_d.md`](../PRD/phase_d.md) – D4 requires a reproducible release workflow that emits signed binaries for Linux and macOS only after all quality gates succeed.
-- **Current Status:** D1–D3 are archived per the [workplan](../workplan.md); automation currently stops at `Scripts/release_gates.sh`, so there is no script that builds/upload-ready artifacts or records the release checklist.
+- **Current Status:** D1–D3 are archived per the [workplan](../workplan.md); automation currently stops at `Scripts/release_gates.sh`, so there is no script that builds upload-ready artifacts or records the release checklist.
 - **Goal:** Decide how to package deterministic CLI binaries, wire them to CI, and document the release checklist before implementing via `START`.
 
 ## Success Criteria
