@@ -26,8 +26,8 @@ The workplan distills the execution order of the phases defined in [DOCS/PRD/doc
 
 ## Phase D – Quality Gates, Packaging, and Documentation
 - ✅ **D1 Implement Logging & Progress** — archived under `DOCS/TASK_ARCHIVE/08_D1_StructuredLogging/`; CLI emits deterministic phase lifecycle events and summary counts with tests + release gates enforcing the contract.
-- **D2 Harden Test Coverage** — drive coverage >90% on critical paths before release.
-- **D3 Document Usage & Testing Workflow** — README updates for CLI usage, fixtures, and automation.
+- ✅ **D2 Harden Test Coverage** — archived under `DOCS/TASK_ARCHIVE/22_D2_HardenTestCoverage/`; expanded failure-path tests (69 total), introduced `Scripts/enforce_coverage.py`, wired the helper into `Scripts/release_gates.sh` and CI, and raised `Docc2contextCore` line coverage to ≥90% before documentation work.
+- ✅ **D3 Document Usage & Testing Workflow** — archived under `DOCS/TASK_ARCHIVE/23_D3_DocumentUsageTestingWorkflow/`; README now documents CLI usage, fixtures, automation, and troubleshooting, plus `Scripts/lint_markdown.py` and `DocumentationGuidanceTests` ensure doc guidance stays enforced locally and in CI.
 - **D4 Package Distribution & Release Automation** — release script that builds and publishes binaries only after gates succeed.
 
 ## Tracking Conventions
