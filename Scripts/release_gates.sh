@@ -7,7 +7,9 @@ MANIFEST_PATH="$REPO_ROOT/Fixtures/manifest.json"
 VALIDATOR_SCRIPT="$SCRIPT_DIR/validate_fixtures_manifest.py"
 DETERMINISM_COMMAND=${DETERMINISM_COMMAND:-"swift run docc2context --help"}
 TMP_ROOT=${DETERMINISM_TMP_DIR:-"$REPO_ROOT/.build/release-gates"}
+COVERAGE_THRESHOLD=${COVERAGE_THRESHOLD:-"90"}
 mkdir -p "$TMP_ROOT"
+cd "$REPO_ROOT"
 
 log_step() {
   printf '\n[%s] %s\n' "$(date -u +%H:%M:%S)" "$1"
@@ -22,8 +24,13 @@ log_error() {
 }
 
 run_swift_tests() {
-  log_step "Running swift test"
-  swift test
+  log_step "Running swift test with coverage"
+  swift test --enable-code-coverage
+}
+
+run_coverage_gate() {
+  log_step "Enforcing coverage threshold (${COVERAGE_THRESHOLD}%)"
+  python3 "$SCRIPT_DIR/enforce_coverage.py" --threshold "$COVERAGE_THRESHOLD"
 }
 
 run_determinism_check() {
@@ -172,6 +179,7 @@ verify_fixture_manifest() {
 
 main() {
   run_swift_tests
+  run_coverage_gate
   run_determinism_check
   run_full_determinism_check
   verify_fixture_manifest

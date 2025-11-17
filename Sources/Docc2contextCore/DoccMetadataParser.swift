@@ -380,12 +380,13 @@ public struct DoccMetadataParser {
         var references: [DoccSymbolReference] = []
         for fileURL in fileURLs
         where fileURL.lastPathComponent.lowercased().hasSuffix(".symbols.json") {
-            let data = try Data(contentsOf: fileURL)
+            let resolvedFileURL = fileURL.resolvingSymlinksInPath()
+            let data = try Data(contentsOf: resolvedFileURL)
             let symbolGraph: SymbolGraphFile
             do {
                 symbolGraph = try JSONDecoder().decode(SymbolGraphFile.self, from: data)
             } catch {
-                throw DoccMetadataParserError.invalidSymbolGraph(fileURL)
+                throw DoccMetadataParserError.invalidSymbolGraph(resolvedFileURL)
             }
 
             var skippedSymbolsForFile = 0
@@ -406,7 +407,7 @@ public struct DoccMetadataParser {
             }
 
             if skippedSymbolsForFile > 0 {
-                logSkippedSymbols(count: skippedSymbolsForFile, fileURL: fileURL)
+                logSkippedSymbols(count: skippedSymbolsForFile, fileURL: resolvedFileURL)
             }
         }
 
