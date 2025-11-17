@@ -2,6 +2,140 @@ import XCTest
 @testable import Docc2contextCore
 
 final class MarkdownGenerationPipelineTests: XCTestCase {
+    func test_pipelineRejectsMissingInputDirectory() throws {
+        try TestTemporaryDirectory.withTemporaryDirectory { temp in
+            let missingInput = temp.childDirectory(named: "does-not-exist")
+            let outputDirectory = temp.childDirectory(named: "output")
+            let pipeline = MarkdownGenerationPipeline()
+
+            XCTAssertThrowsError(
+                try pipeline.generateMarkdown(
+                    from: missingInput.path,
+                    to: outputDirectory.path,
+                    forceOverwrite: false)) { error in
+                guard case let .inputDoesNotExist(url) = error as? MarkdownGenerationPipeline.Error else {
+                    XCTFail("Expected missing input error but received \(error)")
+                    return
+                }
+                XCTAssertEqual(url.path, missingInput.path)
+            }
+        }
+    }
+
+    func test_pipelineRejectsFileInput() throws {
+        try TestTemporaryDirectory.withTemporaryDirectory { temp in
+            let bogusFile = temp.url.appendingPathComponent("not-a-directory.json")
+            try "data".write(to: bogusFile, atomically: true, encoding: .utf8)
+            let outputDirectory = temp.childDirectory(named: "output")
+
+            let pipeline = MarkdownGenerationPipeline()
+
+            XCTAssertThrowsError(
+                try pipeline.generateMarkdown(
+                    from: bogusFile.path,
+                    to: outputDirectory.path,
+                    forceOverwrite: false)) { error in
+                guard case let .inputIsNotDirectory(url) = error as? MarkdownGenerationPipeline.Error else {
+                    XCTFail("Expected inputIsNotDirectory error but received \(error)")
+                    return
+                }
+                XCTAssertEqual(url.path, bogusFile.path)
+            }
+        }
+    }
+
+    func test_pipelineSurfacesOutputCreationFailures() throws {
+        let tutorialFixture = FixtureLoader.urlForBundle(named: "TutorialCatalog.doccarchive")
+        try TestTemporaryDirectory.withTemporaryDirectory { temp in
+            let outputDirectory = temp.childDirectory(named: "output")
+            let fileManager = AlwaysFailingCreateFileManager()
+            let pipeline = MarkdownGenerationPipeline(fileManager: fileManager)
+
+            XCTAssertThrowsError(
+                try pipeline.generateMarkdown(
+                    from: tutorialFixture.path,
+                    to: outputDirectory.path,
+                    forceOverwrite: false)) { error in
+                guard case let .failedToCreateOutput(url, underlying) = error as? MarkdownGenerationPipeline.Error else {
+                    XCTFail("Expected failedToCreateOutput but received \(error)")
+                    return
+                }
+                XCTAssertEqual(url.path, outputDirectory.path)
+                XCTAssertTrue(underlying is AlwaysFailingCreateFileManager.StubError)
+            }
+        }
+    }
+
+    func test_pipelineSurfacesRemovalFailures() throws {
+        let tutorialFixture = FixtureLoader.urlForBundle(named: "TutorialCatalog.doccarchive")
+        try TestTemporaryDirectory.withTemporaryDirectory { temp in
+            let outputDirectory = temp.childDirectory(named: "output")
+            try FileManager.default.createDirectory(at: outputDirectory, withIntermediateDirectories: true)
+
+            let fileManager = RemovalFailingFileManager()
+            let pipeline = MarkdownGenerationPipeline(fileManager: fileManager)
+
+            XCTAssertThrowsError(
+                try pipeline.generateMarkdown(
+                    from: tutorialFixture.path,
+                    to: outputDirectory.path,
+                    forceOverwrite: true)) { error in
+                guard case let .failedToRemoveExistingOutput(url, underlying) = error as? MarkdownGenerationPipeline.Error else {
+                    XCTFail("Expected failedToRemoveExistingOutput but received \(error)")
+                    return
+                }
+                XCTAssertEqual(url.path, outputDirectory.path)
+                XCTAssertTrue(underlying is RemovalFailingFileManager.StubError)
+            }
+        }
+    }
+
+    func test_pipelineSurfacesMarkdownWriteFailures() throws {
+        enum WriterError: Swift.Error { case expected }
+        let tutorialFixture = FixtureLoader.urlForBundle(named: "TutorialCatalog.doccarchive")
+
+        try TestTemporaryDirectory.withTemporaryDirectory { temp in
+            let outputDirectory = temp.childDirectory(named: "output")
+            let pipeline = MarkdownGenerationPipeline(
+                markdownWriter: { _, _ in throw WriterError.expected })
+
+            XCTAssertThrowsError(
+                try pipeline.generateMarkdown(
+                    from: tutorialFixture.path,
+                    to: outputDirectory.path,
+                    forceOverwrite: false)) { error in
+                guard case let .failedToWriteFile(_, underlying) = error as? MarkdownGenerationPipeline.Error else {
+                    XCTFail("Expected failedToWriteFile but received \(error)")
+                    return
+                }
+                XCTAssertTrue(underlying is WriterError)
+            }
+        }
+    }
+
+    func test_pipelineSurfacesDataWriteFailures() throws {
+        enum WriterError: Swift.Error { case expected }
+        let tutorialFixture = FixtureLoader.urlForBundle(named: "TutorialCatalog.doccarchive")
+
+        try TestTemporaryDirectory.withTemporaryDirectory { temp in
+            let outputDirectory = temp.childDirectory(named: "output")
+            let pipeline = MarkdownGenerationPipeline(
+                dataWriter: { _, _ in throw WriterError.expected })
+
+            XCTAssertThrowsError(
+                try pipeline.generateMarkdown(
+                    from: tutorialFixture.path,
+                    to: outputDirectory.path,
+                    forceOverwrite: false)) { error in
+                guard case let .failedToWriteFile(_, underlying) = error as? MarkdownGenerationPipeline.Error else {
+                    XCTFail("Expected failedToWriteFile but received \(error)")
+                    return
+                }
+                XCTAssertTrue(underlying is WriterError)
+            }
+        }
+    }
+
     func test_pipelineWritesTutorialVolumesAndChapters() throws {
         let tutorialFixture = FixtureLoader.urlForBundle(named: "TutorialCatalog.doccarchive")
         try TestTemporaryDirectory.withTemporaryDirectory { temp in
@@ -147,5 +281,37 @@ final class MarkdownGenerationPipelineTests: XCTestCase {
             XCTAssertFalse(linkGraph.allPageIdentifiers.isEmpty,
                           "Link graph should contain page identifiers")
         }
+    }
+}
+
+private final class AlwaysFailingCreateFileManager: FileManager, @unchecked Sendable {
+    enum StubError: Swift.Error { case createDirectory }
+
+    override func createDirectory(
+        at url: URL,
+        withIntermediateDirectories createIntermediates: Bool,
+        attributes: [FileAttributeKey : Any]? = nil
+    ) throws {
+        throw StubError.createDirectory
+    }
+
+    override func removeItem(at url: URL) throws {
+        try FileManager.default.removeItem(at: url)
+    }
+}
+
+private final class RemovalFailingFileManager: FileManager, @unchecked Sendable {
+    enum StubError: Swift.Error { case removal }
+
+    override func removeItem(at url: URL) throws {
+        throw StubError.removal
+    }
+
+    override func createDirectory(
+        at url: URL,
+        withIntermediateDirectories createIntermediates: Bool,
+        attributes: [FileAttributeKey : Any]? = nil
+    ) throws {
+        try FileManager.default.createDirectory(at: url, withIntermediateDirectories: createIntermediates, attributes: attributes)
     }
 }

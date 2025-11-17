@@ -203,6 +203,109 @@ final class MetadataParsingTests: XCTestCase {
                     moduleName: "MyModule")
             ])
     }
+
+    func test_symbolGraphReferencesSortByModuleWhenIdentifiersMatch() throws {
+        let temporaryBundle = try makeTemporaryDoccArchiveDirectory(named: "SymbolGraphSorting")
+        defer { try? FileManager.default.removeItem(at: temporaryBundle) }
+
+        let symbolGraphsDirectory = temporaryBundle
+            .appendingPathComponent("data", isDirectory: true)
+            .appendingPathComponent("symbol-graphs", isDirectory: true)
+        try FileManager.default.createDirectory(at: symbolGraphsDirectory, withIntermediateDirectories: true)
+
+        let moduleAURL = symbolGraphsDirectory.appendingPathComponent("ModuleA.symbols.json")
+        try writeSymbolGraph(
+            moduleName: "ModuleA",
+            symbols: [["identifier": "shared", "names": ["title": "Shared"]]],
+            to: moduleAURL)
+
+        let moduleBURL = symbolGraphsDirectory.appendingPathComponent("ModuleB.symbols.json")
+        try writeSymbolGraph(
+            moduleName: "ModuleB",
+            symbols: [
+                ["identifier": "shared", "names": ["title": "Shared"]],
+                ["identifier": "", "names": ["title": ""]]
+            ],
+            to: moduleBURL)
+
+        let parser = DoccMetadataParser()
+        let references = try parser.loadSymbolGraphReferences(from: temporaryBundle)
+
+        XCTAssertEqual(references.map(\.moduleName), ["ModuleA", "ModuleB"])
+        XCTAssertTrue(references.allSatisfy { $0.identifier == "shared" })
+    }
+
+    func test_symbolGraphReferencesThrowOnInvalidJSON() throws {
+        let temporaryBundle = try makeTemporaryDoccArchiveDirectory(named: "SymbolGraphInvalidJSON")
+        defer { try? FileManager.default.removeItem(at: temporaryBundle) }
+
+        let symbolGraphsDirectory = temporaryBundle
+            .appendingPathComponent("data", isDirectory: true)
+            .appendingPathComponent("symbol-graphs", isDirectory: true)
+        try FileManager.default.createDirectory(at: symbolGraphsDirectory, withIntermediateDirectories: true)
+
+        let invalidURL = symbolGraphsDirectory.appendingPathComponent("Invalid.symbols.json")
+        try Data("not-json".utf8).write(to: invalidURL)
+
+        let parser = DoccMetadataParser()
+        XCTAssertThrowsError(try parser.loadSymbolGraphReferences(from: temporaryBundle)) { error in
+            XCTAssertEqual(error as? DoccMetadataParserError, .invalidSymbolGraph(invalidURL))
+        }
+    }
+
+    func test_renderMetadataMissingThrowsHelpfulError() throws {
+        let temporaryBundle = try makeTemporaryDoccArchiveDirectory(named: "RenderMetadataMissing")
+        defer { try? FileManager.default.removeItem(at: temporaryBundle) }
+        let parser = DoccMetadataParser()
+        let expectedURL = temporaryBundle
+            .appendingPathComponent("data", isDirectory: true)
+            .appendingPathComponent("metadata", isDirectory: true)
+            .appendingPathComponent("metadata.json", isDirectory: false)
+
+        XCTAssertThrowsError(try parser.loadRenderMetadata(from: temporaryBundle)) { error in
+            XCTAssertEqual(error as? DoccMetadataParserError, .renderMetadataMissing(expectedURL))
+        }
+    }
+
+    func test_infoPlistRejectsInvalidLanguageContainer() throws {
+        let temporaryBundle = try makeTemporaryDoccArchiveDirectory(named: "LanguagesNotArray")
+        defer { try? FileManager.default.removeItem(at: temporaryBundle) }
+
+        let infoPlist: [String: Any] = [
+            "Identifier": "com.docc2context.temp",
+            "CFBundleName": "Temporary Bundle",
+            "TechnologyRoot": "temporary",
+            "Languages": "en"
+        ]
+
+        try writeInfoPlist(infoPlist, to: temporaryBundle)
+
+        let parser = DoccMetadataParser()
+        XCTAssertThrowsError(try parser.loadInfoPlist(from: temporaryBundle)) { error in
+            XCTAssertEqual(error as? DoccMetadataParserError, .invalidFieldType(key: "Languages", expected: "[String]"))
+        }
+    }
+
+    func test_infoPlistRejectsEmptyLanguageEntries() throws {
+        let temporaryBundle = try makeTemporaryDoccArchiveDirectory(named: "EmptyLanguageEntry")
+        defer { try? FileManager.default.removeItem(at: temporaryBundle) }
+
+        let infoPlist: [String: Any] = [
+            "Identifier": "com.docc2context.temp",
+            "CFBundleName": "Temporary Bundle",
+            "TechnologyRoot": "temporary",
+            "Languages": ["en", "  "]
+        ]
+
+        try writeInfoPlist(infoPlist, to: temporaryBundle)
+
+        let parser = DoccMetadataParser()
+        XCTAssertThrowsError(try parser.loadInfoPlist(from: temporaryBundle)) { error in
+            XCTAssertEqual(
+                error as? DoccMetadataParserError,
+                .invalidFieldType(key: "Languages", expected: "non-empty strings"))
+        }
+    }
 }
 
 // MARK: - Helpers
@@ -223,5 +326,18 @@ extension MetadataParsingTests {
             format: .xml,
             options: 0)
         try data.write(to: infoURL)
+    }
+
+    private func writeSymbolGraph(
+        moduleName: String,
+        symbols: [[String: Any]],
+        to fileURL: URL
+    ) throws {
+        let payload: [String: Any] = [
+            "module": ["name": moduleName],
+            "symbols": symbols
+        ]
+        let data = try JSONSerialization.data(withJSONObject: payload, options: [.sortedKeys])
+        try data.write(to: fileURL)
     }
 }

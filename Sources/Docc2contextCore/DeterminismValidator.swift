@@ -20,16 +20,25 @@ public struct DeterminismResult {
 
 /// Validates determinism by computing and comparing file hashes
 public class DeterminismValidator {
+    private let fileLoader: (String) throws -> Data
+
     /// Initialize a new determinism validator
-    public init() {}
+    public init(fileLoader: ((String) throws -> Data)? = nil) {
+        if let loader = fileLoader {
+            self.fileLoader = loader
+        } else {
+            self.fileLoader = { path in
+                try Data(contentsOf: URL(fileURLWithPath: path))
+            }
+        }
+    }
 
     /// Compute a hash of file content using a djb2-style algorithm
     /// - Parameter filePath: Path to the file to hash
     /// - Returns: Hex-encoded hash string
     /// - Throws: Error if file cannot be read
     public func hashFile(at filePath: String) throws -> String {
-        let fileURL = URL(fileURLWithPath: filePath)
-        let data = try Data(contentsOf: fileURL)
+        let data = try fileLoader(filePath)
 
         // Use djb2-style hash algorithm processing all file bytes
         var hashValue: UInt64 = 5381
@@ -64,7 +73,7 @@ public class DeterminismValidator {
             var isDir: ObjCBool = false
             if fileManager.fileExists(atPath: fullPath, isDirectory: &isDir), !isDir.boolValue {
                 do {
-                    let fileData = try Data(contentsOf: URL(fileURLWithPath: fullPath))
+                    let fileData = try fileLoader(fullPath)
                     let pathData = (relativePath).data(using: .utf8) ?? Data()
                     let combined = fileData + pathData
 
@@ -135,14 +144,28 @@ public class DeterminismValidator {
         }
 
         // Compute directory hashes
-        let dir1Hash = try hashDirectory(at: firstPath)
-        let dir2Hash = try hashDirectory(at: secondPath)
+        let dir1Hash: String
+        do {
+            dir1Hash = try hashDirectory(at: firstPath)
+        } catch {
+            differences.append("Error hashing directory: \(firstPath)")
+            dir1Hash = ""
+        }
 
-        let isDeterministic = differences.isEmpty && dir1Hash == dir2Hash
+        let dir2Hash: String
+        do {
+            dir2Hash = try hashDirectory(at: secondPath)
+        } catch {
+            differences.append("Error hashing directory: \(secondPath)")
+            dir2Hash = ""
+        }
+
+        let hashesMatch = !dir1Hash.isEmpty && !dir2Hash.isEmpty && dir1Hash == dir2Hash
+        let isDeterministic = differences.isEmpty && hashesMatch
 
         return DeterminismResult(
             isDeterministic: isDeterministic,
-            hashesMatch: dir1Hash == dir2Hash,
+            hashesMatch: hashesMatch,
             differences: differences,
             firstDirectoryHash: dir1Hash,
             secondDirectoryHash: dir2Hash

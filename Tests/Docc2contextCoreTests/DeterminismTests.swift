@@ -151,6 +151,50 @@ final class DeterminismTests: XCTestCase {
         }
     }
 
+    func test_compareDirectoriesDetectsMissingFiles() throws {
+        try TestTemporaryDirectory.withTemporaryDirectory { temp in
+            let dir1 = temp.url.appendingPathComponent("dir1", isDirectory: true)
+            let dir2 = temp.url.appendingPathComponent("dir2", isDirectory: true)
+            try FileManager.default.createDirectory(at: dir1, withIntermediateDirectories: true)
+            try FileManager.default.createDirectory(at: dir2, withIntermediateDirectories: true)
+
+            let onlyInFirst = dir1.appendingPathComponent("only-first.md")
+            try "first".write(to: onlyInFirst, atomically: true, encoding: .utf8)
+
+            let validator = DeterminismValidator()
+            let result = try validator.compareDirectories(firstPath: dir1.path, secondPath: dir2.path)
+
+            XCTAssertFalse(result.isDeterministic)
+            XCTAssertTrue(result.differences.contains(where: { $0.contains("only-first.md") }))
+        }
+    }
+
+    func test_compareDirectoriesReportsUnreadableFiles() throws {
+        try TestTemporaryDirectory.withTemporaryDirectory { temp in
+            let dir1 = temp.url.appendingPathComponent("dir1", isDirectory: true)
+            let dir2 = temp.url.appendingPathComponent("dir2", isDirectory: true)
+            try FileManager.default.createDirectory(at: dir1, withIntermediateDirectories: true)
+            try FileManager.default.createDirectory(at: dir2, withIntermediateDirectories: true)
+
+            let unreadable = dir1.appendingPathComponent("broken.md")
+            try "first".write(to: unreadable, atomically: true, encoding: .utf8)
+
+            let readable = dir2.appendingPathComponent("broken.md")
+            try "present".write(to: readable, atomically: true, encoding: .utf8)
+
+            let validator = DeterminismValidator(fileLoader: { path in
+                if path.contains("dir1") && path.hasSuffix("broken.md") {
+                    throw NSError(domain: "DeterminismTests", code: 1)
+                }
+                return try Data(contentsOf: URL(fileURLWithPath: path))
+            })
+
+            let result = try validator.compareDirectories(firstPath: dir1.path, secondPath: dir2.path)
+            XCTAssertFalse(result.isDeterministic)
+            XCTAssertTrue(result.differences.contains(where: { $0.contains("Error reading file: broken.md") }))
+        }
+    }
+
     /// Test that determinism validator produces stable hashes for same content
     func test_hashingIsConsistent() throws {
         let testContent = "This is test content for hashing"

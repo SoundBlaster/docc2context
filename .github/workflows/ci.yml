@@ -2,15 +2,20 @@ name: CI
 
 on:
   push:
-    paths-ignore:
-      - 'DOCS/**'
   pull_request:
-    paths-ignore:
-      - 'DOCS/**'
 
 jobs:
+  docs:
+    name: Docs lint
+    runs-on: ubuntu-22.04
+    steps:
+      - uses: actions/checkout@v4
+      - name: Lint Markdown guidance
+        run: python3 Scripts/lint_markdown.py README.md DOCS/PRD/phase_d.md
+
   linux:
     name: Swift ${{ matrix.swift }} on Ubuntu
+    needs: docs
     runs-on: ubuntu-22.04
     strategy:
       matrix:
@@ -36,6 +41,7 @@ jobs:
 
   macos:
     name: Swift ${{ matrix.swift }} on macOS
+    needs: docs
     runs-on: macos-latest
     strategy:
       matrix:
@@ -57,6 +63,7 @@ jobs:
 
   determinism:
     name: Determinism Verification
+    needs: docs
     runs-on: ubuntu-22.04
     steps:
       - uses: actions/checkout@v4
@@ -77,3 +84,25 @@ jobs:
         run: bash Scripts/release_gates.sh
         env:
           DETERMINISM_TMP_DIR: /tmp/docc2context-determinism
+
+  coverage:
+    name: Coverage Threshold
+    runs-on: ubuntu-22.04
+    needs:
+      - docs
+    steps:
+      - uses: actions/checkout@v4
+      - name: Install Swift dependencies
+        run: |
+          sudo apt-get update
+          sudo apt-get install -y clang libicu-dev libatomic1 libcurl4-openssl-dev
+      - name: Set up Swift 6.1.2
+        uses: SwiftyLab/setup-swift@v1
+        with:
+          swift-version: '6.1.2'
+      - name: Validate Swift toolchain
+        run: swift --version
+      - name: Run tests with coverage
+        run: swift test --enable-code-coverage
+      - name: Enforce coverage threshold
+        run: python3 Scripts/enforce_coverage.py --threshold 90
