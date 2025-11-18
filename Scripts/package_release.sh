@@ -23,11 +23,12 @@ log_error() {
 
 usage() {
   cat <<USAGE
-Usage: $(basename "$0") --version <semver> [--platform linux|macos] [--output <dir>] [--dry-run]
+Usage: $(basename "$0") --version <semver> [--platform linux|macos] [--arch <value>] [--output <dir>] [--dry-run]
 
 Options:
   --version     Required semantic version or tag (accepts optional leading 'v').
   --platform    Target platform identifier (linux or macos). Defaults to host platform.
+  --arch        CPU architecture (defaults to host \`uname -m\`).
   --output      Directory for the packaged artifacts. Defaults to $DEFAULT_OUTPUT_DIR.
   --dry-run     Performs the full build/package flow but marks artifacts as dry-run only.
   -h, --help    Print this message.
@@ -36,6 +37,7 @@ USAGE
 
 version=""
 platform=""
+arch=""
 output_dir="$DEFAULT_OUTPUT_DIR"
 dry_run="0"
 
@@ -47,6 +49,10 @@ while [[ $# -gt 0 ]]; do
       ;;
     --platform)
       platform="$2"
+      shift 2
+      ;;
+    --arch)
+      arch="$2"
       shift 2
       ;;
     --output)
@@ -95,6 +101,10 @@ if [[ -z "$platform" ]]; then
       exit 1
       ;;
   esac
+fi
+
+if [[ -z "$arch" ]]; then
+  arch="$(uname -m)"
 fi
 
 if [[ "$platform" != "linux" && "$platform" != "macos" ]]; then
@@ -186,7 +196,38 @@ stage_artifacts() {
   echo "$stage_dir"
 }
 
-package_release() {
+create_summary() {
+  local artifacts=("$@")
+  local summary_suffix="$platform"
+  if [[ -n "$arch" ]]; then
+    summary_suffix+="-$arch"
+  fi
+  local summary_name="docc2context-v${sanitized_version}-${summary_suffix}"
+  if [[ "$dry_run" == "1" ]]; then
+    summary_name+="-dryrun"
+  fi
+  local summary_file="$output_dir/${summary_name}.md"
+  {
+    echo "# docc2context Release Summary"
+    echo "- Version: $sanitized_version"
+    echo "- Platform: $platform"
+    echo "- Architecture: $arch"
+    echo "- Release Gates: $([[ "$PACKAGE_RELEASE_SKIP_GATES" == "1" ]] && echo "SKIPPED" || echo "PASSED")"
+    echo "- Dry Run: $([[ "$dry_run" == "1" ]] && echo "true" || echo "false")"
+    echo "- Generated At: $(date -u +"%Y-%m-%dT%H:%M:%SZ")"
+    echo "- Artifacts:"
+    for artifact in "${artifacts[@]}"; do
+      local checksum_file="${artifact}.sha256"
+      echo "  - $(basename "$artifact")"
+      if [[ -f "$checksum_file" ]]; then
+        echo "    - Checksum: $(basename "$checksum_file")"
+      fi
+    done
+  } > "$summary_file"
+  log_step "Recorded summary: $summary_file"
+}
+
+package_macos() {
   local stage_dir="$1"
   local artifact_name="docc2context-v${sanitized_version}-${platform}"
   if [[ "$dry_run" == "1" ]]; then
@@ -195,22 +236,40 @@ package_release() {
   local artifact_zip="$output_dir/${artifact_name}.zip"
   (cd "$(dirname "$stage_dir")" && zip -rq "$artifact_zip" "$(basename "$stage_dir")")
   log_step "Created artifact: $artifact_zip"
-  local checksum_file="$artifact_zip.sha256"
-  shasum -a 256 "$artifact_zip" > "$checksum_file"
-  log_step "Wrote checksum: $checksum_file"
+  shasum -a 256 "$artifact_zip" > "$artifact_zip.sha256"
+  log_step "Wrote checksum: $artifact_zip.sha256"
+  create_summary "$artifact_zip"
+}
 
-  local summary_file="$output_dir/${artifact_name}.md"
-  {
-    echo "# docc2context Release Summary"
-    echo "- Version: $sanitized_version"
-    echo "- Platform: $platform"
-    echo "- Artifact: $(basename "$artifact_zip")"
-    echo "- Checksum File: $(basename "$checksum_file")"
-    echo "- Release Gates: $([[ "$PACKAGE_RELEASE_SKIP_GATES" == "1" ]] && echo "SKIPPED" || echo "PASSED")"
-    echo "- Dry Run: $([[ "$dry_run" == "1" ]] && echo "true" || echo "false")"
-    echo "- Generated At: $(date -u +"%Y-%m-%dT%H:%M:%SZ")"
-  } > "$summary_file"
-  log_step "Recorded summary: $summary_file"
+package_linux() {
+  local stage_dir="$1"
+  local helper="$SCRIPT_DIR/build_linux_packages.sh"
+  if [[ ! -x "$helper" ]]; then
+    log_error "Linux packaging helper missing or not executable: $helper"
+    exit 1
+  fi
+  local helper_args=(
+    "$helper"
+    --version "$sanitized_version"
+    --arch "$arch"
+    --stage-dir "$stage_dir"
+    --binary "$stage_dir/docc2context"
+    --output "$output_dir"
+  )
+  if [[ "$dry_run" == "1" ]]; then
+    helper_args+=("--dry-run")
+  fi
+  local artifacts=()
+  while IFS= read -r artifact; do
+    if [[ -n "$artifact" ]]; then
+      artifacts+=("$artifact")
+    fi
+  done < <("${helper_args[@]}")
+  if [[ "${#artifacts[@]}" -eq 0 ]]; then
+    log_error "Linux packaging helper did not produce any artifacts"
+    exit 1
+  fi
+  create_summary "${artifacts[@]}"
 }
 
 main() {
@@ -219,7 +278,11 @@ main() {
   binary_path="$(build_binary)"
   local stage_dir
   stage_dir="$(stage_artifacts "$binary_path")"
-  package_release "$stage_dir"
+  if [[ "$platform" == "linux" ]]; then
+    package_linux "$stage_dir"
+  else
+    package_macos "$stage_dir"
+  fi
   log_step "Packaging complete"
 }
 
