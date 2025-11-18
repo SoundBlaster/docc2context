@@ -11,29 +11,35 @@ permissions:
 
 jobs:
   package:
-    name: Package ${{ matrix.platform }} artifact
+    name: Package ${{ matrix.platform }} ${{ matrix.arch }} artifact
     runs-on: ${{ matrix.runner }}
     strategy:
       fail-fast: false
       matrix:
         include:
           - platform: linux
+            arch: x86_64
+            runner: ubuntu-22.04
+            swift: '6.1.2'
+          - platform: linux
+            arch: aarch64
             runner: ubuntu-22.04
             swift: '6.1.2'
           - platform: macos
-            runner: macos-latest
+            arch: arm64
+            runner: macos-14
             swift: '6.1.2'
     steps:
       - uses: actions/checkout@v4
 
-      - name: Install Swift dependencies (Linux)
-        if: matrix.platform == 'linux'
+      - name: Install Swift dependencies (Linux x86_64)
+        if: matrix.platform == 'linux' && matrix.arch == 'x86_64'
         run: |
           sudo apt-get update
-          sudo apt-get install -y clang libicu-dev libatomic1 libcurl4-openssl-dev zip
+          sudo apt-get install -y clang libicu-dev libatomic1 libcurl4-openssl-dev zip rpm dpkg-dev
 
-      - name: Set up Swift ${{ matrix.swift }} (Linux)
-        if: matrix.platform == 'linux'
+      - name: Set up Swift ${{ matrix.swift }} (Linux x86_64)
+        if: matrix.platform == 'linux' && matrix.arch == 'x86_64'
         uses: SwiftyLab/setup-swift@v1
         with:
           swift-version: ${{ matrix.swift }}
@@ -45,9 +51,11 @@ jobs:
           xcode-version: '16.4'
 
       - name: Verify Swift toolchain
+        if: matrix.platform != 'linux' || matrix.arch == 'x86_64'
         run: swift --version
 
-      - name: Package ${{ matrix.platform }} release artifact
+      - name: Package Linux release artifact (x86_64)
+        if: matrix.platform == 'linux' && matrix.arch == 'x86_64'
         env:
           VERSION: ${{ github.ref_name }}
         run: |
@@ -55,12 +63,64 @@ jobs:
           Scripts/package_release.sh \
             --version "$VERSION" \
             --platform ${{ matrix.platform }} \
+            --arch ${{ matrix.arch }} \
+            --output dist/${{ matrix.platform }}
+
+      - name: Package Linux release artifact (aarch64 via QEMU)
+        if: matrix.platform == 'linux' && matrix.arch == 'aarch64'
+        uses: uraimo/run-on-arch-action@v2
+        with:
+          arch: aarch64
+          distro: ubuntu22.04
+          githubToken: ${{ github.token }}
+          env: |
+            VERSION: ${{ github.ref_name }}
+          install: |
+            apt-get update
+            DEBIAN_FRONTEND=noninteractive apt-get install -y \
+              ca-certificates \
+              curl \
+              clang \
+              libicu-dev \
+              libatomic1 \
+              libcurl4-openssl-dev \
+              libxml2-dev \
+              libsqlite3-0 \
+              libz3-dev \
+              pkg-config \
+              zip \
+              rpm \
+              dpkg-dev
+            curl -sSLo /tmp/swift.tar.gz https://download.swift.org/swift-6.1.2-release/ubuntu2204-aarch64/swift-6.1.2-RELEASE-ubuntu22.04-aarch64.tar.gz
+            tar -xzf /tmp/swift.tar.gz -C /opt
+            mv /opt/swift-6.1.2-RELEASE-ubuntu22.04-aarch64 /opt/swift
+            rm /tmp/swift.tar.gz
+          run: |
+            export PATH=/opt/swift/usr/bin:$PATH
+            swift --version
+            mkdir -p dist/linux
+            Scripts/package_release.sh \
+              --version "$VERSION" \
+              --platform linux \
+              --arch ${{ matrix.arch }} \
+              --output dist/linux
+
+      - name: Package macOS release artifact
+        if: matrix.platform == 'macos'
+        env:
+          VERSION: ${{ github.ref_name }}
+        run: |
+          mkdir -p dist/${{ matrix.platform }}
+          Scripts/package_release.sh \
+            --version "$VERSION" \
+            --platform ${{ matrix.platform }} \
+            --arch ${{ matrix.arch }} \
             --output dist/${{ matrix.platform }}
 
       - name: Upload ${{ matrix.platform }} artifact
         uses: actions/upload-artifact@v4
         with:
-          name: docc2context-${{ matrix.platform }}
+          name: docc2context-${{ matrix.platform }}-${{ matrix.arch }}
           path: dist/${{ matrix.platform }}
 
   publish:
@@ -82,5 +142,11 @@ jobs:
           name: docc2context ${{ github.ref_name }}
           files: |
             dist/**/*.zip
+            dist/**/*.tar.gz
+            dist/**/*.deb
+            dist/**/*.rpm
             dist/**/*.zip.sha256
+            dist/**/*.tar.gz.sha256
+            dist/**/*.deb.sha256
+            dist/**/*.rpm.sha256
             dist/**/*.md
