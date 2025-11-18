@@ -23,7 +23,7 @@ jobs:
             swift: '6.1.2'
           - platform: linux
             arch: aarch64
-            runner: ubuntu-22.04-arm
+            runner: ubuntu-22.04-arm64
             swift: '6.1.2'
           - platform: macos
             arch: arm64

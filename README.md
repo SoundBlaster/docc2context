@@ -171,7 +171,7 @@ Key behaviors:
 3. **Checksums & summaries** – Every artifact is paired with `<artifact>.sha256` plus a Markdown summary enumerating the platform, architecture, version, gate status, and UTC timestamp so the release checklist can reference concrete hashes.
 4. **Optional signing** – When building macOS releases, set `MACOS_SIGN_IDENTITY` (and the usual Keychain state) so the script calls `codesign --options runtime --timestamp` before zipping.
 
-The GitHub Actions workflow at `.github/workflows/release.yml` now runs a Linux matrix for `x86_64` and `aarch64` plus a macOS arm64 job. Each job installs the platform prerequisites (`dpkg-dev` for `dpkg-deb`, `rpmbuild`, `zip`, and Swift 6.1.2), runs the packaging script with the appropriate `--arch`, uploads the Linux tarballs/packages alongside macOS zips, and publishes every archive + checksum to the GitHub Release so downstream automation can fetch binaries deterministically.
+The GitHub Actions workflow at `.github/workflows/release.yml` now runs a Linux matrix for `x86_64` and `aarch64` plus a macOS arm64 job. Each job installs the platform prerequisites (`dpkg-dev` for `dpkg-deb`, `rpmbuild`, `zip`, and Swift 6.1.2), runs the packaging script with the appropriate `--arch`, uploads the Linux tarballs/packages alongside macOS zips, and publishes every archive + checksum to the GitHub Release so downstream automation can fetch binaries deterministically. The Linux ARM job targets the GitHub-hosted `ubuntu-22.04-arm64` runner tier; if your repository lacks access to that image, provision a self-hosted ARM64 runner (labels: `self-hosted`, `linux`, `arm64`) and adjust the workflow matrix accordingly.
 
 ### Linux installation snippets
 
