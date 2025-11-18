@@ -38,7 +38,8 @@ Use this list for near-term execution. Each entry maps back to the PRD and [work
 - _None – tasks promoted to "In Progress" once documentation work kicked off._
 
 ## Under Consideration
-- _None – waiting on new proposals once C1 outline lands._
+- [ ] **D4-LNX Linux Release Packaging Matrix** Implement the Linux distribution plan from PRD §4.6 by emitting `docc2context-<version>-linux-<arch>.tar.gz` archives, `.deb`/`.rpm` packages built via `fpm`/`nfpm`, and README install snippets (`curl | tar`, `dpkg -i`, `dnf install`). _Depends on:_ D4 release automation (build gating + artifact upload). _Doc:_ PRD §Phase D (D4-LNX), §4.6. _Owner:_ docc2context agent. _Status:_ Proposed – needs CI recipe plus optional GPG signing + repo hosting spike.
+- [ ] **D4-MAC macOS Release Channels** Ship the macOS distribution workflow outlined in PRD §4.6, including Homebrew tap/formula updates for arm64/x86_64 tarballs, manual install script, and documented codesign/notarization for prebuilt binaries. _Depends on:_ D4 release automation and Linux packaging lessons learned. _Doc:_ PRD §Phase D (D4-MAC), §4.6. _Owner:_ docc2context agent. _Status:_ Proposed – confirm tap location, automate `brew test` smoke checks, and capture notarization hand-off.
 
 ## Backlog Ideas
 - [ ] Explore incremental conversion to stream Markdown output for very large DocC bundles.
