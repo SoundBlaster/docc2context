@@ -11,16 +11,22 @@ permissions:
 
 jobs:
   package:
-    name: Package ${{ matrix.platform }} artifact
+    name: Package ${{ matrix.platform }} ${{ matrix.arch }} artifact
     runs-on: ${{ matrix.runner }}
     strategy:
       fail-fast: false
       matrix:
         include:
           - platform: linux
+            arch: x86_64
             runner: ubuntu-22.04
             swift: '6.1.2'
+          - platform: linux
+            arch: aarch64
+            runner: ubuntu-22.04-arm
+            swift: '6.1.2'
           - platform: macos
+            arch: arm64
             runner: macos-latest
             swift: '6.1.2'
     steps:
@@ -30,7 +36,7 @@ jobs:
         if: matrix.platform == 'linux'
         run: |
           sudo apt-get update
-          sudo apt-get install -y clang libicu-dev libatomic1 libcurl4-openssl-dev zip
+          sudo apt-get install -y clang libicu-dev libatomic1 libcurl4-openssl-dev zip rpm dpkg-dev
 
       - name: Set up Swift ${{ matrix.swift }} (Linux)
         if: matrix.platform == 'linux'
@@ -55,6 +61,7 @@ jobs:
           Scripts/package_release.sh \
             --version "$VERSION" \
             --platform ${{ matrix.platform }} \
+            --arch ${{ matrix.arch }} \
             --output dist/${{ matrix.platform }}
 
       - name: Upload ${{ matrix.platform }} artifact
@@ -82,5 +89,11 @@ jobs:
           name: docc2context ${{ github.ref_name }}
           files: |
             dist/**/*.zip
+            dist/**/*.tar.gz
+            dist/**/*.deb
+            dist/**/*.rpm
             dist/**/*.zip.sha256
+            dist/**/*.tar.gz.sha256
+            dist/**/*.deb.sha256
+            dist/**/*.rpm.sha256
             dist/**/*.md

@@ -43,3 +43,15 @@
 - Availability of `fpm`/`nfpm` on GitHub-hosted runners; may require bundling via Docker or downloading prebuilt binaries.
 - Whether Swift cross-compilation is needed for `arm64` Linux binaries or if release pipeline already produces them.
 - Key management for GPG signatures (if required) and how to store secrets without exposing private keys in CI.
+
+## Execution Notes – Cycle 6
+- Implemented `Scripts/build_linux_packages.sh` to generate `tar.gz`, `.deb`, and `.rpm` artifacts per architecture with deterministic naming, metadata, and SHA-256 manifests. The helper wires directly into `package_release.sh` so Linux builds automatically expand into three install formats.
+- Extended `Scripts/package_release.sh` with `--arch`, summary improvements, and Linux-specific packaging. macOS packaging retains zip behavior but now records the architecture in the summary for traceability.
+- Updated `PackageReleaseScriptTests` to cover the new artifact layout end-to-end (dry-run of Linux packaging) and documented manual install snippets plus packaging flow changes in `README.md`.
+- Release workflow now runs Linux `x86_64` and `aarch64` jobs plus macOS arm64, installing `rpm`/`dpkg-dev` dependencies before invoking the packaging script. Each job uploads tarballs, packages, checksums, and markdown summaries to the GitHub Release.
+
+## Validation
+- `swift test` exercises `PackageReleaseScriptTests` and the broader test suite to ensure the helper scripts are wired correctly.
+
+## Follow-ups
+- Investigate publishing apt/dnf repositories plus musl/static builds (tracked in TODO backlog) once the package formats prove stable in CI.
