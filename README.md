@@ -148,24 +148,69 @@ All steps must succeed for the script to exit 0, making it suitable for CI wirin
 
 ## Release packaging & automation
 
-Once the release gates pass, package platform-specific binaries with `Scripts/package_release.sh`. The helper wraps `release_gates.sh`, builds the CLI in release mode, stages the binary alongside `README.md`/`LICENSE`, and emits `.zip` archives + SHA-256 manifests that match the `docc2context-v<version>-<platform>.zip` naming scheme.
+Once the release gates pass, package platform-specific binaries with `Scripts/package_release.sh`. The helper wraps `release_gates.sh`, builds the CLI in release mode, stages the binary alongside `README.md`/`LICENSE`, and now emits architecture-specific bundles:
+
+- **Linux** – `docc2context-<version>-linux-<arch>.tar.gz` tarballs plus `.deb` (Debian/Ubuntu) and `.rpm` (Fedora/RHEL) installers. Each artifact ships with a `.sha256` file and is summarized inside `docc2context-v<version>-linux-<arch>.md`.
+- **macOS** – `docc2context-v<version>-macos.zip` archives continue to include codesigning when `MACOS_SIGN_IDENTITY` is provided. Zips are paired with SHA-256 manifests and summary markdown files.
 
 ```bash
-# Produce a Linux artifact in dist/linux for docc2context v1.2.3
+# Produce Linux artifacts (tar.gz + .deb + .rpm) for docc2context v1.2.3 on the current host architecture
 Scripts/package_release.sh --version v1.2.3 --platform linux --output dist/linux
 
 # Generate a macOS build (codesigned when MACOS_SIGN_IDENTITY is set)
 Scripts/package_release.sh --version v1.2.3 --platform macos --output dist/macos
+
+# Call the Linux packaging helper directly (dry run) when iterating on metadata
+Scripts/build_linux_packages.sh --version 1.2.3 --arch x86_64 --stage-dir /tmp/stage --binary /tmp/stage/docc2context --output dist/linux --dry-run
 ```
 
 Key behaviors:
 
 1. **Quality gates first** – By default the script shells out to `Scripts/release_gates.sh` and exits if any gate fails. Pass `PACKAGE_RELEASE_SKIP_GATES=1` only inside automated smoke tests; real releases must keep the default.
-2. **Deterministic staging** – Artifacts land in `docc2context-v<version>/` folders before being zipped, ensuring README/license snapshots stay aligned with the binary bits pulled from `swift build -c release`.
-3. **Checksums & summaries** – Every `.zip` is paired with `<artifact>.zip.sha256` plus a Markdown summary enumerating the platform, version, gate status, and UTC timestamp so the release checklist can reference concrete hashes.
+2. **Deterministic staging** – Artifacts land in `docc2context-v<version>/` folders before being zipped/tarred, ensuring README/license snapshots stay aligned with the binary bits pulled from `swift build -c release`.
+3. **Checksums & summaries** – Every artifact is paired with `<artifact>.sha256` plus a Markdown summary enumerating the platform, architecture, version, gate status, and UTC timestamp so the release checklist can reference concrete hashes.
 4. **Optional signing** – When building macOS releases, set `MACOS_SIGN_IDENTITY` (and the usual Keychain state) so the script calls `codesign --options runtime --timestamp` before zipping.
 
-The GitHub Actions workflow at `.github/workflows/release.yml` runs automatically for tags that match `v*`. It executes the packaging script on both `ubuntu-22.04` and `macos-latest`, uploads the artifacts, and publishes the GitHub Release with the generated archives, checksums, and summaries so downstream automation can fetch binaries deterministically.
+The GitHub Actions workflow at `.github/workflows/release.yml` now runs a Linux matrix for `x86_64` and `aarch64` plus a macOS arm64 job. Each job installs the platform prerequisites (`dpkg-dev` for `dpkg-deb`, `rpmbuild`, `zip`, and Swift 6.1.2), runs the packaging script with the appropriate `--arch`, uploads the Linux tarballs/packages alongside macOS zips, and publishes every archive + checksum to the GitHub Release so downstream automation can fetch binaries deterministically.
+
+### Linux installation snippets
+
+Every GitHub Release publishes the SHA-256 hashes next to the Linux tarball, `.deb`, and `.rpm`. Verify the checksum before installing:
+
+```bash
+curl -LO https://github.com/docc2context/docc2context/releases/download/v1.2.3/docc2context-1.2.3-linux-x86_64.tar.gz
+curl -LO https://github.com/docc2context/docc2context/releases/download/v1.2.3/docc2context-1.2.3-linux-x86_64.tar.gz.sha256
+shasum -a 256 -c docc2context-1.2.3-linux-x86_64.tar.gz.sha256
+```
+
+Install via whichever mechanism matches your environment:
+
+- **Tarball**
+
+  ```bash
+  tar -xzf docc2context-1.2.3-linux-x86_64.tar.gz
+  sudo mv docc2context-v1.2.3/docc2context /usr/local/bin/
+  ```
+
+- **Debian/Ubuntu**
+
+  ```bash
+  curl -LO https://github.com/docc2context/docc2context/releases/download/v1.2.3/docc2context_1.2.3_linux_amd64.deb
+  curl -LO https://github.com/docc2context/docc2context/releases/download/v1.2.3/docc2context_1.2.3_linux_amd64.deb.sha256
+  shasum -a 256 -c docc2context_1.2.3_linux_amd64.deb.sha256
+  sudo dpkg -i docc2context_1.2.3_linux_amd64.deb
+  ```
+
+- **Fedora/RHEL**
+
+  ```bash
+  curl -LO https://github.com/docc2context/docc2context/releases/download/v1.2.3/docc2context-1.2.3-linux-x86_64.rpm
+  curl -LO https://github.com/docc2context/docc2context/releases/download/v1.2.3/docc2context-1.2.3-linux-x86_64.rpm.sha256
+  shasum -a 256 -c docc2context-1.2.3-linux-x86_64.rpm.sha256
+  sudo dnf install docc2context-1.2.3-linux-x86_64.rpm
+  ```
+
+The `.deb` installs the binary under `/usr/local/bin/docc2context` with documentation in `/usr/share/doc/docc2context/`. The `.rpm` layout matches so automation scripts can rely on consistent paths across distros. Future work on apt/dnf repositories and musl builds is tracked in the TODO backlog.
 
 ## Troubleshooting & FAQ
 
