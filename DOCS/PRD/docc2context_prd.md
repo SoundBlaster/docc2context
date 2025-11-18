@@ -122,28 +122,19 @@ DocC2Context converts DocC documentation bundles into Markdown corpora so that L
 - **Large Media Assets:** Copy or reference assets without loading entire files into memory; handle missing assets with warnings.
 
 ### 4.6 Release Packaging & Distribution Requirements
-To close out Phase D, the release automation must ship documented distribution channels for Linux and macOS so contributors and
-users can install the CLI without rebuilding from source.
+To close out Phase D, the release automation must ship documented distribution channels for Linux and macOS so contributors and users can install the CLI without rebuilding from source.
 
 1. **Baseline Strategy (All Platforms)**
-   - Release pipeline emits a single statically (or mostly statically) linked binary per target architecture and uploads archiv
-es named `docc2context-<version>-<os>-<arch>.tar.gz` to GitHub Releases alongside SHA256 sums and optional GPG signatures.
+   - Release pipeline emits a single statically (or mostly statically) linked binary per target architecture and uploads archives named `docc2context-<version>-<os>-<arch>.tar.gz` to GitHub Releases alongside SHA256 sums and optional GPG signatures.
    - Tags follow semver (`vX.Y.Z`) and are treated as the source of truth for all downstream package managers.
    - README `Installation` section covers curl/tar instructions plus package manager snippets so users can bootstrap quickly.
 2. **Linux Packaging (D4-LNX)**
-   - Provide minimal tarball downloads plus advanced packages: `.deb` and `.rpm` built via `fpm`/`nfpm` (or equivalent) that in
-stall the binary under `/usr/local/bin`.
-   - Document manual install commands (`curl -L ... | tar xz` + `sudo mv`), and publish `dpkg -i`/`dnf install` snippets that
-point at the release URLs.
-   - Capture follow-up for hosting APT/YUM repos (e.g., Cloudsmith/PackageCloud) once signed packages prove useful; track auto-u
-pdates via `apt upgrade`/`dnf upgrade` in stretch goals.
+   - Provide minimal tarball downloads plus advanced packages: `.deb` and `.rpm` built via `fpm`/`nfpm` (or equivalent) that install the binary under `/usr/local/bin`.
+   - Document manual install commands (`curl -L ... | tar xz` + `sudo mv`), and publish `dpkg -i`/`dnf install` snippets that point at the release URLs.
+   - Capture follow-up for hosting APT/YUM repos (e.g., Cloudsmith/PackageCloud) once signed packages prove useful; track auto-updates via `apt upgrade`/`dnf upgrade` in stretch goals.
    - Explore static `musl` builds for universal compatibility on glibc-diverse distros.
 3. **macOS Packaging (D4-MAC)**
-   - Maintain a Homebrew tap (or upstream to `homebrew-core`) whose formula points at the versioned tarballs for both `arm64` an
-d `x86_64`; include `test do` clause that runs `docc2context --version`.
-   - Offer manual install path mirroring Linux instructions with `/usr/local/bin` or `/opt/homebrew/bin` destinations, plus an o
-ne-line install script option.
-   - Document codesigning (`codesign --options runtime`) and notarization (`notarytool submit`, `stapler staple`) steps for pre
-built binaries so Gatekeeper trust warnings are minimized, even if Homebrew rebuilds from source.
-   - Call out when notarized/signature artifacts are required (e.g., distributing prebuilt bottles) vs optional for source-inst
-alls.
+   - Maintain a Homebrew tap (or upstream to `homebrew-core`) whose formula points at the versioned tarballs for both `arm64` and `x86_64`; include `test do` clause that runs `docc2context --version`.
+   - Offer manual install path mirroring Linux instructions with `/usr/local/bin` or `/opt/homebrew/bin` destinations, plus a one-line install script option.
+   - Document codesigning (`codesign --options runtime`) and notarization (`notarytool submit`, `stapler staple`) steps for prebuilt binaries so Gatekeeper trust warnings are minimized, even if Homebrew rebuilds from source.
+   - Call out when notarized/signature artifacts are required (e.g., distributing prebuilt bottles) vs optional for source-installs.
