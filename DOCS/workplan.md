@@ -29,6 +29,8 @@ The workplan distills the execution order of the phases defined in [DOCS/PRD/doc
 - ✅ **D2 Harden Test Coverage** — archived under `DOCS/TASK_ARCHIVE/22_D2_HardenTestCoverage/`; expanded failure-path tests (69 total), introduced `Scripts/enforce_coverage.py`, wired the helper into `Scripts/release_gates.sh` and CI, and raised `Docc2contextCore` line coverage to ≥90% before documentation work.
 - ✅ **D3 Document Usage & Testing Workflow** — archived under `DOCS/TASK_ARCHIVE/23_D3_DocumentUsageTestingWorkflow/`; README now documents CLI usage, fixtures, automation, and troubleshooting, plus `Scripts/lint_markdown.py` and `DocumentationGuidanceTests` ensure doc guidance stays enforced locally and in CI.
 - **D4 Package Distribution & Release Automation** — release script that builds and publishes binaries only after gates succeed.
+- **D4-LNX Linux Release Packaging Matrix** — plan and implement Linux deliverables (tarballs + optional `.deb`/`.rpm` via `fpm`/`nfpm`), document curl/tar install steps, and scope optional APT/YUM hosting plus musl static builds for broader distro support.
+- **D4-MAC macOS Release Channels** — define Homebrew tap/formula automation, provide manual install script, and document codesign + notarization for prebuilt binaries so Gatekeeper trust aligns with enterprise expectations.
 
 ## Tracking Conventions
 - Store active task notes inside `DOCS/INPROGRESS/`.

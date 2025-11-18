@@ -45,6 +45,8 @@
 | D2 | Harden Test Coverage | Expand unit + integration tests (including determinism + failure-path tests) ensuring >90% critical-path coverage before feature freeze. | C5 | No |
 | D3 | Document Usage & Testing Workflow | Update README with CLI usage plus explicit instructions for running tests, fixtures, and release scripts. | D2 | Yes |
 | D4 | Package Distribution & Release Automation | Ensure `swift build` produces release binary, run release gate script, and publish artifacts conditioned on all tests + quality checks passing. | D3 | Yes |
+| D4-LNX | Ship Linux Release Matrix | Produce architecture-specific tarballs (e.g., `docc2context-<version>-linux-<arch>.tar.gz`) and optional `.deb`/`.rpm` packages so Linux users can install via archives or apt/dnf repositories; document install commands and signing expectations. | D4 | Limited |
+| D4-MAC | Ship macOS Release Matrix | Provide Homebrew formula/tap plus standalone tarballs per architecture, optionally codesigned + notarized, with README install scripts so macOS users can install via `brew` or manual download. | D4 | Limited |
 
 ## 3. Execution Metadata
 | Task ID | Priority | Effort | Required Tools/Libraries | Acceptance Criteria | Verification Method |
@@ -68,6 +70,8 @@
 | D2 | High | 3 pts | XCTest, coverage tooling | Critical paths maintain >90% coverage threshold enforced via CI badge. | Coverage report uploaded + checked. |
 | D3 | Medium | 1 pt | Markdown docs | README documents CLI + testing workflow; doc lints pass. | Markdown lint + review. |
 | D4 | Medium | 2 pts | SwiftPM, release scripts | Release pipeline builds, archives, and signs binaries only after gates succeed. | `swift build -c release` + gate script logs. |
+| D4-LNX | Medium | 2 pts | SwiftPM, fpm/nfpm, GPG | Release job emits tarballs + `.deb`/`.rpm` artifacts with predictable names + SHA256, README installation docs, and optional GPG signatures. | CI artifact list + README install snippet + package install smoke test. |
+| D4-MAC | Medium | 2 pts | SwiftPM, Homebrew tap, codesign | GitHub release hosts macOS tarballs, Homebrew formula taps succeed on arm64/x86_64, and notarization/codesign steps documented or automated. | `brew install` test from tap + notarization log + README script. |
 
 ## 4. Product Requirements Document
 ### 4.1 Feature Description & Rationale
@@ -116,3 +120,21 @@ DocC2Context converts DocC documentation bundles into Markdown corpora so that L
 - **Insufficient Disk Space:** Detect write failures and emit actionable error suggesting cleanup.
 - **Locale Mismatch:** If requested locale missing, fall back to base locale with warning.
 - **Large Media Assets:** Copy or reference assets without loading entire files into memory; handle missing assets with warnings.
+
+### 4.6 Release Packaging & Distribution Requirements
+To close out Phase D, the release automation must ship documented distribution channels for Linux and macOS so contributors and users can install the CLI without rebuilding from source.
+
+1. **Baseline Strategy (All Platforms)**
+   - Release pipeline emits a single statically (or mostly statically) linked binary per target architecture and uploads archives named `docc2context-<version>-<os>-<arch>.tar.gz` to GitHub Releases alongside SHA256 sums and optional GPG signatures.
+   - Tags follow semver (`vX.Y.Z`) and are treated as the source of truth for all downstream package managers.
+   - README `Installation` section covers curl/tar instructions plus package manager snippets so users can bootstrap quickly.
+2. **Linux Packaging (D4-LNX)**
+   - Provide minimal tarball downloads plus advanced packages: `.deb` and `.rpm` built via `fpm`/`nfpm` (or equivalent) that install the binary under `/usr/local/bin`.
+   - Document manual install commands (`curl -L ... | tar xz` + `sudo mv`), and publish `dpkg -i`/`dnf install` snippets that point at the release URLs.
+   - Capture follow-up for hosting APT/YUM repos (e.g., Cloudsmith/PackageCloud) once signed packages prove useful; track auto-updates via `apt upgrade`/`dnf upgrade` in stretch goals.
+   - Explore static `musl` builds for universal compatibility on glibc-diverse distros.
+3. **macOS Packaging (D4-MAC)**
+   - Maintain a Homebrew tap (or upstream to `homebrew-core`) whose formula points at the versioned tarballs for both `arm64` and `x86_64`; include `test do` clause that runs `docc2context --version`.
+   - Offer manual install path mirroring Linux instructions with `/usr/local/bin` or `/opt/homebrew/bin` destinations, plus a one-line install script option.
+   - Document codesigning (`codesign --options runtime`) and notarization (`notarytool submit`, `stapler staple`) steps for prebuilt binaries so Gatekeeper trust warnings are minimized, even if Homebrew rebuilds from source.
+   - Call out when notarized/signature artifacts are required (e.g., distributing prebuilt bottles) vs optional for source-installs.
