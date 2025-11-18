@@ -6,7 +6,7 @@ REPO_ROOT="$(cd "${SCRIPT_DIR}/.." && pwd)"
 DEFAULT_OUTPUT_DIR="$REPO_ROOT/dist"
 RELEASE_GATES_SCRIPT=${RELEASE_GATES_SCRIPT:-"$SCRIPT_DIR/release_gates.sh"}
 PACKAGE_RELEASE_SKIP_GATES=${PACKAGE_RELEASE_SKIP_GATES:-"0"}
-SWIFT_BUILD_FLAGS=${PACKAGE_RELEASE_SWIFT_BUILD_FLAGS:-""}
+SWIFT_BUILD_FLAGS_RAW=${PACKAGE_RELEASE_SWIFT_BUILD_FLAGS:-""}
 BUILD_CONFIGURATION=${PACKAGE_RELEASE_BUILD_CONFIGURATION:-"release"}
 
 log_step() {
@@ -76,7 +76,7 @@ if [[ -z "$version" ]]; then
 fi
 
 sanitized_version="${version#v}"
-if [[ -z "$sanitized_version" || ! "$sanitized_version" =~ ^[0-9]+([.-][0-9A-Za-z]+)*$ ]]; then
+if [[ -z "$sanitized_version" || ! "$sanitized_version" =~ ^[0-9]+(\.[0-9A-Za-z-]+)*$ ]]; then
   log_error "Version '$version' is not a valid semantic version"
   exit 1
 fi
@@ -149,9 +149,9 @@ build_binary() {
   log_step "Building docc2context in ${BUILD_CONFIGURATION} configuration"
   log_step "Resolving binary path via swift build"
   local build_cmd=("swift" "build" "-c" "${BUILD_CONFIGURATION}" "--product" "docc2context")
-  if [[ -n "$SWIFT_BUILD_FLAGS" ]]; then
-    # shellcheck disable=SC2206
-    local extra_flags=($SWIFT_BUILD_FLAGS)
+  if [[ -n "$SWIFT_BUILD_FLAGS_RAW" ]]; then
+    local extra_flags=()
+    read -r -a extra_flags <<<"$SWIFT_BUILD_FLAGS_RAW"
     build_cmd+=("${extra_flags[@]}")
   fi
   build_cmd+=("--show-bin-path")

@@ -24,6 +24,7 @@ final class PackageReleaseScriptTests: XCTestCase {
         if buildProcess.terminationStatus != 0 {
             let output = String(data: pipe.fileHandleForReading.readDataToEndOfFile(), encoding: .utf8) ?? "<unreadable>"
             XCTFail("swift build --product docc2context failed: \(output)")
+            return binaryURL
         }
         guard fileManager.fileExists(atPath: binaryURL.path) else {
             XCTFail("docc2context debug binary not found at \(binaryURL.path)")
