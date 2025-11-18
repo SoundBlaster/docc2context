@@ -259,7 +259,12 @@ package_linux() {
   if [[ "$dry_run" == "1" ]]; then
     helper_args+=("--dry-run")
   fi
-  mapfile -t artifacts < <("${helper_args[@]}")
+  local artifacts=()
+  while IFS= read -r artifact; do
+    if [[ -n "$artifact" ]]; then
+      artifacts+=("$artifact")
+    fi
+  done < <("${helper_args[@]}")
   if [[ "${#artifacts[@]}" -eq 0 ]]; then
     log_error "Linux packaging helper did not produce any artifacts"
     exit 1

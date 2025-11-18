@@ -2,6 +2,21 @@ import XCTest
 import Foundation
 
 final class PackageReleaseScriptTests: XCTestCase {
+    private func ensureCommandAvailable(_ command: String) throws {
+        let process = Process()
+        process.executableURL = URL(fileURLWithPath: "/usr/bin/env")
+        process.arguments = ["which", command]
+        let pipe = Pipe()
+        process.standardOutput = pipe
+        process.standardError = pipe
+        try process.run()
+        process.waitUntilExit()
+        if process.terminationStatus != 0 {
+            let output = String(data: pipe.fileHandleForReading.readDataToEndOfFile(), encoding: .utf8) ?? "<unreadable>"
+            throw XCTSkip("Required command \(command) missing for packaging test: \(output)")
+        }
+    }
+
     private func hostArchitecture() throws -> String {
         let process = Process()
         process.executableURL = URL(fileURLWithPath: "/usr/bin/env")
@@ -102,6 +117,9 @@ final class PackageReleaseScriptTests: XCTestCase {
         let script = scriptURL()
         let scriptPath = script.path
         XCTAssertTrue(fileManager.isExecutableFile(atPath: scriptPath), "package_release.sh must be executable")
+
+        try ensureCommandAvailable("dpkg-deb")
+        try ensureCommandAvailable("rpmbuild")
 
         let outputDirectory = TestSupportPaths.repositoryRootDirectory
             .appendingPathComponent(".build", isDirectory: true)
