@@ -2,6 +2,22 @@ import XCTest
 import Foundation
 
 final class PackageReleaseScriptTests: XCTestCase {
+    private func commandExists(_ name: String) -> Bool {
+        let process = Process()
+        process.executableURL = URL(fileURLWithPath: "/usr/bin/env")
+        process.arguments = ["which", name]
+        let pipe = Pipe()
+        process.standardOutput = pipe
+        process.standardError = pipe
+        do {
+            try process.run()
+            process.waitUntilExit()
+        } catch {
+            return false
+        }
+        return process.terminationStatus == 0
+    }
+
     private func hostArchitecture() throws -> String {
         let process = Process()
         process.executableURL = URL(fileURLWithPath: "/usr/bin/env")
@@ -111,6 +127,14 @@ final class PackageReleaseScriptTests: XCTestCase {
         let script = scriptURL()
         let scriptPath = script.path
         XCTAssertTrue(fileManager.isExecutableFile(atPath: scriptPath), "package_release.sh must be executable")
+
+        guard commandExists("dpkg-deb") else {
+            throw XCTSkip("dpkg-deb is required to validate Linux packaging. Install the dpkg-dev tools before running this test.")
+        }
+
+        guard commandExists("rpmbuild") else {
+            throw XCTSkip("rpmbuild is required to validate Linux packaging. Install rpm build tools before running this test.")
+        }
 
         let outputDirectory = TestSupportPaths.repositoryRootDirectory
             .appendingPathComponent(".build", isDirectory: true)
