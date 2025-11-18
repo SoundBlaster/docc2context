@@ -49,13 +49,17 @@ final class PackageReleaseScriptTests: XCTestCase {
         }
     }
 
+    /// RPM artifacts always use x86_64/aarch64, matching the archSuffix helper in
+    /// build_linux_packages.sh. Assert the same host inputs as normalizedTarballArch
+    /// so we don't silently miss any new `uname -m` strings.
     private func rpmArch(for raw: String) -> String {
         switch raw {
-        case "amd64":
+        case "x86_64", "amd64":
             return "x86_64"
-        case "arm64":
+        case "aarch64", "arm64":
             return "aarch64"
         default:
+            XCTFail("Unexpected host architecture: \(raw). Update rpmArch to map this value.")
             return raw
         }
     }
