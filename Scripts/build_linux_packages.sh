@@ -224,7 +224,9 @@ License: MIT
 CONTROL
   local deb_name="docc2context_${sanitized_version}_linux_${deb_arch}${suffix}.deb"
   local deb_path="$output_dir/$deb_name"
-  dpkg-deb --build "$deb_dir" "$deb_path" >/dev/null
+  # Ensure files are marked as owned by root:root even when the staging dir was
+  # populated by an unprivileged CI user.
+  dpkg-deb --build --root-owner-group "$deb_dir" "$deb_path" >/dev/null
   log_step "Created Debian package: $deb_path"
   create_checksum "$deb_path"
   artifact_paths+=("$deb_path")
