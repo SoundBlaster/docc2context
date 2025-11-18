@@ -15,6 +15,7 @@ final class DocumentationGuidanceTests: XCTestCase {
         XCTAssertTrue(readme.contains("Fixtures/manifest.json"), "README should document the fixture manifest")
         XCTAssertTrue(readme.contains("Scripts/validate_fixtures_manifest.py"), "README should mention the fixture validation script")
         XCTAssertTrue(readme.contains("Scripts/release_gates.sh"), "README should describe running release gates")
+        XCTAssertTrue(readme.contains("Scripts/package_release.sh"), "README should describe the release packaging script")
         XCTAssertTrue(readme.contains("swift test --enable-code-coverage"), "README should tell contributors how to run coverage-enabled tests")
         XCTAssertTrue(readme.contains("python3 Scripts/enforce_coverage.py"), "README should reference the coverage helper script")
     }

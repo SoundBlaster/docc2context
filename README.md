@@ -146,6 +146,27 @@ The script performs the following checks:
 
 All steps must succeed for the script to exit 0, making it suitable for CI wiring or pre-push hooks.
 
+## Release packaging & automation
+
+Once the release gates pass, package platform-specific binaries with `Scripts/package_release.sh`. The helper wraps `release_gates.sh`, builds the CLI in release mode, stages the binary alongside `README.md`/`LICENSE`, and emits `.zip` archives + SHA-256 manifests that match the `docc2context-v<version>-<platform>.zip` naming scheme.
+
+```bash
+# Produce a Linux artifact in dist/linux for docc2context v1.2.3
+Scripts/package_release.sh --version v1.2.3 --platform linux --output dist/linux
+
+# Generate a macOS build (codesigned when MACOS_SIGN_IDENTITY is set)
+Scripts/package_release.sh --version v1.2.3 --platform macos --output dist/macos
+```
+
+Key behaviors:
+
+1. **Quality gates first** – By default the script shells out to `Scripts/release_gates.sh` and exits if any gate fails. Pass `PACKAGE_RELEASE_SKIP_GATES=1` only inside automated smoke tests; real releases must keep the default.
+2. **Deterministic staging** – Artifacts land in `docc2context-v<version>/` folders before being zipped, ensuring README/license snapshots stay aligned with the binary bits pulled from `swift build -c release`.
+3. **Checksums & summaries** – Every `.zip` is paired with `<artifact>.zip.sha256` plus a Markdown summary enumerating the platform, version, gate status, and UTC timestamp so the release checklist can reference concrete hashes.
+4. **Optional signing** – When building macOS releases, set `MACOS_SIGN_IDENTITY` (and the usual Keychain state) so the script calls `codesign --options runtime --timestamp` before zipping.
+
+The GitHub Actions workflow at `.github/workflows/release.yml` runs automatically for tags that match `v*`. It executes the packaging script on both `ubuntu-22.04` and `macos-latest`, uploads the artifacts, and publishes the GitHub Release with the generated archives, checksums, and summaries so downstream automation can fetch binaries deterministically.
+
 ## Troubleshooting & FAQ
 
 **Coverage script fails below 90%** – Re-run `swift test --enable-code-coverage` and then `python3 Scripts/enforce_coverage.py --threshold 90` to gather the latest data. The JSON summary lists both the CLI and core targets; focus on the lower one. Add failure-path tests (for example, new cases in `MarkdownGenerationPipelineTests`) instead of disabling coverage.

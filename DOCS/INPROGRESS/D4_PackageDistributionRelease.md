@@ -63,3 +63,9 @@
 ## Next Steps Before START
 - Review this plan against stakeholders’ expectations (PRD + TODO) and confirm no other Phase D prerequisites remain.
 - Once approved, run `COMMANDS/START.md` referencing this INPROGRESS note and begin implementing the packaging script + CI workflow.
+
+## Implementation Progress (2025-11-17)
+- Added `Scripts/package_release.sh` which runs `Scripts/release_gates.sh`, builds `docc2context` with `swift build -c release`, stages artifacts into deterministic folders, and emits `.zip`, `.sha256`, and Markdown summary files per platform. The script supports `--dry-run`, `--output`, platform selection, and optional macOS codesigning via `MACOS_SIGN_IDENTITY` while allowing CI smoke tests to skip the heavy gates with `PACKAGE_RELEASE_SKIP_GATES=1`.
+- Created `PackageReleaseScriptTests` to execute the script in `--dry-run` mode, verify artifact/checksum/summary creation, and document the environment hooks we rely on for testing without recursive gate execution.
+- Documented the workflow in the README “Release packaging & automation” section so contributors know how to run the script locally, interpret outputs, and respect the gate requirements before tagging.
+- Authored `.github/workflows/release.yml` to package Linux/macOS artifacts whenever a `v*` tag is pushed (or via manual dispatch). Each matrix job invokes the packaging script, uploads artifacts, and the `publish` job ships them to the GitHub Release so the checklist files/hashes become part of the release payload.
