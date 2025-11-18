@@ -22,13 +22,18 @@ final class PackageReleaseScriptTests: XCTestCase {
         return raw.trimmingCharacters(in: .whitespacesAndNewlines)
     }
 
+    /// Mirrors the architecture suffixes used by build_linux_packages.sh.
+    /// GitHub-hosted Linux runners report `uname -m` as x86_64 or aarch64, while
+    /// Apple Silicon hosts report arm64. We explicitly assert the expected
+    /// values to keep the packaging test aligned with those environments.
     private func normalizedTarballArch(for raw: String) -> String {
         switch raw {
-        case "amd64":
+        case "x86_64", "amd64":
             return "x86_64"
-        case "arm64":
+        case "aarch64", "arm64":
             return "aarch64"
         default:
+            XCTFail("Unexpected host architecture: \(raw). Update normalizedTarballArch to map this value.")
             return raw
         }
     }
