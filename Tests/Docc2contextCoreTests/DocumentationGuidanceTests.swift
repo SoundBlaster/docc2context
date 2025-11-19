@@ -18,6 +18,10 @@ final class DocumentationGuidanceTests: XCTestCase {
         XCTAssertTrue(readme.contains("Scripts/package_release.sh"), "README should describe the release packaging script")
         XCTAssertTrue(readme.contains("swift test --enable-code-coverage"), "README should tell contributors how to run coverage-enabled tests")
         XCTAssertTrue(readme.contains("python3 Scripts/enforce_coverage.py"), "README should reference the coverage helper script")
+        XCTAssertTrue(readme.contains("brew tap docc2context/tap"), "README should document the Homebrew tap for macOS users")
+        XCTAssertTrue(readme.contains("install_macos.sh"), "README should mention the macOS install helper script")
+        XCTAssertTrue(readme.localizedCaseInsensitiveContains("codesign"), "README should reference macOS codesigning guidance")
+        XCTAssertTrue(readme.localizedCaseInsensitiveContains("notarytool"), "README should outline macOS notarization steps")
     }
 
     func test_readmeMentionsTroubleshootingGuidance() throws {

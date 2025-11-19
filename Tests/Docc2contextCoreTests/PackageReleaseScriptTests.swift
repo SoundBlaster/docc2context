@@ -204,4 +204,69 @@ final class PackageReleaseScriptTests: XCTestCase {
         XCTAssertTrue(summaryContents.contains(expectedDeb))
         XCTAssertTrue(summaryContents.contains(expectedRpm))
     }
+
+    func test_packageScriptProducesMacOSArtifactsWithArchSuffixesInDryRunMode() throws {
+        #if os(macOS)
+        #else
+        throw XCTSkip("macOS packaging test only runs on macOS hosts")
+        #endif
+
+        let fileManager = FileManager.default
+        let script = scriptURL()
+        XCTAssertTrue(fileManager.isExecutableFile(atPath: script.path), "package_release.sh must be executable")
+
+        let outputDirectory = TestSupportPaths.repositoryRootDirectory
+            .appendingPathComponent(".build", isDirectory: true)
+            .appendingPathComponent("package-script-tests", isDirectory: true)
+            .appendingPathComponent(UUID().uuidString, isDirectory: true)
+        try fileManager.createDirectory(at: outputDirectory, withIntermediateDirectories: true)
+        defer { try? fileManager.removeItem(at: outputDirectory) }
+
+        let version = "v0.0.0-test"
+        let debugBinary = try ensureDebugBinaryExists()
+        let hostArch = try hostArchitecture()
+        let expectedZip = "docc2context-v0.0.0-test-macos-\(hostArch)-dryrun.zip"
+        let process = Process()
+        process.currentDirectoryURL = TestSupportPaths.repositoryRootDirectory
+        process.executableURL = script
+        process.arguments = [
+            "--version", version,
+            "--platform", "macos",
+            "--arch", hostArch,
+            "--output", outputDirectory.path,
+            "--dry-run"
+        ]
+        var environment = ProcessInfo.processInfo.environment
+        environment["PACKAGE_RELEASE_SKIP_GATES"] = "1"
+        environment["PACKAGE_RELEASE_BINARY_OVERRIDE"] = debugBinary.path
+        environment["PACKAGE_RELEASE_BUILD_CONFIGURATION"] = "debug"
+        process.environment = environment
+
+        let pipe = Pipe()
+        process.standardOutput = pipe
+        process.standardError = pipe
+        try process.run()
+        process.waitUntilExit()
+
+        let outputData = pipe.fileHandleForReading.readDataToEndOfFile()
+        if process.terminationStatus != 0 {
+            let output = String(data: outputData, encoding: .utf8) ?? "<unreadable>"
+            XCTFail("package_release.sh failed: \(output)")
+            return
+        }
+
+        let zipURL = outputDirectory.appendingPathComponent(expectedZip)
+        XCTAssertTrue(fileManager.fileExists(atPath: zipURL.path), "macOS zip artifact missing")
+        XCTAssertTrue(fileManager.fileExists(atPath: zipURL.path + ".sha256"))
+
+        let summaryName = "docc2context-v0.0.0-test-macos-\(hostArch)-dryrun.md"
+        let summaryURL = outputDirectory.appendingPathComponent(summaryName)
+        XCTAssertTrue(fileManager.fileExists(atPath: summaryURL.path), "Summary file missing")
+        let summaryContents = try String(contentsOf: summaryURL, encoding: .utf8)
+        XCTAssertTrue(summaryContents.contains("Version: 0.0.0-test"))
+        XCTAssertTrue(summaryContents.contains("Platform: macos"))
+        XCTAssertTrue(summaryContents.contains("Architecture: \(hostArch)"))
+        XCTAssertTrue(summaryContents.contains("Dry Run: true"))
+        XCTAssertTrue(summaryContents.contains(expectedZip))
+    }
 }

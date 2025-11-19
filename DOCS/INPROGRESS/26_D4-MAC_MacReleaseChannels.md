@@ -62,3 +62,10 @@
 1. Socialize this plan in the next STATE update so stakeholders agree D4-MAC is the top priority coming out of SELECT_NEXT.
 2. Confirm maintainers have/are willing to provision the required Apple Developer ID credentials for codesign/notarization; without them, acceptance criteria may need staged delivery (document-only vs. automated signing).
 3. Decide on the exact tap repository path and access strategy so implementation can wire scripts/tests without guessing remote URLs.
+
+## START Execution (2025-11-19)
+- **Packaging** – `Scripts/package_release.sh` now outputs macOS zips with architecture suffixes (arm64/x86_64) and summary files reflecting the arch. Release workflow gains `macos-latest` (arm64) and `macos-13` (x86_64) jobs plus a publish-stage Homebrew formula render driven by `Scripts/build_homebrew_formula.py`; upload names are arch-qualified.
+- **Distribution tooling** – Added deterministic Homebrew formula builder and macOS install helper (`Scripts/install_macos.sh`) with arch detection, checksum verification, and `--dry-run` to prevent accidental downloads during CI or tests.
+- **Docs** – README adds Homebrew tap commands, manual macOS install steps, the curl-able install helper, and explicit codesign/notarytool/stapler guidance for prebuilt zips.
+- **Validation** – `swift test` (2025-11-19) passes with new coverage; packaging/installer/formula tests exercised locally. Linux packaging test still skips on macOS hosts until dpkg/rpmbuild are available.
+- **Follow-ups** – Coordinate tap publishing workflow/permissions and Apple signing credentials for notarization in CI; archive this task once release stakeholders confirm the tap destination and signing secret handling.

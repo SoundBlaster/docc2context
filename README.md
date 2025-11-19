@@ -151,14 +151,15 @@ All steps must succeed for the script to exit 0, making it suitable for CI wirin
 Once the release gates pass, package platform-specific binaries with `Scripts/package_release.sh`. The helper wraps `release_gates.sh`, builds the CLI in release mode, stages the binary alongside `README.md`/`LICENSE`, and now emits architecture-specific bundles:
 
 - **Linux** – `docc2context-<version>-linux-<arch>.tar.gz` tarballs plus `.deb` (Debian/Ubuntu) and `.rpm` (Fedora/RHEL) installers. Each artifact ships with a `.sha256` file and is summarized inside `docc2context-v<version>-linux-<arch>.md`.
-- **macOS** – `docc2context-v<version>-macos.zip` archives continue to include codesigning when `MACOS_SIGN_IDENTITY` is provided. Zips are paired with SHA-256 manifests and summary markdown files.
+- **macOS** – `docc2context-v<version>-macos-<arch>.zip` archives (arm64 and x86_64) include codesigning when `MACOS_SIGN_IDENTITY` is provided. Zips are paired with `.sha256` manifests and summary markdown files that capture the architecture.
 
 ```bash
 # Produce Linux artifacts (tar.gz + .deb + .rpm) for docc2context v1.2.3 on the current host architecture
 Scripts/package_release.sh --version v1.2.3 --platform linux --output dist/linux
 
-# Generate a macOS build (codesigned when MACOS_SIGN_IDENTITY is set)
-Scripts/package_release.sh --version v1.2.3 --platform macos --output dist/macos
+# Generate macOS builds (codesigned when MACOS_SIGN_IDENTITY is set)
+Scripts/package_release.sh --version v1.2.3 --platform macos --arch arm64 --output dist/macos
+Scripts/package_release.sh --version v1.2.3 --platform macos --arch x86_64 --output dist/macos
 
 # Call the Linux packaging helper directly (dry run) when iterating on metadata
 Scripts/build_linux_packages.sh --version 1.2.3 --arch x86_64 --stage-dir /tmp/stage --binary /tmp/stage/docc2context --output dist/linux --dry-run
@@ -170,8 +171,9 @@ Key behaviors:
 2. **Deterministic staging** – Artifacts land in `docc2context-v<version>/` folders before being zipped/tarred, ensuring README/license snapshots stay aligned with the binary bits pulled from `swift build -c release`.
 3. **Checksums & summaries** – Every artifact is paired with `<artifact>.sha256` plus a Markdown summary enumerating the platform, architecture, version, gate status, and UTC timestamp so the release checklist can reference concrete hashes.
 4. **Optional signing** – When building macOS releases, set `MACOS_SIGN_IDENTITY` (and the usual Keychain state) so the script calls `codesign --options runtime --timestamp` before zipping.
+5. **Homebrew tap generator** – Use `Scripts/build_homebrew_formula.py` to render an architecture-aware formula for the release artifacts so the tap can be updated in lockstep with GitHub Releases.
 
-The GitHub Actions workflow at `.github/workflows/release.yml` now runs a Linux matrix for `x86_64` and `aarch64` plus a macOS arm64 job. Each job installs the platform prerequisites (`dpkg-dev` for `dpkg-deb`, `rpmbuild`, `zip`, and Swift 6.1.2), runs the packaging script with the appropriate `--arch`, uploads the Linux tarballs/packages alongside macOS zips, and publishes every archive + checksum to the GitHub Release so downstream automation can fetch binaries deterministically. The Linux ARM job targets the GitHub-hosted `ubuntu-22.04-arm64` runner tier; if your repository lacks access to that image, provision a self-hosted ARM64 runner (labels: `self-hosted`, `linux`, `arm64`) and adjust the workflow matrix accordingly.
+The GitHub Actions workflow at `.github/workflows/release.yml` now runs a Linux matrix for `x86_64` and `aarch64` plus macOS jobs for `arm64` and `x86_64`. Each job installs the platform prerequisites (`dpkg-dev` for `dpkg-deb`, `rpmbuild`, `zip`, and Swift 6.1.2), runs the packaging script with the appropriate `--arch`, uploads the Linux tarballs/packages alongside macOS zips, and publishes every archive + checksum to the GitHub Release so downstream automation can fetch binaries deterministically. The publish stage renders a Homebrew formula from the macOS artifacts so the tap can be updated in a single step. The Linux ARM job targets the GitHub-hosted `ubuntu-22.04-arm64` runner tier; if your repository lacks access to that image, provision a self-hosted ARM64 runner (labels: `self-hosted`, `linux`, `arm64`) and adjust the workflow matrix accordingly.
 
 ### Linux installation snippets
 
@@ -211,6 +213,44 @@ Install via whichever mechanism matches your environment:
   ```
 
 The `.deb` installs the binary under `/usr/local/bin/docc2context` with documentation in `/usr/share/doc/docc2context/`. The `.rpm` layout matches so automation scripts can rely on consistent paths across distros. Future work on apt/dnf repositories and musl builds is tracked in the TODO backlog.
+
+### macOS installation snippets
+
+**Homebrew tap (recommended)**
+
+```bash
+brew tap docc2context/tap
+brew install docc2context
+brew test docc2context
+```
+
+**Manual install from GitHub Releases**
+
+```bash
+VERSION=v1.2.3
+ARCH=$(uname -m) # arm64 on Apple Silicon, x86_64 on Intel
+curl -LO https://github.com/docc2context/docc2context/releases/download/$VERSION/docc2context-v${VERSION#v}-macos-${ARCH}.zip
+curl -LO https://github.com/docc2context/docc2context/releases/download/$VERSION/docc2context-v${VERSION#v}-macos-${ARCH}.zip.sha256
+shasum -a 256 -c docc2context-v${VERSION#v}-macos-${ARCH}.zip.sha256
+unzip docc2context-v${VERSION#v}-macos-${ARCH}.zip
+DEST=/usr/local/bin/docc2context
+if [[ "$ARCH" == "arm64" ]]; then DEST=/opt/homebrew/bin/docc2context; fi
+sudo install -m 0755 docc2context-v${VERSION#v}-macos-${ARCH}/docc2context "$DEST"
+```
+
+**One-line install helper**
+
+```bash
+curl -fsSL https://github.com/docc2context/docc2context/raw/main/Scripts/install_macos.sh | bash -s -- --version v1.2.3
+```
+
+The script downloads the architecture-specific zip, verifies the `.sha256`, and installs to `/opt/homebrew/bin` on Apple Silicon or `/usr/local/bin` on Intel. Override the target directory with `--prefix <path>` and add `--dry-run` to print the planned commands without downloading.
+
+**Codesign & notarization**
+
+- Codesign local release builds with `codesign --force --options runtime --timestamp --sign "$MACOS_SIGN_IDENTITY" docc2context`.
+- Submit zips for notarization and staple the ticket: `xcrun notarytool submit <zip> --keychain-profile <profile> --wait` then `xcrun stapler staple <zip>`.
+- Release automation honors `MACOS_SIGN_IDENTITY` during packaging; notarization can be run manually or in CI once Apple API keys are configured.
 
 ## Troubleshooting & FAQ
 

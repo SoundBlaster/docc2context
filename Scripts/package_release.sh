@@ -112,6 +112,26 @@ if [[ "$platform" != "linux" && "$platform" != "macos" ]]; then
   exit 1
 fi
 
+normalize_macos_arch() {
+  local raw="$1"
+  case "$raw" in
+    arm64|aarch64)
+      echo "arm64"
+      ;;
+    x86_64|amd64)
+      echo "x86_64"
+      ;;
+    *)
+      log_error "Unsupported macOS architecture '$raw' (expected arm64 or x86_64)"
+      exit 1
+      ;;
+  esac
+}
+
+if [[ "$platform" == "macos" ]]; then
+  arch="$(normalize_macos_arch "$arch")"
+fi
+
 if ! command -v zip >/dev/null 2>&1; then
   log_error "zip command not available"
   exit 1
@@ -230,6 +250,9 @@ create_summary() {
 package_macos() {
   local stage_dir="$1"
   local artifact_name="docc2context-v${sanitized_version}-${platform}"
+  if [[ -n "$arch" ]]; then
+    artifact_name+="-${arch}"
+  fi
   if [[ "$dry_run" == "1" ]]; then
     artifact_name+="-dryrun"
   fi

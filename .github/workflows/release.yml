@@ -13,22 +13,26 @@ jobs:
   package:
     name: Package ${{ matrix.platform }} ${{ matrix.arch }} artifact
     runs-on: ${{ matrix.runner }}
-    strategy:
-      fail-fast: false
-      matrix:
-        include:
-          - platform: linux
-            arch: x86_64
-            runner: ubuntu-22.04
-            swift: '6.1.2'
-          - platform: linux
-            arch: aarch64
-            runner: ubuntu-22.04-arm64
-            swift: '6.1.2'
-          - platform: macos
-            arch: arm64
-            runner: macos-latest
-            swift: '6.1.2'
+      strategy:
+        fail-fast: false
+        matrix:
+          include:
+            - platform: linux
+              arch: x86_64
+              runner: ubuntu-22.04
+              swift: '6.1.2'
+            - platform: linux
+              arch: aarch64
+              runner: ubuntu-22.04-arm64
+              swift: '6.1.2'
+            - platform: macos
+              arch: arm64
+              runner: macos-latest
+              swift: '6.1.2'
+            - platform: macos
+              arch: x86_64
+              runner: macos-13
+              swift: '6.1.2'
     steps:
       - uses: actions/checkout@v4
 
@@ -67,7 +71,7 @@ jobs:
       - name: Upload ${{ matrix.platform }} artifact
         uses: actions/upload-artifact@v4
         with:
-          name: docc2context-${{ matrix.platform }}
+          name: docc2context-${{ matrix.platform }}-${{ matrix.arch }}
           path: dist/${{ matrix.platform }}
 
   publish:
@@ -81,6 +85,25 @@ jobs:
 
       - name: Display packaged artifacts
         run: ls -R dist
+
+      - name: Generate Homebrew formula
+        run: |
+          ARM_ZIP="$(find dist -name 'docc2context-v*-macos-arm64.zip' -print -quit)"
+          INTEL_ZIP="$(find dist -name 'docc2context-v*-macos-x86_64.zip' -print -quit)"
+          if [[ -z "$ARM_ZIP" || -z "$INTEL_ZIP" ]]; then
+            echo "Missing macOS artifacts required for Homebrew formula"
+            exit 1
+          fi
+          ARM_SHA="$(cut -d' ' -f1 "${ARM_ZIP}.sha256")"
+          INTEL_SHA="$(cut -d' ' -f1 "${INTEL_ZIP}.sha256")"
+          VERSION="${{ github.ref_name }}"
+          python3 Scripts/build_homebrew_formula.py \
+            --version "$VERSION" \
+            --arm64-url "https://github.com/docc2context/docc2context/releases/download/${VERSION}/$(basename "$ARM_ZIP")" \
+            --arm64-sha256 "$ARM_SHA" \
+            --x86_64-url "https://github.com/docc2context/docc2context/releases/download/${VERSION}/$(basename "$INTEL_ZIP")" \
+            --x86_64-sha256 "$INTEL_SHA" \
+            --output dist/homebrew/docc2context.rb
 
       - name: Publish release assets
         uses: softprops/action-gh-release@v2
@@ -97,3 +120,4 @@ jobs:
             dist/**/*.deb.sha256
             dist/**/*.rpm.sha256
             dist/**/*.md
+            dist/homebrew/docc2context.rb
