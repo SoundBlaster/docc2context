@@ -3,7 +3,7 @@
 Use this list for near-term execution. Each entry maps back to the PRD and [workplan](./workplan.md).
 
 ## In Progress
-- _None – Linux release packaging landed in Cycle 6; promote new work items via SELECT_NEXT when ready._
+- [ ] **D4-MAC macOS Release Channels** Ship the macOS distribution workflow outlined in PRD §4.6, including Homebrew tap/formula updates for arm64/x86_64 tarballs, manual install script, and documented codesign/notarization for prebuilt binaries. _Depends on:_ D4 release automation and D4-LNX packaging lessons learned. _Doc:_ PRD §Phase D (D4-MAC), `DOCS/INPROGRESS/26_D4-MAC_MacReleaseChannels.md`. _Owner:_ docc2context agent. _Status:_ SELECT_NEXT planning kicked off 2025-11-19; scope captured in INPROGRESS note prior to START command.
 
 ## Completed
 - [x] **D4-LNX Linux Release Packaging Matrix** Implement the Linux distribution plan from PRD §4.6 by emitting `docc2context-<version>-linux-<arch>.tar.gz` archives, `.deb`/`.rpm` packages built via native Debian/RPM tooling, and README install snippets (`curl | tar`, `dpkg -i`, `dnf install`). _Depends on:_ D4 release automation (build gating + artifact upload). _Doc:_ PRD §Phase D (D4-LNX) + `DOCS/TASK_ARCHIVE/25_D4-LNX_LinuxReleasePackagingMatrix/`. _Owner:_ docc2context agent. _Status:_ Complete – Cycle 6; added `Scripts/build_linux_packages.sh`, multi-arch packaging in `Scripts/package_release.sh`, README install snippets, workflow matrix updates, and end-to-end tests covering the helper.
@@ -40,7 +40,7 @@ Use this list for near-term execution. Each entry maps back to the PRD and [work
 - _None – tasks promoted to "In Progress" once documentation work kicked off._
 
 ## Under Consideration
-- [ ] **D4-MAC macOS Release Channels** Ship the macOS distribution workflow outlined in PRD §4.6, including Homebrew tap/formula updates for arm64/x86_64 tarballs, manual install script, and documented codesign/notarization for prebuilt binaries. _Depends on:_ D4 release automation and Linux packaging lessons learned. _Doc:_ PRD §Phase D (D4-MAC), §4.6. _Owner:_ docc2context agent. _Status:_ Proposed – confirm tap location, automate `brew test` smoke checks, and capture notarization hand-off.
+- _None – promote new scope via SELECT_NEXT after D4-MAC rolls off._
 
 ## Backlog Ideas
 - [ ] Explore incremental conversion to stream Markdown output for very large DocC bundles.
