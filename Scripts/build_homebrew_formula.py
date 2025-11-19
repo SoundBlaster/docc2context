@@ -31,7 +31,7 @@ def sanitize_version(raw: str) -> str:
 def render_formula(version: str, arm64_url: str, arm64_sha: str, x86_url: str, x86_sha: str) -> str:
     template = """class Docc2context < Formula
   desc "Convert DocC bundles to deterministic Markdown plus link graphs"
-  homepage "https://github.com/docc2context/docc2context"
+  homepage "https://github.com/SoundBlaster/docc2context"
   version "{version}"
   license "MIT"
 

@@ -180,8 +180,8 @@ The GitHub Actions workflow at `.github/workflows/release.yml` now runs a Linux 
 Every GitHub Release publishes the SHA-256 hashes next to the Linux tarball, `.deb`, and `.rpm`. Verify the checksum before installing:
 
 ```bash
-curl -LO https://github.com/docc2context/docc2context/releases/download/v1.2.3/docc2context-1.2.3-linux-x86_64.tar.gz
-curl -LO https://github.com/docc2context/docc2context/releases/download/v1.2.3/docc2context-1.2.3-linux-x86_64.tar.gz.sha256
+curl -LO https://github.com/SoundBlaster/docc2context/releases/download/v1.2.3/docc2context-1.2.3-linux-x86_64.tar.gz
+curl -LO https://github.com/SoundBlaster/docc2context/releases/download/v1.2.3/docc2context-1.2.3-linux-x86_64.tar.gz.sha256
 shasum -a 256 -c docc2context-1.2.3-linux-x86_64.tar.gz.sha256
 ```
 
@@ -197,8 +197,8 @@ Install via whichever mechanism matches your environment:
 - **Debian/Ubuntu**
 
   ```bash
-  curl -LO https://github.com/docc2context/docc2context/releases/download/v1.2.3/docc2context_1.2.3_linux_amd64.deb
-  curl -LO https://github.com/docc2context/docc2context/releases/download/v1.2.3/docc2context_1.2.3_linux_amd64.deb.sha256
+  curl -LO https://github.com/SoundBlaster/docc2context/releases/download/v1.2.3/docc2context_1.2.3_linux_amd64.deb
+  curl -LO https://github.com/SoundBlaster/docc2context/releases/download/v1.2.3/docc2context_1.2.3_linux_amd64.deb.sha256
   shasum -a 256 -c docc2context_1.2.3_linux_amd64.deb.sha256
   sudo dpkg -i docc2context_1.2.3_linux_amd64.deb
   ```
@@ -206,8 +206,8 @@ Install via whichever mechanism matches your environment:
 - **Fedora/RHEL**
 
   ```bash
-  curl -LO https://github.com/docc2context/docc2context/releases/download/v1.2.3/docc2context-1.2.3-linux-x86_64.rpm
-  curl -LO https://github.com/docc2context/docc2context/releases/download/v1.2.3/docc2context-1.2.3-linux-x86_64.rpm.sha256
+  curl -LO https://github.com/SoundBlaster/docc2context/releases/download/v1.2.3/docc2context-1.2.3-linux-x86_64.rpm
+  curl -LO https://github.com/SoundBlaster/docc2context/releases/download/v1.2.3/docc2context-1.2.3-linux-x86_64.rpm.sha256
   shasum -a 256 -c docc2context-1.2.3-linux-x86_64.rpm.sha256
   sudo dnf install docc2context-1.2.3-linux-x86_64.rpm
   ```
@@ -229,8 +229,8 @@ brew test docc2context
 ```bash
 VERSION=v1.2.3
 ARCH=$(uname -m) # arm64 on Apple Silicon, x86_64 on Intel
-curl -LO https://github.com/docc2context/docc2context/releases/download/$VERSION/docc2context-v${VERSION#v}-macos-${ARCH}.zip
-curl -LO https://github.com/docc2context/docc2context/releases/download/$VERSION/docc2context-v${VERSION#v}-macos-${ARCH}.zip.sha256
+curl -LO https://github.com/SoundBlaster/docc2context/releases/download/$VERSION/docc2context-v${VERSION#v}-macos-${ARCH}.zip
+curl -LO https://github.com/SoundBlaster/docc2context/releases/download/$VERSION/docc2context-v${VERSION#v}-macos-${ARCH}.zip.sha256
 shasum -a 256 -c docc2context-v${VERSION#v}-macos-${ARCH}.zip.sha256
 unzip docc2context-v${VERSION#v}-macos-${ARCH}.zip
 DEST=/usr/local/bin/docc2context
@@ -241,7 +241,7 @@ sudo install -m 0755 docc2context-v${VERSION#v}-macos-${ARCH}/docc2context "$DES
 **One-line install helper**
 
 ```bash
-curl -fsSL https://github.com/docc2context/docc2context/raw/main/Scripts/install_macos.sh | bash -s -- --version v1.2.3
+curl -fsSL https://github.com/SoundBlaster/docc2context/raw/main/Scripts/install_macos.sh | bash -s -- --version v1.2.3
 ```
 
 The script downloads the architecture-specific zip, verifies the `.sha256`, and installs to `/opt/homebrew/bin` on Apple Silicon or `/usr/local/bin` on Intel. Override the target directory with `--prefix <path>` and add `--dry-run` to print the planned commands without downloading.

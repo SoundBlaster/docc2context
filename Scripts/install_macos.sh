@@ -3,7 +3,7 @@ set -euo pipefail
 
 SCRIPT_DIR="$(cd "$(dirname "${BASH_SOURCE[0]}")" && pwd)"
 REPO_ROOT="$(cd "${SCRIPT_DIR}/.." && pwd)"
-DEFAULT_BASE_URL="https://github.com/docc2context/docc2context/releases/download"
+DEFAULT_BASE_URL="https://github.com/SoundBlaster/docc2context/releases/download"
 
 log_step() {
   printf '[%s] %s\n' "$(date -u +%H:%M:%S)" "$1"
