@@ -142,6 +142,10 @@ if ! command -v shasum >/dev/null 2>&1; then
   exit 1
 fi
 
+# Convert output_dir to absolute path if it's relative
+if [[ "$output_dir" != /* ]]; then
+  output_dir="$(pwd)/$output_dir"
+fi
 mkdir -p "$output_dir"
 
 cleanup_dir=""
