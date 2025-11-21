@@ -105,6 +105,10 @@ if [[ ! -f "$binary_path" ]]; then
   exit 1
 fi
 
+# Convert output_dir to absolute path if it's relative
+if [[ "$output_dir" != /* ]]; then
+  output_dir="$(pwd)/$output_dir"
+fi
 mkdir -p "$output_dir"
 
 require_command() {
@@ -219,7 +223,7 @@ Priority: optional
 Architecture: ${deb_arch}
 Maintainer: docc2context maintainers <maintainers@docc2context.invalid>
 Description: docc2context converts DocC bundles into deterministic Markdown for LLM ingestion.
-Homepage: https://github.com/docc2context/docc2context
+Homepage: https://github.com/SoundBlaster/docc2context
 License: MIT
 CONTROL
   local deb_name="docc2context_${sanitized_version}_linux_${deb_arch}${suffix}.deb"
@@ -254,7 +258,7 @@ Version: ${rpm_version}
 Release: 1
 Summary: Convert DocC bundles into deterministic Markdown.
 License: MIT
-URL: https://github.com/docc2context/docc2context
+URL: https://github.com/SoundBlaster/docc2context
 Source0: docc2context-source.tar.gz
 BuildArch: ${rpm_arch}
 

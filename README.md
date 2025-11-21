@@ -180,8 +180,8 @@ The GitHub Actions workflow at `.github/workflows/release.yml` now runs a Linux 
 Every GitHub Release publishes the SHA-256 hashes next to the Linux tarball, `.deb`, and `.rpm`. Verify the checksum before installing:
 
 ```bash
-curl -LO https://github.com/docc2context/docc2context/releases/download/v1.2.3/docc2context-1.2.3-linux-x86_64.tar.gz
-curl -LO https://github.com/docc2context/docc2context/releases/download/v1.2.3/docc2context-1.2.3-linux-x86_64.tar.gz.sha256
+curl -LO https://github.com/SoundBlaster/docc2context/releases/download/v1.2.3/docc2context-1.2.3-linux-x86_64.tar.gz
+curl -LO https://github.com/SoundBlaster/docc2context/releases/download/v1.2.3/docc2context-1.2.3-linux-x86_64.tar.gz.sha256
 shasum -a 256 -c docc2context-1.2.3-linux-x86_64.tar.gz.sha256
 ```
 
@@ -197,8 +197,8 @@ Install via whichever mechanism matches your environment:
 - **Debian/Ubuntu**
 
   ```bash
-  curl -LO https://github.com/docc2context/docc2context/releases/download/v1.2.3/docc2context_1.2.3_linux_amd64.deb
-  curl -LO https://github.com/docc2context/docc2context/releases/download/v1.2.3/docc2context_1.2.3_linux_amd64.deb.sha256
+  curl -LO https://github.com/SoundBlaster/docc2context/releases/download/v1.2.3/docc2context_1.2.3_linux_amd64.deb
+  curl -LO https://github.com/SoundBlaster/docc2context/releases/download/v1.2.3/docc2context_1.2.3_linux_amd64.deb.sha256
   shasum -a 256 -c docc2context_1.2.3_linux_amd64.deb.sha256
   sudo dpkg -i docc2context_1.2.3_linux_amd64.deb
   ```
@@ -206,8 +206,8 @@ Install via whichever mechanism matches your environment:
 - **Fedora/RHEL**
 
   ```bash
-  curl -LO https://github.com/docc2context/docc2context/releases/download/v1.2.3/docc2context-1.2.3-linux-x86_64.rpm
-  curl -LO https://github.com/docc2context/docc2context/releases/download/v1.2.3/docc2context-1.2.3-linux-x86_64.rpm.sha256
+  curl -LO https://github.com/SoundBlaster/docc2context/releases/download/v1.2.3/docc2context-1.2.3-linux-x86_64.rpm
+  curl -LO https://github.com/SoundBlaster/docc2context/releases/download/v1.2.3/docc2context-1.2.3-linux-x86_64.rpm.sha256
   shasum -a 256 -c docc2context-1.2.3-linux-x86_64.rpm.sha256
   sudo dnf install docc2context-1.2.3-linux-x86_64.rpm
   ```
@@ -229,8 +229,8 @@ brew test docc2context
 ```bash
 VERSION=v1.2.3
 ARCH=$(uname -m) # arm64 on Apple Silicon, x86_64 on Intel
-curl -LO https://github.com/docc2context/docc2context/releases/download/$VERSION/docc2context-v${VERSION#v}-macos-${ARCH}.zip
-curl -LO https://github.com/docc2context/docc2context/releases/download/$VERSION/docc2context-v${VERSION#v}-macos-${ARCH}.zip.sha256
+curl -LO https://github.com/SoundBlaster/docc2context/releases/download/$VERSION/docc2context-v${VERSION#v}-macos-${ARCH}.zip
+curl -LO https://github.com/SoundBlaster/docc2context/releases/download/$VERSION/docc2context-v${VERSION#v}-macos-${ARCH}.zip.sha256
 shasum -a 256 -c docc2context-v${VERSION#v}-macos-${ARCH}.zip.sha256
 unzip docc2context-v${VERSION#v}-macos-${ARCH}.zip
 DEST=/usr/local/bin/docc2context
@@ -241,7 +241,7 @@ sudo install -m 0755 docc2context-v${VERSION#v}-macos-${ARCH}/docc2context "$DES
 **One-line install helper**
 
 ```bash
-curl -fsSL https://github.com/docc2context/docc2context/raw/main/Scripts/install_macos.sh | bash -s -- --version v1.2.3
+curl -fsSL https://github.com/SoundBlaster/docc2context/raw/main/Scripts/install_macos.sh | bash -s -- --version v1.2.3
 ```
 
 The script downloads the architecture-specific zip, verifies the `.sha256`, and installs to `/opt/homebrew/bin` on Apple Silicon or `/usr/local/bin` on Intel. Override the target directory with `--prefix <path>` and add `--dry-run` to print the planned commands without downloading.
@@ -256,7 +256,7 @@ The script downloads the architecture-specific zip, verifies the `.sha256`, and 
 
 **Coverage script fails below 90%** – Re-run `swift test --enable-code-coverage` and then `python3 Scripts/enforce_coverage.py --threshold 90` to gather the latest data. The JSON summary lists both the CLI and core targets; focus on the lower one. Add failure-path tests (for example, new cases in `MarkdownGenerationPipelineTests`) instead of disabling coverage.
 
-**Release gates cannot find `llvm-cov`** – Ensure the Swift toolchain is first on your `PATH`. The helper script searches for `llvm-cov` in `$(dirname $(xcrun --find swift))/../bin` on macOS and alongside `swift` on Linux. If it still fails, provide the absolute path via `LLVM_COV` before running `Scripts/release_gates.sh`.
+**Release gates cannot find `llvm-cov`** – Ensure the Swift toolchain is accessible. On macOS, the script automatically uses `xcrun --find llvm-cov` to locate the tool in the Xcode toolchain. On Linux, it searches alongside `swift` in your `PATH`. If automatic detection fails, set the `LLVM_COV` environment variable to the absolute path before running `Scripts/release_gates.sh`.
 
 **Doc lint job failed in CI** – Reproduce locally with `python3 Scripts/lint_markdown.py README.md` (and any additional Markdown paths you touched). The script prints file/line diagnostics for trailing whitespace, tab characters, CR line endings, and missing README sections. Fix the reported lines and rerun the command until it exits 0.
 

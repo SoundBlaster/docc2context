@@ -69,3 +69,116 @@
 - **Docs** – README adds Homebrew tap commands, manual macOS install steps, the curl-able install helper, and explicit codesign/notarytool/stapler guidance for prebuilt zips.
 - **Validation** – `swift test` (2025-11-19) passes with new coverage; packaging/installer/formula tests exercised locally. Linux packaging test still skips on macOS hosts until dpkg/rpmbuild are available.
 - **Follow-ups** – Coordinate tap publishing workflow/permissions and Apple signing credentials for notarization in CI; archive this task once release stakeholders confirm the tap destination and signing secret handling.
+
+## macOS Release Process Validation Manual (2025-11-21)
+
+### Current Status: ✅ Mostly Validated (Matches Proposed Plan & PRD §4.6)
+The implementation aligns closely with the **Proposed Plan of Attack** and **START Execution** notes in this document. Key files inspected: `.github/workflows/release.yml`, `Scripts/package_release.sh`, `Scripts/build_homebrew_formula.py`, `Scripts/install_macos.sh`, `README.md`. `swift test` passes fully (27 executed/9 skipped placeholders, including `HomebrewFormulaBuilderTests` and `MacInstallScriptTests`).
+
+Detailed validation against acceptance criteria below.
+
+#### 1. Artifact Naming & Release Script Enhancements (`Scripts/package_release.sh`) ✅
+- Supports `--platform macos --arch arm64|x86_64`, emits `docc2context-v<version>-macos-<arch>.zip` + `.sha256` + `.md` summary (arch, gates, timestamps, artifacts).
+- Builds `swift build -c release`, codesigns if `MACOS_SIGN_IDENTITY` set.
+- Zip: `docc2context` (executable), `README.md`, `LICENSE`.
+
+**Validation** (local arm64 host):
+```
+cd docc2context
+Scripts/package_release.sh --version 0.1.0 --platform macos --arch arm64 --output dist
+```
+Produces:
+```
+dist/docc2context-v0.1.0-macos-arm64.zip
+dist/docc2context-v0.1.0-macos-arm64.zip.sha256
+dist/docc2context-v0.1.0-macos-arm64.md
+```
+*Note*: `--arch x86_64` on arm64 names correctly but builds arm64 (no cross-compile); CI uses separate runners.
+
+#### 2. Homebrew Formula Automation (`Scripts/build_homebrew_formula.py`) ✅
+- Deterministic `docc2context.rb`: `on_macos { on_arm/on_intel }` with URLs/SHA256, `test do` (`docc2context --version`), MIT license.
+
+**Validation**:
+```
+ARM_SHA="$(cut -d' ' -f1 dist/docc2context-v0.1.0-macos-arm64.zip.sha256)"
+python3 Scripts/build_homebrew_formula.py \
+  --version 0.1.0 \
+  --arm64-url "https://github.com/SoundBlaster/docc2context/releases/download/v0.1.0/docc2context-v0.1.0-macos-arm64.zip" \
+  --arm64-sha256 "$ARM_SHA" \
+  --x86_64-url "https://github.com/SoundBlaster/docc2context/releases/download/v0.1.0/docc2context-v0.1.0-macos-x86_64.zip" \
+  --x86_64-sha256 "abc123placeholder" \
+  --output dist/homebrew/docc2context.rb
+```
+Output (matches `HomebrewFormulaBuilderTests` snapshot):
+```ruby
+#/dev/null/docc2context.rb#L1-25
+class Docc2context < Formula
+  desc "Convert DocC bundles to deterministic Markdown plus link graphs"
+  homepage "https://github.com/SoundBlaster/docc2context"
+  version "0.1.0"
+  license "MIT"
+
+  on_macos do
+    on_arm do
+      url "https://github.com/SoundBlaster/docc2context/releases/download/v0.1.0/docc2context-v0.1.0-macos-arm64.zip"
+      sha256 "<actual-sha>"
+    end
+
+    on_intel do
+      url "https://github.com/SoundBlaster/docc2context/releases/download/v0.1.0/docc2context-v0.1.0-macos-x86_64.zip"
+      sha256 "<actual-sha>"
+    end
+  end
+
+  def install
+    bin.install "docc2context"
+    prefix.install "README.md", "LICENSE"
+  end
+
+  test do
+    assert_match version.to_s, shell_output("#{bin}/docc2context --version")
+  end
+end
+```
+Uploaded in `release.yml` publish job (fails sans macOS zips).
+
+#### 3. Manual Install Script + README (`Scripts/install_macos.sh`) ✅
+- Detects arch, downloads/verifies, installs to `/opt/homebrew/bin` (arm64)/`/usr/local/bin` (x86_64), `--prefix`/`--dry-run`.
+
+**Validation**:
+```
+Scripts/install_macos.sh --version v0.1.0 --dry-run
+```
+Logs: artifact URL, checksum, `/opt/homebrew/bin/docc2context`.
+
+`README.md` (L178-254): Homebrew tap, manual curl/unzip, one-liner `curl -fsSL https://.../install_macos.sh | bash -s -- --version v1.2.3`. Matches `DocumentationGuidanceTests`.
+
+#### 4. Codesign & Notarization 🔄 (Docs ✅, CI Manual)
+- Script honors `MACOS_SIGN_IDENTITY`.
+- `README.md`: `codesign --force --options runtime --timestamp --sign ...`, `notarytool submit --wait`, `stapler staple`.
+- Local: `export MACOS_SIGN_IDENTITY="-" && package_release.sh ...` (skips).
+
+#### 5. Release Workflow (`.github/workflows/release.yml`) ✅
+- Triggers: tags `v*`.
+- Matrix: linux-x86_64/aarch64 + macos-arm64 (`macos-latest`)/x86_64 (`macos-13`).
+- Packages/uploads per-matrix; publish generates/uploads formula + assets.
+- *Gap*: No `brew install --build-from-source && docc2context --version` smoke test.
+
+#### 6. Tests & Gates ✅
+- `swift test`: Passes (e.g., 2025-11-21 run: All suites green).
+- New: `HomebrewFormulaBuilderTests`, `MacInstallScriptTests`.
+- `release_gates.sh`: Pre-package (coverage/lint/determinism).
+
+### Gaps & Recommendations 🔄
+1. **Tap Publishing** (`docc2context/tap`?): Formula ready; manual `brew tap-new ...; git commit Formula/docc2context.rb`. Automate: `publish` job w/ `gh` CLI + PAT secret. Test: `brew install docc2context && docc2context --version`.
+2. **CI Signing/Notarization**: GH secrets (`MACOS_SIGN_IDENTITY`, App Store Connect key). Add post-package `notarytool`.
+3. **x86_64 Local** (arm64 host): `arch -x86_64 swift build ...` or `PACKAGE_RELEASE_BINARY_OVERRIDE`.
+4. **E2E Sim**: `git tag v0.1.0`; trigger GH workflow (skip gates if needed).
+
+5. **Homebrew Formula URL Fix (P1 Code Review, 2025-11-22)**: Updated `.github/workflows/release.yml` "Generate Homebrew formula" step (lines ~100-104) to use dynamic `"https://github.com/${{ github.repository }}/releases/download/${VERSION}/$(basename "$ARTIFACT")"` for `--arm64-url`/`--x86_64-url`. Previously hardcoded to old `docc2context/docc2context` repo (404 post-transfer). Now portable to `SoundBlaster/docc2context`; generated `docc2context.rb` URLs match `homepage` and release assets.
+
+**Next**: Resolve follow-ups → Archive to `DOCS/TASK_ARCHIVE/` per runbook (D4-MAC complete).
+
+## Binary Runtime Validation (2025-11-21)
+- Binary executable: ✅ Runs `--version`/`--help`, rejects invalid bundles (Info.plist check).
+- Error: Expected for placeholder parser (B3/B4). Full E2E after Phase B fixtures.

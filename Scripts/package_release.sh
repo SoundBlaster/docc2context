@@ -142,6 +142,10 @@ if ! command -v shasum >/dev/null 2>&1; then
   exit 1
 fi
 
+# Convert output_dir to absolute path if it's relative
+if [[ "$output_dir" != /* ]]; then
+  output_dir="$(pwd)/$output_dir"
+fi
 mkdir -p "$output_dir"
 
 cleanup_dir=""
@@ -176,43 +180,51 @@ build_binary() {
     return
   fi
 
-  log_step "Building docc2context in ${BUILD_CONFIGURATION} configuration"
-  log_step "Resolving binary path via swift build"
-  local build_cmd=("swift" "build" "-c" "${BUILD_CONFIGURATION}" "--product" "docc2context")
+  log_step "Building docc2context binary (configuration: $BUILD_CONFIGURATION)"
+  local build_cmd=("swift" "build" "-c" "$BUILD_CONFIGURATION")
   if [[ -n "$SWIFT_BUILD_FLAGS_RAW" ]]; then
     local extra_flags=()
     read -r -a extra_flags <<<"$SWIFT_BUILD_FLAGS_RAW"
     build_cmd+=("${extra_flags[@]}")
   fi
-  build_cmd+=("--show-bin-path")
-  local bin_path
-  bin_path="$(${build_cmd[@]})"
-  if [[ ! -d "$bin_path" ]]; then
-    log_error "Unable to locate Swift build output directory"
+  
+  # First, run the build
+  "${build_cmd[@]}" >&2
+  
+  # Then get the binary path
+  local bin_dir
+  bin_dir="$("${build_cmd[@]}" --show-bin-path 2>/dev/null)"
+  if [[ ! -d "$bin_dir" ]]; then
+    log_error "Swift build output directory not found: $bin_dir"
     exit 1
   fi
-  local binary="$bin_path/docc2context"
+  local binary="$bin_dir/docc2context"
   if [[ ! -f "$binary" ]]; then
-    log_error "docc2context binary not found at $binary"
+    log_error "docc2context binary not found at $binary (dir: $bin_dir)"
     exit 1
   fi
+  chmod +x "$binary"
 
   if [[ "$platform" == "macos" && -n "${MACOS_SIGN_IDENTITY:-}" ]]; then
     log_step "Codesigning macOS binary with identity $MACOS_SIGN_IDENTITY"
     codesign --force --options runtime --timestamp --sign "$MACOS_SIGN_IDENTITY" "$binary"
   fi
 
+  log_step "Binary ready at $binary"
   echo "$binary"
 }
 
 stage_artifacts() {
+  local binary_path="$1"
+  log_step "Staging artifacts from binary: $binary_path"
   cleanup_dir="$(mktemp -d "$REPO_ROOT/.build/package-release.XXXXXX")"
   local stage_dir="$cleanup_dir/docc2context-v${sanitized_version}"
   mkdir -p "$stage_dir"
-  cp "$1" "$stage_dir/docc2context"
+  cp "$binary_path" "$stage_dir/docc2context"
   chmod +x "$stage_dir/docc2context"
   cp "$REPO_ROOT/README.md" "$stage_dir/README.md"
   cp "$REPO_ROOT/LICENSE" "$stage_dir/LICENSE"
+  log_step "Staged to $stage_dir"
   echo "$stage_dir"
 }
 

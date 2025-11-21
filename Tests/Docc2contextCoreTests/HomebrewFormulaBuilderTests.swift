@@ -47,7 +47,7 @@ final class HomebrewFormulaBuilderTests: XCTestCase {
         let expectedFormula = [
             "class Docc2context < Formula",
             "  desc \"Convert DocC bundles to deterministic Markdown plus link graphs\"",
-            "  homepage \"https://github.com/docc2context/docc2context\"",
+            "  homepage \"https://github.com/SoundBlaster/docc2context\"",
             "  version \"1.2.3\"",
             "  license \"MIT\"",
             "",

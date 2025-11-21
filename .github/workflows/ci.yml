@@ -109,3 +109,105 @@ jobs:
         run: swift test --enable-code-coverage
       - name: Enforce coverage threshold
         run: python3 Scripts/enforce_coverage.py --threshold 90
+
+  package-validation:
+    name: Validate packaging on ${{ matrix.platform }}
+    needs: docs
+    runs-on: ${{ matrix.runner }}
+    strategy:
+      matrix:
+        include:
+          - platform: macos
+            runner: macos-latest
+          - platform: linux
+            runner: ubuntu-22.04
+    steps:
+      - uses: actions/checkout@v4
+
+      - name: Install Swift dependencies (Linux)
+        if: matrix.platform == 'linux'
+        run: |
+          sudo apt-get update
+          sudo apt-get install -y clang libicu-dev libatomic1 libcurl4-openssl-dev zip rpm dpkg-dev
+
+      - name: Set up Swift 6.1.2 (Linux)
+        if: matrix.platform == 'linux'
+        uses: SwiftyLab/setup-swift@v1
+        with:
+          swift-version: '6.1.2'
+
+      - name: Select Xcode 16.4
+        if: matrix.platform == 'macos'
+        uses: maxim-lobanov/setup-xcode@v1
+        with:
+          xcode-version: '16.4'
+
+      - name: Verify Swift toolchain
+        run: swift --version
+
+      - name: Test packaging script (dry-run)
+        run: |
+          Scripts/package_release.sh \
+            --version 0.0.0-test \
+            --platform ${{ matrix.platform }} \
+            --output dist \
+            --dry-run
+
+      - name: Verify packaged artifacts
+        run: |
+          ls -lh dist/
+          # Verify artifacts were created
+          if [ "${{ matrix.platform }}" = "macos" ]; then
+            # Check for macOS zip file
+            if ! ls dist/docc2context-v0.0.0-test-macos-*.zip 1>/dev/null 2>&1; then
+              echo "ERROR: macOS zip file not found"
+              exit 1
+            fi
+            if ! ls dist/docc2context-v0.0.0-test-macos-*.zip.sha256 1>/dev/null 2>&1; then
+              echo "ERROR: macOS checksum file not found"
+              exit 1
+            fi
+          else
+            # Check for Linux tarball (note: no 'v' prefix in version)
+            if ! ls dist/docc2context-0.0.0-test-linux-*.tar.gz 1>/dev/null 2>&1; then
+              echo "ERROR: Linux tarball not found"
+              exit 1
+            fi
+            if ! ls dist/docc2context-0.0.0-test-linux-*.tar.gz.sha256 1>/dev/null 2>&1; then
+              echo "ERROR: Linux tarball checksum not found"
+              exit 1
+            fi
+          fi
+          echo "✓ Artifacts verified"
+
+      - name: Extract and smoke test packaged binary
+        run: |
+          mkdir -p smoke-test
+          cd smoke-test
+          
+          if [ "${{ matrix.platform }}" = "macos" ]; then
+            # Extract macOS zip (has 'v' prefix)
+            ARCHIVE=$(ls ../dist/docc2context-v0.0.0-test-macos-*.zip | head -1)
+            unzip -q "$ARCHIVE"
+            BINARY=$(find . -name docc2context -type f)
+          else
+            # Extract Linux tarball (no 'v' prefix in sanitized version)
+            ARCHIVE=$(ls ../dist/docc2context-0.0.0-test-linux-*.tar.gz | head -1)
+            tar -xzf "$ARCHIVE"
+            BINARY=$(find . -name docc2context -type f)
+          fi
+          
+          echo "Testing binary: $BINARY"
+          
+          # Verify binary is executable
+          test -x "$BINARY"
+          
+          # Test --help flag (should exit 0) and capture output
+          HELP_OUTPUT=$("$BINARY" --help 2>&1)
+          
+          # Verify --help output contains expected content
+          echo "$HELP_OUTPUT" | grep -q "docc2context"
+          echo "$HELP_OUTPUT" | grep -q "Usage:"
+          echo "$HELP_OUTPUT" | grep -F -q -- "--output"
+          
+          echo "✓ Smoke tests passed: binary is executable and --help works"

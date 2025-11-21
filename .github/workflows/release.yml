@@ -99,9 +99,9 @@ jobs:
           VERSION="${{ github.ref_name }}"
           python3 Scripts/build_homebrew_formula.py \
             --version "$VERSION" \
-            --arm64-url "https://github.com/docc2context/docc2context/releases/download/${VERSION}/$(basename "$ARM_ZIP")" \
+            --arm64-url "https://github.com/${{ github.repository }}/releases/download/${VERSION}/$(basename "$ARM_ZIP")" \
             --arm64-sha256 "$ARM_SHA" \
-            --x86_64-url "https://github.com/docc2context/docc2context/releases/download/${VERSION}/$(basename "$INTEL_ZIP")" \
+            --x86_64-url "https://github.com/${{ github.repository }}/releases/download/${VERSION}/$(basename "$INTEL_ZIP")" \
             --x86_64-sha256 "$INTEL_SHA" \
             --output dist/homebrew/docc2context.rb
 
