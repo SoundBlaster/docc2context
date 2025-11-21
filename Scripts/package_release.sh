@@ -176,15 +176,20 @@ build_binary() {
     return
   fi
 
-
+  log_step "Building docc2context binary (configuration: $BUILD_CONFIGURATION)"
+  local build_cmd=("swift" "build" "-c" "$BUILD_CONFIGURATION")
   if [[ -n "$SWIFT_BUILD_FLAGS_RAW" ]]; then
     local extra_flags=()
     read -r -a extra_flags <<<"$SWIFT_BUILD_FLAGS_RAW"
     build_cmd+=("${extra_flags[@]}")
   fi
-  build_cmd+=("--show-bin-path")
+  
+  # First, run the build
+  "${build_cmd[@]}" >&2
+  
+  # Then get the binary path
   local bin_dir
-  bin_dir="$(${build_cmd[@]})"
+  bin_dir="$("${build_cmd[@]}" --show-bin-path 2>/dev/null)"
   if [[ ! -d "$bin_dir" ]]; then
     log_error "Swift build output directory not found: $bin_dir"
     exit 1
@@ -196,23 +201,26 @@ build_binary() {
   fi
   chmod +x "$binary"
 
-
   if [[ "$platform" == "macos" && -n "${MACOS_SIGN_IDENTITY:-}" ]]; then
     log_step "Codesigning macOS binary with identity $MACOS_SIGN_IDENTITY"
     codesign --force --options runtime --timestamp --sign "$MACOS_SIGN_IDENTITY" "$binary"
   fi
 
+  log_step "Binary ready at $binary"
   echo "$binary"
 }
 
 stage_artifacts() {
+  local binary_path="$1"
+  log_step "Staging artifacts from binary: $binary_path"
   cleanup_dir="$(mktemp -d "$REPO_ROOT/.build/package-release.XXXXXX")"
   local stage_dir="$cleanup_dir/docc2context-v${sanitized_version}"
   mkdir -p "$stage_dir"
-  cp "$1" "$stage_dir/docc2context"
+  cp "$binary_path" "$stage_dir/docc2context"
   chmod +x "$stage_dir/docc2context"
   cp "$REPO_ROOT/README.md" "$stage_dir/README.md"
   cp "$REPO_ROOT/LICENSE" "$stage_dir/LICENSE"
+  log_step "Staged to $stage_dir"
   echo "$stage_dir"
 }
 

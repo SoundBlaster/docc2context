@@ -40,6 +40,20 @@ def resolve_llvm_cov() -> str:
     if path_candidate:
         return path_candidate
 
+    # Try xcrun on macOS
+    try:
+        result = subprocess.run(
+            ["xcrun", "--find", "llvm-cov"],
+            capture_output=True,
+            check=True,
+            text=True,
+        )
+        xcrun_path = result.stdout.strip()
+        if xcrun_path and Path(xcrun_path).exists():
+            return xcrun_path
+    except (subprocess.CalledProcessError, FileNotFoundError):
+        pass
+
     swiftc = shutil.which("swiftc")
     if swiftc:
         swiftc_path = Path(swiftc).resolve()
@@ -63,6 +77,11 @@ def find_test_binary(root: Path) -> Path:
     candidates = sorted(root.glob(".build/**/*.xctest"))
     for candidate in candidates:
         if candidate.name == "docc2contextPackageTests.xctest":
+            # On macOS, .xctest is a bundle; we need the binary inside
+            macos_binary = candidate / "Contents" / "MacOS" / "docc2contextPackageTests"
+            if macos_binary.exists():
+                return macos_binary
+            # On Linux, it might be a regular executable
             return candidate
     raise SystemExit("Unable to locate docc2contextPackageTests.xctest in .build directory.")
 

@@ -1,4 +1,35 @@
-Step-by-Step Debug Run (2025-11-21)
+## Fixed Issues (2025-11-22)
+
+The `package_release.sh` script has been fixed to work correctly on macOS. The following issues were resolved:
+
+1. **Coverage Tool Detection** (`enforce_coverage.py`)
+   - Added `xcrun --find llvm-cov` support for macOS
+   - Fixed test binary path to use `Contents/MacOS/docc2contextPackageTests` inside `.xctest` bundle
+
+2. **Build Command Issues** (`package_release.sh`)
+   - Fixed uninitialized `build_cmd` array
+   - Fixed stdout/stderr redirection to prevent build output contamination
+
+3. **Verification**
+   - Script now successfully builds release binaries
+   - Packages zip files with binary, LICENSE, and README
+   - Generates checksums and summary files
+   - Works in both `--dry-run` and production modes
+
+### Current Working Command
+
+```bash
+Scripts/package_release.sh --version 1.0.0 --dry-run
+```
+
+This produces:
+- `dist/docc2context-v1.0.0-macos-arm64-dryrun.zip` (2.2MB with binary)
+- `dist/docc2context-v1.0.0-macos-arm64-dryrun.zip.sha256`
+- `dist/docc2context-v1.0.0-macos-arm64-dryrun.md` (summary)
+
+---
+
+## Step-by-Step Debug Run (2025-11-21)
 1. **Clean State**:
    ```
    cd docc2context
