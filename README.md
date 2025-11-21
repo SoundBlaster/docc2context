@@ -256,7 +256,7 @@ The script downloads the architecture-specific zip, verifies the `.sha256`, and 
 
 **Coverage script fails below 90%** – Re-run `swift test --enable-code-coverage` and then `python3 Scripts/enforce_coverage.py --threshold 90` to gather the latest data. The JSON summary lists both the CLI and core targets; focus on the lower one. Add failure-path tests (for example, new cases in `MarkdownGenerationPipelineTests`) instead of disabling coverage.
 
-**Release gates cannot find `llvm-cov`** – Ensure the Swift toolchain is first on your `PATH`. The helper script searches for `llvm-cov` in `$(dirname $(xcrun --find swift))/../bin` on macOS and alongside `swift` on Linux. If it still fails, provide the absolute path via `LLVM_COV` before running `Scripts/release_gates.sh`.
+**Release gates cannot find `llvm-cov`** – Ensure the Swift toolchain is accessible. On macOS, the script automatically uses `xcrun --find llvm-cov` to locate the tool in the Xcode toolchain. On Linux, it searches alongside `swift` in your `PATH`. If automatic detection fails, set the `LLVM_COV` environment variable to the absolute path before running `Scripts/release_gates.sh`.
 
 **Doc lint job failed in CI** – Reproduce locally with `python3 Scripts/lint_markdown.py README.md` (and any additional Markdown paths you touched). The script prints file/line diagnostics for trailing whitespace, tab characters, CR line endings, and missing README sections. Fix the reported lines and rerun the command until it exits 0.
 
