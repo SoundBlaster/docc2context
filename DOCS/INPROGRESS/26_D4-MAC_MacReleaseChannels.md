@@ -175,6 +175,8 @@ Logs: artifact URL, checksum, `/opt/homebrew/bin/docc2context`.
 3. **x86_64 Local** (arm64 host): `arch -x86_64 swift build ...` or `PACKAGE_RELEASE_BINARY_OVERRIDE`.
 4. **E2E Sim**: `git tag v0.1.0`; trigger GH workflow (skip gates if needed).
 
+5. **Homebrew Formula URL Fix (P1 Code Review, 2025-11-22)**: Updated `.github/workflows/release.yml` "Generate Homebrew formula" step (lines ~100-104) to use dynamic `"https://github.com/${{ github.repository }}/releases/download/${VERSION}/$(basename "$ARTIFACT")"` for `--arm64-url`/`--x86_64-url`. Previously hardcoded to old `docc2context/docc2context` repo (404 post-transfer). Now portable to `SoundBlaster/docc2context`; generated `docc2context.rb` URLs match `homepage` and release assets.
+
 **Next**: Resolve follow-ups → Archive to `DOCS/TASK_ARCHIVE/` per runbook (D4-MAC complete).
 
 ## Binary Runtime Validation (2025-11-21)
