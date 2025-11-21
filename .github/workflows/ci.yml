@@ -202,12 +202,12 @@ jobs:
           # Verify binary is executable
           test -x "$BINARY"
           
-          # Test --help flag (should exit 0)
-          "$BINARY" --help
+          # Test --help flag (should exit 0) and capture output
+          HELP_OUTPUT=$("$BINARY" --help 2>&1)
           
           # Verify --help output contains expected content
-          "$BINARY" --help | grep -q "docc2context"
-          "$BINARY" --help | grep -q "Usage:"
-          "$BINARY" --help | grep -q "--output"
+          echo "$HELP_OUTPUT" | grep -q "docc2context"
+          echo "$HELP_OUTPUT" | grep -q "Usage:"
+          echo "$HELP_OUTPUT" | grep -F -q -- "--output"
           
           echo "✓ Smoke tests passed: binary is executable and --help works"
