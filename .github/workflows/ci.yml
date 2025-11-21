@@ -156,14 +156,29 @@ jobs:
       - name: Verify packaged artifacts
         run: |
           ls -lh dist/
-          # Verify zip/tarball was created
+          # Verify artifacts were created
           if [ "${{ matrix.platform }}" = "macos" ]; then
-            test -f dist/docc2context-v0.0.0-test-macos-*.zip
-            test -f dist/docc2context-v0.0.0-test-macos-*.zip.sha256
+            # Check for macOS zip file
+            if ! ls dist/docc2context-v0.0.0-test-macos-*.zip 1>/dev/null 2>&1; then
+              echo "ERROR: macOS zip file not found"
+              exit 1
+            fi
+            if ! ls dist/docc2context-v0.0.0-test-macos-*.zip.sha256 1>/dev/null 2>&1; then
+              echo "ERROR: macOS checksum file not found"
+              exit 1
+            fi
           else
-            test -f dist/docc2context-v0.0.0-test-linux-*.tar.gz
-            test -f dist/docc2context-v0.0.0-test-linux-*.tar.gz.sha256
+            # Check for Linux tarball
+            if ! ls dist/docc2context-*-linux-*.tar.gz 1>/dev/null 2>&1; then
+              echo "ERROR: Linux tarball not found"
+              exit 1
+            fi
+            if ! ls dist/docc2context-*-linux-*.tar.gz.sha256 1>/dev/null 2>&1; then
+              echo "ERROR: Linux tarball checksum not found"
+              exit 1
+            fi
           fi
+          echo "✓ Artifacts verified"
 
       - name: Extract and smoke test packaged binary
         run: |
