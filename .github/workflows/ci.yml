@@ -109,3 +109,58 @@ jobs:
         run: swift test --enable-code-coverage
       - name: Enforce coverage threshold
         run: python3 Scripts/enforce_coverage.py --threshold 90
+
+  package-validation:
+    name: Validate packaging on ${{ matrix.platform }}
+    needs: docs
+    runs-on: ${{ matrix.runner }}
+    strategy:
+      matrix:
+        include:
+          - platform: macos
+            runner: macos-latest
+          - platform: linux
+            runner: ubuntu-22.04
+    steps:
+      - uses: actions/checkout@v4
+
+      - name: Install Swift dependencies (Linux)
+        if: matrix.platform == 'linux'
+        run: |
+          sudo apt-get update
+          sudo apt-get install -y clang libicu-dev libatomic1 libcurl4-openssl-dev zip rpm dpkg-dev
+
+      - name: Set up Swift 6.1.2 (Linux)
+        if: matrix.platform == 'linux'
+        uses: SwiftyLab/setup-swift@v1
+        with:
+          swift-version: '6.1.2'
+
+      - name: Select Xcode 16.4
+        if: matrix.platform == 'macos'
+        uses: maxim-lobanov/setup-xcode@v1
+        with:
+          xcode-version: '16.4'
+
+      - name: Verify Swift toolchain
+        run: swift --version
+
+      - name: Test packaging script (dry-run)
+        run: |
+          Scripts/package_release.sh \
+            --version 0.0.0-test \
+            --platform ${{ matrix.platform }} \
+            --output dist \
+            --dry-run
+
+      - name: Verify packaged artifacts
+        run: |
+          ls -lh dist/
+          # Verify zip/tarball was created
+          if [ "${{ matrix.platform }}" = "macos" ]; then
+            test -f dist/docc2context-v0.0.0-test-macos-*.zip
+            test -f dist/docc2context-v0.0.0-test-macos-*.zip.sha256
+          else
+            test -f dist/docc2context-v0.0.0-test-linux-*.tar.gz
+            test -f dist/docc2context-v0.0.0-test-linux-*.tar.gz.sha256
+          fi
