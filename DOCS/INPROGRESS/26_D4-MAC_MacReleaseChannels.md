@@ -176,3 +176,7 @@ Logs: artifact URL, checksum, `/opt/homebrew/bin/docc2context`.
 4. **E2E Sim**: `git tag v0.1.0`; trigger GH workflow (skip gates if needed).
 
 **Next**: Resolve follow-ups → Archive to `DOCS/TASK_ARCHIVE/` per runbook (D4-MAC complete).
+
+## Binary Runtime Validation (2025-11-21)
+- Binary executable: ✅ Runs `--version`/`--help`, rejects invalid bundles (Info.plist check).
+- Error: Expected for placeholder parser (B3/B4). Full E2E after Phase B fixtures.

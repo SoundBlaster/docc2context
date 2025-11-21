@@ -176,26 +176,26 @@ build_binary() {
     return
   fi
 
-  log_step "Building docc2context in ${BUILD_CONFIGURATION} configuration"
-  log_step "Resolving binary path via swift build"
-  local build_cmd=("swift" "build" "-c" "${BUILD_CONFIGURATION}" "--product" "docc2context")
+
   if [[ -n "$SWIFT_BUILD_FLAGS_RAW" ]]; then
     local extra_flags=()
     read -r -a extra_flags <<<"$SWIFT_BUILD_FLAGS_RAW"
     build_cmd+=("${extra_flags[@]}")
   fi
   build_cmd+=("--show-bin-path")
-  local bin_path
-  bin_path="$(${build_cmd[@]})"
-  if [[ ! -d "$bin_path" ]]; then
-    log_error "Unable to locate Swift build output directory"
+  local bin_dir
+  bin_dir="$(${build_cmd[@]})"
+  if [[ ! -d "$bin_dir" ]]; then
+    log_error "Swift build output directory not found: $bin_dir"
     exit 1
   fi
-  local binary="$bin_path/docc2context"
+  local binary="$bin_dir/docc2context"
   if [[ ! -f "$binary" ]]; then
-    log_error "docc2context binary not found at $binary"
+    log_error "docc2context binary not found at $binary (dir: $bin_dir)"
     exit 1
   fi
+  chmod +x "$binary"
+
 
   if [[ "$platform" == "macos" && -n "${MACOS_SIGN_IDENTITY:-}" ]]; then
     log_step "Codesigning macOS binary with identity $MACOS_SIGN_IDENTITY"
