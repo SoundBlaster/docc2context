@@ -1,31 +1,59 @@
-## Fixed Issues (2025-11-22)
+## Fixed Issues (2025-11-22) - ✅ ALL CI CHECKS PASSING
 
-The `package_release.sh` script has been fixed to work correctly on macOS. The following issues were resolved:
+The packaging and release scripts have been completely fixed and validated in CI. All issues resolved:
 
-1. **Coverage Tool Detection** (`enforce_coverage.py`)
-   - Added `xcrun --find llvm-cov` support for macOS
-   - Fixed test binary path to use `Contents/MacOS/docc2contextPackageTests` inside `.xctest` bundle
+### 1. Coverage Tool Detection (`Scripts/enforce_coverage.py`)
+   - ✅ Added `xcrun --find llvm-cov` support for macOS (Xcode toolchain)
+   - ✅ Fixed test binary path to use `Contents/MacOS/docc2contextPackageTests` inside `.xctest` bundle on macOS
+   - ✅ Works on both Linux and macOS in CI
 
-2. **Build Command Issues** (`package_release.sh`)
-   - Fixed uninitialized `build_cmd` array
-   - Fixed stdout/stderr redirection to prevent build output contamination
+### 2. Build Command Issues (`Scripts/package_release.sh`)
+   - ✅ Fixed uninitialized `build_cmd` array
+   - ✅ Fixed stdout/stderr redirection to prevent Swift compiler output contamination
+   - ✅ Added absolute path conversion for relative `output_dir` paths
 
-3. **Verification**
-   - Script now successfully builds release binaries
-   - Packages zip files with binary, LICENSE, and README
-   - Generates checksums and summary files
-   - Works in both `--dry-run` and production modes
+### 3. Linux Packaging (`Scripts/build_linux_packages.sh`)
+   - ✅ Added absolute path conversion for relative `output_dir` paths
+   - ✅ Creates tarball, .deb, and .rpm packages successfully
+   - ✅ All artifacts include checksums and summary files
 
-### Current Working Command
+### 4. CI Validation (`.github/workflows/ci.yml`)
+   - ✅ Added `package-validation` job testing both macOS and Linux
+   - ✅ Runs packaging scripts in dry-run mode on every PR/push
+   - ✅ Verifies artifacts are created correctly
+   - ✅ Smoke tests: extracts binaries and runs `--help` to verify functionality
+   - ✅ All jobs passing in CI
 
+### Working Commands
+
+**macOS:**
 ```bash
-Scripts/package_release.sh --version 1.0.0 --dry-run
+Scripts/package_release.sh --version 1.0.0 --platform macos --output dist --dry-run
 ```
-
-This produces:
+Produces:
 - `dist/docc2context-v1.0.0-macos-arm64-dryrun.zip` (2.2MB with binary)
 - `dist/docc2context-v1.0.0-macos-arm64-dryrun.zip.sha256`
-- `dist/docc2context-v1.0.0-macos-arm64-dryrun.md` (summary)
+- `dist/docc2context-v1.0.0-macos-arm64-dryrun.md`
+
+**Linux:**
+```bash
+Scripts/package_release.sh --version 1.0.0 --platform linux --output dist --dry-run
+```
+Produces:
+- `dist/docc2context-1.0.0-linux-x86_64-dryrun.tar.gz`
+- `dist/docc2context_1.0.0_linux_amd64-dryrun.deb`
+- `dist/docc2context-1.0.0-linux-x86_64-dryrun.rpm`
+- All with `.sha256` checksums and summary `.md` files
+
+### CI Status
+- ✅ Docs lint
+- ✅ Linux build & test
+- ✅ macOS build & test  
+- ✅ Determinism verification
+- ✅ Coverage threshold (90%)
+- ✅ **Package validation (macOS)**
+- ✅ **Package validation (Linux)**
+- ✅ **Smoke tests (binary extraction & execution)**
 
 ---
 
