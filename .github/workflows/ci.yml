@@ -164,3 +164,35 @@ jobs:
             test -f dist/docc2context-v0.0.0-test-linux-*.tar.gz
             test -f dist/docc2context-v0.0.0-test-linux-*.tar.gz.sha256
           fi
+
+      - name: Extract and smoke test packaged binary
+        run: |
+          mkdir -p smoke-test
+          cd smoke-test
+          
+          if [ "${{ matrix.platform }}" = "macos" ]; then
+            # Extract macOS zip
+            ARCHIVE=$(ls ../dist/docc2context-v0.0.0-test-macos-*.zip | head -1)
+            unzip -q "$ARCHIVE"
+            BINARY=$(find . -name docc2context -type f)
+          else
+            # Extract Linux tarball
+            ARCHIVE=$(ls ../dist/docc2context-v0.0.0-test-linux-*.tar.gz | head -1)
+            tar -xzf "$ARCHIVE"
+            BINARY=$(find . -name docc2context -type f)
+          fi
+          
+          echo "Testing binary: $BINARY"
+          
+          # Verify binary is executable
+          test -x "$BINARY"
+          
+          # Test --help flag (should exit 0)
+          "$BINARY" --help
+          
+          # Verify --help output contains expected content
+          "$BINARY" --help | grep -q "docc2context"
+          "$BINARY" --help | grep -q "Usage:"
+          "$BINARY" --help | grep -q "--output"
+          
+          echo "✓ Smoke tests passed: binary is executable and --help works"
