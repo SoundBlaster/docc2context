@@ -168,12 +168,12 @@ jobs:
               exit 1
             fi
           else
-            # Check for Linux tarball
-            if ! ls dist/docc2context-*-linux-*.tar.gz 1>/dev/null 2>&1; then
+            # Check for Linux tarball (note: no 'v' prefix in version)
+            if ! ls dist/docc2context-0.0.0-test-linux-*.tar.gz 1>/dev/null 2>&1; then
               echo "ERROR: Linux tarball not found"
               exit 1
             fi
-            if ! ls dist/docc2context-*-linux-*.tar.gz.sha256 1>/dev/null 2>&1; then
+            if ! ls dist/docc2context-0.0.0-test-linux-*.tar.gz.sha256 1>/dev/null 2>&1; then
               echo "ERROR: Linux tarball checksum not found"
               exit 1
             fi
@@ -186,13 +186,13 @@ jobs:
           cd smoke-test
           
           if [ "${{ matrix.platform }}" = "macos" ]; then
-            # Extract macOS zip
+            # Extract macOS zip (has 'v' prefix)
             ARCHIVE=$(ls ../dist/docc2context-v0.0.0-test-macos-*.zip | head -1)
             unzip -q "$ARCHIVE"
             BINARY=$(find . -name docc2context -type f)
           else
-            # Extract Linux tarball
-            ARCHIVE=$(ls ../dist/docc2context-v0.0.0-test-linux-*.tar.gz | head -1)
+            # Extract Linux tarball (no 'v' prefix in sanitized version)
+            ARCHIVE=$(ls ../dist/docc2context-0.0.0-test-linux-*.tar.gz | head -1)
             tar -xzf "$ARCHIVE"
             BINARY=$(find . -name docc2context -type f)
           fi
