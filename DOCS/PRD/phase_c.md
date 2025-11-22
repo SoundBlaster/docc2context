@@ -1,6 +1,6 @@
 # Phase C – Markdown Generation
 
-**Progress Tracker:** `4/5 tasks complete (80%)`
+**Progress Tracker:** `5/5 tasks complete (100%)`
 
 - [x] **C1 – Author Snapshot Specs for Markdown Output** (Archived under `DOCS/TASK_ARCHIVE/14_C1_MarkdownRenderingStrategy/`, `15_C1_TutorialChapterSnapshot/`, `16_C1_MarkdownSnapshotSpecs/`, and `17_C1_ReferenceArticleSnapshot/`).
   - Produce golden Markdown fixtures for each DocC entity (tutorial, article, symbol detail, index entry).
@@ -18,7 +18,7 @@
   - Generate deterministic table-of-contents and index Markdown with navigation-friendly ordering.
   - Include counts of tutorials/articles/symbols to help QA coverage.
   - Backed by snapshot tests verifying ordering and formatting.
-- [ ] **C5 – Verify Determinism**
+- [x] **C5 – Verify Determinism** (Archived on 2025-11-16).
   - Add CI job executing conversion twice and hashing outputs to confirm byte-identical results.
   - Expose script/command for developers to rerun determinism locally before PRs.
   - Log summary of differences when determinism fails to speed up debugging.

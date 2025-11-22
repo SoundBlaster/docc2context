@@ -1,6 +1,6 @@
 # Phase D – Quality Gates, Packaging, and Documentation
 
-**Progress Tracker:** `3/4 tasks complete (75%)`
+**Progress Tracker:** `4/4 tasks complete (100%)`
 
 - [x] **D1 – Implement Logging & Progress**
   - Provide structured logging with phase-specific breadcrumbs and human-friendly summaries.
@@ -14,7 +14,7 @@
   - Update README/PRD sections covering CLI usage, fixtures, determinism scripts, and release gates.
   - Provide quick-start commands plus troubleshooting FAQ for contributors.
   - Run Markdown lint or docs validation as part of CI to keep instructions trustworthy.
-- [ ] **D4 – Package Distribution & Release Automation**
+- [x] **D4 – Package Distribution & Release Automation** (Archived on 2025-11-18, D4-LNX on 2025-11-18, D4-MAC on 2025-11-22).
   - Ensure `swift build -c release` outputs signed, versioned binaries for Linux/macOS.
   - Wire release script to publish artifacts only after quality gates succeed (tests, determinism, coverage).
   - Record release checklist results for each tag in `DOCS/TASK_ARCHIVE/` or CHANGELOG.
