@@ -3,7 +3,7 @@
 Use this list for near-term execution. Each entry maps back to the PRD and [workplan](./workplan.md).
 
 ## In Progress
-- _None – E2 complete; ready to select next task via SELECT_NEXT._
+- **E4 E2E Release Simulation** — Execute complete release workflow end-to-end (tag, build, package, upload) in test environment to validate all release gates and distribution channels. _Depends on:_ E2 (✅ complete), E3 (⛔ blocked—Linux path unaffected). _Doc:_ `DOCS/INPROGRESS/E4_E2EReleaseSim.md`. _Owner:_ docc2context agent. _Status:_ Planning phase selected 2025-11-22 via SELECT_NEXT command.
 
 ## Completed
 - [x] **E2 Homebrew Tap Publishing Automation** — Automated Homebrew formula updates via GitHub Actions workflow; eliminates manual tap repository updates after releases. _Depends on:_ D4-MAC completion (archived ✅); tap repo provisioning and `TAP_REPO_TOKEN` secret (deferred to maintainer). _Doc:_ `DOCS/INPROGRESS/E2_HomebrewTapPublishingAutomation.md`. _Owner:_ docc2context agent. _Status:_ Complete – 2025-11-22; implemented `Scripts/push_homebrew_formula.sh` with dry-run testing (6 tests passing), integrated tap publishing into `.github/workflows/release.yml` with conditional execution, documented secrets setup in `.github/SECRETS.md`, created `.github/RELEASE_TEMPLATE.md`, and updated README. Formula auto-publishing ready; requires tap repo and `TAP_REPO_TOKEN` configuration (see SECRETS.md).
@@ -60,9 +60,7 @@ Tasks prevented from proceeding by external dependencies, missing resources, or 
   - **Workarounds**: Manual post-release notarization by maintainer; Homebrew source-only builds; ad-hoc self-signing (not recommended)
 
 ## Under Consideration
-Following E2 selection, these candidates remain for future prioritization (pending blockers or dependencies):
-
-- **E4 E2E Release Simulation** — Execute complete release workflow end-to-end (tag, build, package, upload) in a test environment to validate all release gates and distribution channels. _Depends on:_ E2 (✅ complete), E3 (⛔ blocked), or manual equivalents. _References:_ D4-MAC archive gaps section. _Priority:_ Medium (validates release readiness). **Note**: Can proceed with Linux validation while E3 remains blocked; macOS validation requires E3 unblocking or manual notarization workaround.
+Following E4 selection, these candidates remain for future prioritization (pending blockers or dependencies):
 
 - **F1 Incremental Conversion** — Explore streaming Markdown output for very large DocC bundles to reduce memory footprint and enable progress reporting during long-running conversions. _Depends on:_ Performance profiling and requirements gathering. _References:_ todo.md Backlog Ideas. _Priority:_ Low (enhancement, baseline works for typical bundles).
 
