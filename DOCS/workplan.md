@@ -32,6 +32,10 @@ The workplan distills the execution order of the phases defined in [DOCS/PRD/doc
 - ✅ **D4-LNX Linux Release Packaging Matrix** — archived under `DOCS/TASK_ARCHIVE/25_D4-LNX_LinuxReleasePackagingMatrix/`; delivered multi-arch tarballs, `.deb`/`.rpm` packages via `Scripts/build_linux_packages.sh`, release workflow matrix updates, README install snippets, and follow-up notes for apt/dnf hosting + musl builds.
 - ✅ **D4-MAC macOS Release Channels** — archived under `DOCS/TASK_ARCHIVE/26_D4-MAC_MacReleaseChannels/`; implemented architecture-aware macOS packaging, deterministic Homebrew formula generation via `Scripts/build_homebrew_formula.py`, macOS install helper (`Scripts/install_macos.sh`), comprehensive codesign/notarization documentation in README, and release workflow enhancements so both arm64 and x86_64 distributions are available to macOS users via Homebrew tap or manual download.
 
+## Phase E – Release Infrastructure & End-to-End Validation
+- ✅ **E1 Documentation Synchronization & Post-Phase-D Cleanup** — archived under `DOCS/TASK_ARCHIVE/27_E1_DocumentationSync/`; synchronized all phase documents and task tracking across DOCS/ to reflect A–D completion and cataloged follow-up opportunities.
+- ✅ **E2 Homebrew Tap Publishing Automation** — archived under `DOCS/TASK_ARCHIVE/28_E2_HomebrewTapPublishing/`; automated Homebrew formula updates via GitHub Actions workflow with dry-run testing, SECRETS documentation, and release template integration.
+
 ## Tracking Conventions
 - Store active task notes inside `DOCS/INPROGRESS/`.
 - Capture ready-to-pick tasks plus dependencies in [DOCS/todo.md](./todo.md).
