@@ -3,7 +3,7 @@
 Use this list for near-term execution. Each entry maps back to the PRD and [workplan](./workplan.md).
 
 ## In Progress
-- _None – all current tasks archived._
+- **E2 Homebrew Tap Publishing Automation** — Automate Homebrew formula updates via GitHub Actions workflow; reduce manual tap repository updates after releases. _Depends on:_ Tap repository access and maintainer coordination. _Doc:_ `DOCS/INPROGRESS/E2_HomebrewTapPublishingAutomation.md`. _Owner:_ docc2context agent. _Status:_ Planning phase (SELECT_NEXT). Awaiting tap repo provisioning and GitHub Actions secret configuration before START phase begins.
 
 ## Completed
 - [x] **E1 Documentation Synchronization & Post-Phase-D Cleanup** — Synchronized phase documents (phase_c.md, phase_d.md) to reflect completion of C5, D4, D4-LNX, and D4-MAC; refreshed todo.md sections; cataloged D4-MAC follow-up opportunities; verified cross-references across DOCS/ tree. _Depends on:_ None (all phases A–D complete). _Doc:_ `DOCS/TASK_ARCHIVE/27_E1_DocumentationSync/E1_DocumentationSync.md`. _Owner:_ docc2context agent. _Status:_ Complete – Archived 2025-11-22; documentation-only task with markdown linting validation.
@@ -42,9 +42,7 @@ Use this list for near-term execution. Each entry maps back to the PRD and [work
 - _None – tasks promoted to "In Progress" once E1 documentation sync identifies next priorities._
 
 ## Under Consideration
-Following E1 completion, these candidates may be prioritized:
-
-- **E2 Homebrew Tap Publishing Automation** — Automate Homebrew formula updates via GitHub Actions workflow; reduce manual tap repository updates after releases. _Depends on:_ Tap repository access and maintainer coordination. _References:_ D4-MAC archive gaps section. _Priority:_ Medium (enhances release automation).
+Following E2 selection, these candidates remain for future prioritization:
 
 - **E3 CI Signing/Notarization Setup** — Configure GitHub Actions secrets for macOS codesign identity and notarytool credentials so release workflow can produce notarized macOS binaries automatically. _Depends on:_ Apple Developer ID credentials provisioning. _References:_ D4-MAC archive gaps section. _Priority:_ Medium (completes macOS distribution trust chain).
 
