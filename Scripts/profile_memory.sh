@@ -86,16 +86,15 @@ profile_fixture() {
     local exit_code=$?
     set -e  # Re-enable exit on error
 
-    # Merge time output (stderr) with stdout for parsing
-    cat "${time_output}.stdout" > "${time_output}"
+    # Output already merged (stdout and stderr) in "${time_output}.stdout"
 
     if [ ${exit_code} -eq 0 ]; then
 
         # Extract metrics from time output
-        local max_rss=$(grep "Maximum resident set size" "${time_output}" | awk '{print $6}')
-        local wall_time=$(grep "Elapsed (wall clock)" "${time_output}" | awk '{print $8}')
-        local user_time=$(grep "User time" "${time_output}" | awk '{print $4}')
-        local sys_time=$(grep "System time" "${time_output}" | awk '{print $4}')
+        local max_rss=$(grep "Maximum resident set size" "${time_output}.stdout" | awk '{print $6}')
+        local wall_time=$(grep "Elapsed (wall clock)" "${time_output}.stdout" | awk '{print $8}')
+        local user_time=$(grep "User time" "${time_output}.stdout" | awk '{print $4}')
+        local sys_time=$(grep "System time" "${time_output}.stdout" | awk '{print $4}')
 
         # Convert RSS from KB to MB if available
         local max_rss_mb="N/A"
