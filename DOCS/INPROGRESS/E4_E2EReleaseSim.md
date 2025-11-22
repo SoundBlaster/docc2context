@@ -48,9 +48,13 @@ Execute the complete release workflow **end-to-end** in a test environment to va
 
 ### Phase 1: Local Simulation (Manual Dry-Run)
 1. Create a test release tag (e.g., `v0.1.0-test`) locally
-2. Run `Scripts/package_release.sh --dry-run` to simulate packaging
+2. Run `Scripts/package_release.sh --version 0.1.0-test --platform linux --arch x86_64 --dry-run` to simulate packaging
 3. Verify all expected artifacts are reported (without actually creating them)
-4. Check README install snippets match artifact naming
+4. Check README install snippets match actual artifact naming conventions from scripts:
+   - **Linux**: no `v` prefix (e.g., `docc2context-0.1.0-test-linux-x86_64.tar.gz`)
+   - **Debian**: includes `_linux_` (e.g., `docc2context_0.1.0-test_linux_amd64.deb`)
+   - **RPM**: includes `-linux-` (e.g., `docc2context-0.1.0-test-linux-x86_64.rpm`)
+   - **macOS**: includes `v` prefix (e.g., `docc2context-v0.1.0-test-macos-arm64.zip`)
 
 ### Phase 2: Test Environment CI Run (If Feasible)
 1. Push test branch with `v0.1.0-test` tag to test CI
@@ -86,14 +90,14 @@ Execute the complete release workflow **end-to-end** in a test environment to va
 ## 🎬 Expected Artifacts & Checklist
 
 ### Linux Artifacts
-- [ ] `docc2context-v0.1.0-test-linux-x86_64.tar.gz`
-- [ ] `docc2context-v0.1.0-test-linux-x86_64.tar.gz.sha256`
-- [ ] `docc2context-v0.1.0-test-linux-aarch64.tar.gz`
-- [ ] `docc2context-v0.1.0-test-linux-aarch64.tar.gz.sha256`
-- [ ] `docc2context_0.1.0-test_amd64.deb`
-- [ ] `docc2context_0.1.0-test_arm64.deb`
-- [ ] `docc2context-0.1.0-test-1.x86_64.rpm`
-- [ ] `docc2context-0.1.0-test-1.aarch64.rpm`
+- [ ] `docc2context-0.1.0-test-linux-x86_64.tar.gz` (no `v` prefix in version)
+- [ ] `docc2context-0.1.0-test-linux-x86_64.tar.gz.sha256`
+- [ ] `docc2context-0.1.0-test-linux-aarch64.tar.gz` (no `v` prefix in version)
+- [ ] `docc2context-0.1.0-test-linux-aarch64.tar.gz.sha256`
+- [ ] `docc2context_0.1.0-test_linux_amd64.deb` (includes `_linux_` in name)
+- [ ] `docc2context_0.1.0-test_linux_arm64.deb` (includes `_linux_` in name)
+- [ ] `docc2context-0.1.0-test-linux-x86_64.rpm` (includes `-linux-` in name)
+- [ ] `docc2context-0.1.0-test-linux-aarch64.rpm` (includes `-linux-` in name)
 
 ### macOS Artifacts
 - [ ] `docc2context-v0.1.0-test-macos-arm64.zip`
@@ -118,7 +122,11 @@ Execute the complete release workflow **end-to-end** in a test environment to va
 - **D4-MAC Notes**: `DOCS/TASK_ARCHIVE/26_D4-MAC_*.md`
 - **E2 Notes**: `DOCS/TASK_ARCHIVE/28_E2_HomebrewTapPublishing/`
 - **Release Workflow**: `.github/workflows/release.yml`
-- **Scripts**: `Scripts/package_release.sh`, `Scripts/build_linux_packages.sh`, `Scripts/build_homebrew_formula.py`, `Scripts/push_homebrew_formula.sh`
+- **Scripts**:
+  - `Scripts/package_release.sh` — Main packaging orchestrator; macOS artifacts include `v` prefix in version (line 264)
+  - `Scripts/build_linux_packages.sh` — Linux-specific packaging; produces artifacts WITHOUT `v` prefix (line 199), with `_linux_` in deb names (line 229), and `-linux-` in rpm names (line 298)
+  - `Scripts/build_homebrew_formula.py` — Homebrew formula generator
+  - `Scripts/push_homebrew_formula.sh` — Tap publishing automation
 
 ---
 
