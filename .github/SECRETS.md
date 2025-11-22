@@ -40,8 +40,8 @@ For enhanced security, you can use a GitHub App token instead of a PAT:
 - Install the app on the tap repository
 - Use the app's credentials in the workflow
 
-**Fallback Behavior:**
-If `TAP_REPO_TOKEN` is not configured, the workflow will attempt to use `GITHUB_TOKEN` (the default token). However, `GITHUB_TOKEN` cannot push to repositories outside the current repository, so this will only work if the tap is in the same repository (not recommended for Homebrew taps).
+**Important:**
+`TAP_REPO_TOKEN` is required for the tap publishing workflow to function. If this secret is not configured, the workflow will fail with a clear error message. This is intentional to ensure proper configuration rather than silently failing with insufficient permissions.
 
 ## Tap Repository Configuration
 
