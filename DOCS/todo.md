@@ -3,7 +3,7 @@
 Use this list for near-term execution. Each entry maps back to the PRD and [workplan](./workplan.md).
 
 ## In Progress
-- _None – E4 completed 2025-11-22; all Phase A–E tasks now complete pending E3 unblock._
+- [ ] **F1 Incremental Conversion** — Investigate streaming/segmenting Markdown generation for very large DocC bundles to reduce peak memory and preserve determinism. _Depends on:_ Baseline performance profiling + determinism guardrails from Phase C/C5. _Doc:_ `DOCS/INPROGRESS/F1_IncrementalConversion.md`. _Owner:_ docc2context agent. _Status:_ In progress – 2025-11-22; planning task only pending START command for execution.
 
 ## Completed
 - [x] **E4 E2E Release Simulation** — Comprehensive E2E test suite validates release workflow components (artifact naming, README consistency, Homebrew formula, release gates, checksums). _Depends on:_ E2 (✅ complete), E3 (⛔ blocked—Linux path unaffected). _Doc:_ `DOCS/TASK_ARCHIVE/29_E4_E2EReleaseSim/E4_E2EReleaseSim.md`. _Owner:_ docc2context agent. _Status:_ Complete – 2025-11-22; created `Tests/Docc2contextCoreTests/ReleaseWorkflowE2ETests.swift` with 6 E2E test methods validating Linux/macOS artifact naming conventions, Homebrew formula Ruby syntax, README installation instructions consistency, release gates execution, and SHA256 checksum generation. Test suite adopts specification-driven validation approach (parsing Scripts, reading README) to enforce artifact naming consistency across platforms. Full dry-run simulation deferred to maintainer/CI due to execution time constraints; component-level validation complete via tests.
@@ -63,7 +63,7 @@ Tasks prevented from proceeding by external dependencies, missing resources, or 
 ## Under Consideration
 Following E4 selection, these candidates remain for future prioritization (pending blockers or dependencies):
 
-- **F1 Incremental Conversion** — Explore streaming Markdown output for very large DocC bundles to reduce memory footprint and enable progress reporting during long-running conversions. _Depends on:_ Performance profiling and requirements gathering. _References:_ todo.md Backlog Ideas. _Priority:_ Low (enhancement, baseline works for typical bundles).
+- _F1 Incremental Conversion moved to "In Progress" on 2025-11-22._
 
 - **F2 Technology Filter Flag** — Investigate CLI `--filter technology` flag for selective exports, allowing users to convert only specific documentation sections. _Depends on:_ Requirements gathering and TDD specs. _References:_ todo.md Backlog Ideas. _Priority:_ Low (enhancement, full export is default use case).
 
