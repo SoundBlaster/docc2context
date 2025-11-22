@@ -13,26 +13,26 @@ jobs:
   package:
     name: Package ${{ matrix.platform }} ${{ matrix.arch }} artifact
     runs-on: ${{ matrix.runner }}
-      strategy:
-        fail-fast: false
-        matrix:
-          include:
-            - platform: linux
-              arch: x86_64
-              runner: ubuntu-22.04
-              swift: '6.1.2'
-            - platform: linux
-              arch: aarch64
-              runner: ubuntu-22.04-arm64
-              swift: '6.1.2'
-            - platform: macos
-              arch: arm64
-              runner: macos-latest
-              swift: '6.1.2'
-            - platform: macos
-              arch: x86_64
-              runner: macos-13
-              swift: '6.1.2'
+    strategy:
+      fail-fast: false
+      matrix:
+        include:
+          - platform: linux
+            arch: x86_64
+            runner: ubuntu-22.04
+            swift: '6.1.2'
+          - platform: linux
+            arch: aarch64
+            runner: ubuntu-22.04-arm64
+            swift: '6.1.2'
+          - platform: macos
+            arch: arm64
+            runner: macos-latest
+            swift: '6.1.2'
+          - platform: macos
+            arch: x86_64
+            runner: macos-13
+            swift: '6.1.2'
     steps:
       - uses: actions/checkout@v4
 
@@ -79,6 +79,8 @@ jobs:
     runs-on: ubuntu-22.04
     needs: package
     steps:
+      - uses: actions/checkout@v4
+
       - uses: actions/download-artifact@v4
         with:
           path: dist
@@ -104,6 +106,38 @@ jobs:
             --x86_64-url "https://github.com/${{ github.repository }}/releases/download/${VERSION}/$(basename "$INTEL_ZIP")" \
             --x86_64-sha256 "$INTEL_SHA" \
             --output dist/homebrew/docc2context.rb
+
+      - name: Checkout tap repository
+        if: github.event_name == 'push' && startsWith(github.ref, 'refs/tags/v')
+        uses: actions/checkout@v4
+        with:
+          repository: SoundBlaster/homebrew-tap
+          path: homebrew-tap
+          token: ${{ secrets.TAP_REPO_TOKEN }}
+
+      - name: Publish formula to Homebrew tap
+        if: github.event_name == 'push' && startsWith(github.ref, 'refs/tags/v')
+        env:
+          VERSION: ${{ github.ref_name }}
+        run: |
+          # Configure git for the tap repository
+          cd homebrew-tap
+          git config user.name "github-actions[bot]"
+          git config user.email "github-actions[bot]@users.noreply.github.com"
+
+          # Copy formula to tap repository
+          mkdir -p Formula
+          cp ../dist/homebrew/docc2context.rb Formula/docc2context.rb
+
+          # Commit and push changes
+          git add Formula/docc2context.rb
+          git commit -m "chore(homebrew): update docc2context formula to ${VERSION}
+
+          This commit updates the Homebrew formula to version ${VERSION}.
+
+          Automated by GitHub Actions release workflow"
+
+          git push origin main
 
       - name: Publish release assets
         uses: softprops/action-gh-release@v2
