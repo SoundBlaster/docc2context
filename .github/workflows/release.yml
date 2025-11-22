@@ -105,6 +105,38 @@ jobs:
             --x86_64-sha256 "$INTEL_SHA" \
             --output dist/homebrew/docc2context.rb
 
+      - name: Checkout tap repository
+        if: github.event_name == 'push' && startsWith(github.ref, 'refs/tags/v')
+        uses: actions/checkout@v4
+        with:
+          repository: SoundBlaster/homebrew-tap
+          path: homebrew-tap
+          token: ${{ secrets.TAP_REPO_TOKEN || secrets.GITHUB_TOKEN }}
+
+      - name: Publish formula to Homebrew tap
+        if: github.event_name == 'push' && startsWith(github.ref, 'refs/tags/v')
+        env:
+          VERSION: ${{ github.ref_name }}
+        run: |
+          # Configure git for the tap repository
+          cd homebrew-tap
+          git config user.name "github-actions[bot]"
+          git config user.email "github-actions[bot]@users.noreply.github.com"
+
+          # Copy formula to tap repository
+          mkdir -p Formula
+          cp ../dist/homebrew/docc2context.rb Formula/docc2context.rb
+
+          # Commit and push changes
+          git add Formula/docc2context.rb
+          git commit -m "chore(homebrew): update docc2context formula to ${VERSION}
+
+          This commit updates the Homebrew formula to version ${VERSION}.
+
+          Automated by GitHub Actions release workflow"
+
+          git push origin main
+
       - name: Publish release assets
         uses: softprops/action-gh-release@v2
         with:
