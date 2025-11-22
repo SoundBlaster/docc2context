@@ -157,7 +157,7 @@
 
 ### 6. Tap Smoke Test (Optional, for E4)
    - **Task:** Add CI step that confirms the tap formula is reachable post-publish.
-   - **Behavior:** `brew tap docc2context/tap && brew info docc2context` or just `brew tap-info docc2context/tap`.
+   - **Behavior:** `brew tap docc2context/tap && brew info docc2context` to verify the formula installs and is discoverable.
    - **Scope:** Deferred to E4 (E2E Release Simulation), but infrastructure planned here.
 
 ---
@@ -180,6 +180,7 @@
 - Confirm tap repo exists and is accessible.
 - Verify PAT or service account has correct permissions.
 - Dry-run the push script locally with test inputs.
+- Verify `brew tap docc2context/tap && brew info docc2context` resolves after publishing.
 
 ---
 
