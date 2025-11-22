@@ -123,7 +123,7 @@ final class ReleaseWorkflowE2ETests: XCTestCase {
 
     // MARK: - Test: Linux Artifact Naming Conventions
 
-    /// Validates that Linux artifacts follow the naming conventions documented in E4_E2EReleaseSim.md:
+    /// Validates that Linux artifacts follow the naming conventions documented in `DOCS/TASK_ARCHIVE/29_E4_E2EReleaseSim/E4_E2EReleaseSim.md`:
     /// - Tarballs: no 'v' prefix (e.g., docc2context-0.1.0-test-linux-x86_64.tar.gz)
     /// - Debian: includes '_linux_' (e.g., docc2context_0.1.0-test_linux_amd64.deb)
     /// - RPM: includes '-linux-' (e.g., docc2context-0.1.0-test-linux-x86_64.rpm)
@@ -212,7 +212,7 @@ final class ReleaseWorkflowE2ETests: XCTestCase {
 
     // MARK: - Test: macOS Artifact Naming Conventions
 
-    /// Validates that macOS artifacts follow the naming conventions documented in E4_E2EReleaseSim.md:
+    /// Validates that macOS artifacts follow the naming conventions documented in `DOCS/TASK_ARCHIVE/29_E4_E2EReleaseSim/E4_E2EReleaseSim.md`:
     /// - Zips: includes 'v' prefix (e.g., docc2context-v0.1.0-test-macos-arm64.zip)
     func test_macOSArtifactsFollowDocumentedNamingConventions() throws {
         #if os(macOS)
