@@ -42,12 +42,27 @@ Use this list for near-term execution. Each entry maps back to the PRD and [work
 ## Ready to Start
 - _None – tasks promoted to "In Progress" once E1 documentation sync identifies next priorities._
 
+## Blocked
+Tasks prevented from proceeding by external dependencies, missing resources, or pending decisions.
+
+- [ ] **E3 CI Signing/Notarization Setup** — ⛔ **BLOCKED** — Configure GitHub Actions secrets for macOS codesign identity and notarytool credentials so release workflow can produce notarized macOS binaries automatically.
+  - **Blocker**: Apple Developer ID credentials not available (organization lacks Apple Developer Program access)
+  - **Category**: External Dependencies
+  - **Blocked since**: 2025-11-22
+  - **Unblock conditions**:
+    - [ ] Organization/maintainer enrolls in or confirms membership in Apple Developer Program
+    - [ ] Developer ID Application certificate provisioned and securely stored
+    - [ ] App-specific password or API token obtained for notarytool authentication
+    - [ ] All GitHub secrets configured (`APPLE_DEVELOPER_ID_NAME`, `APPLE_DEVELOPER_ID_PASSWORD`, `APPLE_NOTARY_TEAM_ID`, etc.)
+    - [ ] `.github/SECRETS.md` updated with provisioning instructions
+  - **Documentation**: `DOCS/INPROGRESS/BLOCKED_E3_SigningNotarization.md`
+  - **Impact**: E3 fully blocked; E4 partially blocked (Linux path unaffected, macOS path requires manual notarization workaround)
+  - **Workarounds**: Manual post-release notarization by maintainer; Homebrew source-only builds; ad-hoc self-signing (not recommended)
+
 ## Under Consideration
-Following E2 selection, these candidates remain for future prioritization:
+Following E2 selection, these candidates remain for future prioritization (pending blockers or dependencies):
 
-- **E3 CI Signing/Notarization Setup** — Configure GitHub Actions secrets for macOS codesign identity and notarytool credentials so release workflow can produce notarized macOS binaries automatically. _Depends on:_ Apple Developer ID credentials provisioning. _References:_ D4-MAC archive gaps section. _Priority:_ Medium (completes macOS distribution trust chain).
-
-- **E4 E2E Release Simulation** — Execute complete release workflow end-to-end (tag, build, package, upload) in a test environment to validate all release gates and distribution channels. _Depends on:_ E2, E3, or manual equivalents. _References:_ D4-MAC archive gaps section. _Priority:_ Medium (validates release readiness).
+- **E4 E2E Release Simulation** — Execute complete release workflow end-to-end (tag, build, package, upload) in a test environment to validate all release gates and distribution channels. _Depends on:_ E2 (✅ complete), E3 (⛔ blocked), or manual equivalents. _References:_ D4-MAC archive gaps section. _Priority:_ Medium (validates release readiness). **Note**: Can proceed with Linux validation while E3 remains blocked; macOS validation requires E3 unblocking or manual notarization workaround.
 
 - **F1 Incremental Conversion** — Explore streaming Markdown output for very large DocC bundles to reduce memory footprint and enable progress reporting during long-running conversions. _Depends on:_ Performance profiling and requirements gathering. _References:_ todo.md Backlog Ideas. _Priority:_ Low (enhancement, baseline works for typical bundles).
 
