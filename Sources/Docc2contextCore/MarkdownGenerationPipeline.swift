@@ -354,38 +354,6 @@ public struct MarkdownGenerationPipeline {
         return articlesByIdentifier
     }
 
-    private func loadAvailableArticles(from bundleURL: URL) throws -> [DoccArticle] {
-        let articlesDirectory = bundleURL
-            .appendingPathComponent("data", isDirectory: true)
-            .appendingPathComponent("documentation", isDirectory: true)
-            .appendingPathComponent("articles", isDirectory: true)
-
-        guard fileManager.fileExists(atPath: articlesDirectory.path) else {
-            return []
-        }
-
-        let fileURLs = try fileManager.contentsOfDirectory(
-            at: articlesDirectory,
-            includingPropertiesForKeys: nil,
-            options: [.skipsHiddenFiles])
-            .filter { $0.pathExtension.lowercased() == "json" }
-            .sorted { $0.lastPathComponent < $1.lastPathComponent }
-
-        var articles: [DoccArticle] = []
-        let decoder = JSONDecoder()
-        for fileURL in fileURLs {
-            let data = try Data(contentsOf: fileURL)
-            do {
-                let article = try decoder.decode(DoccArticle.self, from: data)
-                articles.append(article)
-            } catch {
-                throw DoccMetadataParserError.invalidArticlePage(fileURL)
-            }
-        }
-
-        return articles
-    }
-
     private func slug(for value: String, fallback: String) -> String {
         let trimmed = value.trimmingCharacters(in: .whitespacesAndNewlines)
         let lowercased = trimmed.lowercased()
