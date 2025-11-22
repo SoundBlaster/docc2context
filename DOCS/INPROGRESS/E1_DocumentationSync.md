@@ -189,7 +189,7 @@ After E1 completion, consider prioritizing:
 ## Next Steps
 
 1. ✅ Planning documented in `DOCS/INPROGRESS/E1_DocumentationSync.md`
-2. ⏳ Update `DOCS/todo.md` to mark E1 as "In Progress"
+2. ✅ Update `DOCS/todo.md` to mark E1 as "In Progress"
 3. ⏳ Execute task via START command when ready to proceed
 4. ⏳ Archive to `DOCS/TASK_ARCHIVE/` upon completion
 
