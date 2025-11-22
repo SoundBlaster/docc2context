@@ -175,8 +175,10 @@ public struct MarkdownGenerationPipeline {
         let articlesRoot = markdownRoot.appendingPathComponent("articles", isDirectory: true)
         var referenceArticleCount = 0
         let articleIdentifiers = orderedArticleIdentifiers(from: bundleModel.documentationCatalog)
-        let availableArticles = try loadAvailableArticles(from: inputURL)
-        let articlesByIdentifier = Dictionary(uniqueKeysWithValues: availableArticles.map { ($0.identifier, $0) })
+
+        // Streaming optimization: Load articles as dictionary to avoid intermediate array
+        let articlesByIdentifier = try loadAvailableArticlesDictionary(from: inputURL)
+
         if !articleIdentifiers.isEmpty && !articlesByIdentifier.isEmpty {
             try ensureDirectoryExists(articlesRoot)
         }
@@ -309,14 +311,22 @@ public struct MarkdownGenerationPipeline {
         return directory.appendingPathComponent(fileName).appendingPathExtension("md")
     }
 
-    private func loadAvailableArticles(from bundleURL: URL) throws -> [DoccArticle] {
+    /// Streaming-optimized article loading: Returns dictionary directly without intermediate array
+    ///
+    /// This optimization reduces memory overhead by avoiding the intermediate array allocation
+    /// and subsequent dictionary conversion. For large DocC bundles with many articles,
+    /// this can significantly reduce peak memory usage.
+    ///
+    /// - Parameter bundleURL: URL to the DocC bundle
+    /// - Returns: Dictionary mapping article identifiers to DoccArticle instances
+    private func loadAvailableArticlesDictionary(from bundleURL: URL) throws -> [String: DoccArticle] {
         let articlesDirectory = bundleURL
             .appendingPathComponent("data", isDirectory: true)
             .appendingPathComponent("documentation", isDirectory: true)
             .appendingPathComponent("articles", isDirectory: true)
 
         guard fileManager.fileExists(atPath: articlesDirectory.path) else {
-            return []
+            return [:]
         }
 
         let fileURLs = try fileManager.contentsOfDirectory(
@@ -326,19 +336,22 @@ public struct MarkdownGenerationPipeline {
             .filter { $0.pathExtension.lowercased() == "json" }
             .sorted { $0.lastPathComponent < $1.lastPathComponent }
 
-        var articles: [DoccArticle] = []
+        var articlesByIdentifier: [String: DoccArticle] = [:]
+        articlesByIdentifier.reserveCapacity(fileURLs.count)
+
         let decoder = JSONDecoder()
         for fileURL in fileURLs {
             let data = try Data(contentsOf: fileURL)
             do {
                 let article = try decoder.decode(DoccArticle.self, from: data)
-                articles.append(article)
+                // Directly insert into dictionary, avoiding intermediate array allocation
+                articlesByIdentifier[article.identifier] = article
             } catch {
                 throw DoccMetadataParserError.invalidArticlePage(fileURL)
             }
         }
 
-        return articles
+        return articlesByIdentifier
     }
 
     private func slug(for value: String, fallback: String) -> String {
