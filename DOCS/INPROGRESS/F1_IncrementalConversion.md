@@ -49,9 +49,9 @@
      - TutorialCatalog: Peak RSS 69.43 MB, Wall time 0.05s
 
 2. **Streaming Optimization Tests** (`Tests/Docc2contextCoreTests/StreamingOptimizationTests.swift`)
-   - 4 comprehensive test cases validating output parity between baseline and optimized pipelines
-   - Tests verify byte-identical outputs for articles, tutorials, and link graphs
-   - All determinism checks pass (100% parity with baseline)
+   - 4 comprehensive test cases verifying deterministic output and consistency of the optimized pipeline
+   - Tests verify byte-identical outputs for articles, tutorials, and link graphs produced by the optimized pipeline
+   - All determinism checks pass (100% consistency with previous outputs)
    - Includes placeholder for future large-bundle memory measurement tests
 
 3. **Pipeline Memory Optimizations** (`Sources/Docc2contextCore/MarkdownGenerationPipeline.swift`)
