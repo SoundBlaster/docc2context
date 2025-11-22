@@ -35,6 +35,8 @@ The workplan distills the execution order of the phases defined in [DOCS/PRD/doc
 ## Phase E – Release Infrastructure & End-to-End Validation
 - ✅ **E1 Documentation Synchronization & Post-Phase-D Cleanup** — archived under `DOCS/TASK_ARCHIVE/27_E1_DocumentationSync/`; synchronized all phase documents and task tracking across DOCS/ to reflect A–D completion and cataloged follow-up opportunities.
 - ✅ **E2 Homebrew Tap Publishing Automation** — archived under `DOCS/TASK_ARCHIVE/28_E2_HomebrewTapPublishing/`; automated Homebrew formula updates via GitHub Actions workflow with dry-run testing, SECRETS documentation, and release template integration.
+- ⛔ **E3 CI Signing/Notarization Setup** — BLOCKED pending Apple Developer ID credentials and GitHub secrets provisioning. Documented in `DOCS/INPROGRESS/BLOCKED_E3_SigningNotarization.md`; required to automate macOS notarization for prebuilt binaries.
+- ✅ **E4 E2E Release Simulation** — archived under `DOCS/TASK_ARCHIVE/29_E4_E2EReleaseSim/`; added comprehensive release workflow E2E tests that validate Linux/macOS artifact naming, Homebrew formula syntax, README install instructions, release gate enforcement, and checksum generation. Full dry-run CI tag simulation deferred due to timeouts and E3 blocker.
 
 ## Tracking Conventions
 - Store active task notes inside `DOCS/INPROGRESS/`.
