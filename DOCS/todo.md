@@ -3,7 +3,7 @@
 Use this list for near-term execution. Each entry maps back to the PRD and [workplan](./workplan.md).
 
 ## In Progress
-- _None – promoted tasks completed this cycle._
+- **E1 Documentation Synchronization & Post-Phase-D Cleanup** — Synchronize phase documents (phase_c.md, phase_d.md) to reflect completion of C5, D4, D4-LNX, and D4-MAC; refresh todo.md sections; catalog D4-MAC follow-up opportunities; verify cross-references across DOCS/ tree. _Depends on:_ None (all phases A–D complete). _Doc:_ `DOCS/INPROGRESS/E1_DocumentationSync.md`. _Owner:_ docc2context agent. _Status:_ Selected via SELECT_NEXT 2025-11-22; documentation-only task (no code changes).
 
 ## Completed
 - [x] **D4-MAC macOS Release Channels** Ship the macOS distribution workflow outlined in PRD §4.6, including Homebrew tap/formula updates for arm64/x86_64 tarballs, manual install script, and documented codesign/notarization for prebuilt binaries. _Depends on:_ D4 release automation and D4-LNX packaging lessons learned. _Doc:_ PRD §Phase D (D4-MAC), `DOCS/TASK_ARCHIVE/26_D4-MAC_MacReleaseChannels/`. _Owner:_ docc2context agent. _Status:_ Complete – Cycle 7; added arch-aware macOS zips + summaries, Homebrew formula generator hooked into the release workflow, curl-able `install_macos.sh` with dry-run support, README install/codesign/notary guidance, and macOS arm64/x86_64 CI packaging matrix.
@@ -38,10 +38,20 @@ Use this list for near-term execution. Each entry maps back to the PRD and [work
 - [x] **C1 Tutorial Chapter Snapshot Spec** Capture the deterministic Markdown contract for the first tutorial chapter page (`tutorialcatalog/tutorials/getting-started`) and lock it via `MarkdownSnapshotSpecsTests.test_tutorialChapterPageMatchesSnapshot`. _Depends on:_ C1 outline + tutorial overview snapshot harness. _Doc:_ PRD §Phase C (snapshot specs). _Owner:_ docc2context agent. _Status:_ Complete – archived under `DOCS/TASK_ARCHIVE/15_C1_TutorialChapterSnapshot/`; validated with `swift test --filter MarkdownSnapshotSpecsTests.test_tutorialChapterPageMatchesSnapshot` and the full `swift test` suite, with follow-on tutorial + article specs tracked in `DOCS/TASK_ARCHIVE/16_C1_MarkdownSnapshotSpecs/` and `17_C1_ReferenceArticleSnapshot/`.
 
 ## Ready to Start
-- _None – tasks promoted to "In Progress" once documentation work kicked off._
+- _None – tasks promoted to "In Progress" once E1 documentation sync identifies next priorities._
 
 ## Under Consideration
-- _None – promote new scope via SELECT_NEXT after D4-MAC rolls off._
+Following E1 completion, these candidates may be prioritized:
+
+- **E2 Homebrew Tap Publishing Automation** — Automate Homebrew formula updates via GitHub Actions workflow; reduce manual tap repository updates after releases. _Depends on:_ Tap repository access and maintainer coordination. _References:_ D4-MAC archive gaps section. _Priority:_ Medium (enhances release automation).
+
+- **E3 CI Signing/Notarization Setup** — Configure GitHub Actions secrets for macOS codesign identity and notarytool credentials so release workflow can produce notarized macOS binaries automatically. _Depends on:_ Apple Developer ID credentials provisioning. _References:_ D4-MAC archive gaps section. _Priority:_ Medium (completes macOS distribution trust chain).
+
+- **E4 E2E Release Simulation** — Execute complete release workflow end-to-end (tag, build, package, upload) in a test environment to validate all release gates and distribution channels. _Depends on:_ E2, E3, or manual equivalents. _References:_ D4-MAC archive gaps section. _Priority:_ Medium (validates release readiness).
+
+- **F1 Incremental Conversion** — Explore streaming Markdown output for very large DocC bundles to reduce memory footprint and enable progress reporting during long-running conversions. _Depends on:_ Performance profiling and requirements gathering. _References:_ todo.md Backlog Ideas. _Priority:_ Low (enhancement, baseline works for typical bundles).
+
+- **F2 Technology Filter Flag** — Investigate CLI `--filter technology` flag for selective exports, allowing users to convert only specific documentation sections. _Depends on:_ Requirements gathering and TDD specs. _References:_ todo.md Backlog Ideas. _Priority:_ Low (enhancement, full export is default use case).
 
 ## Backlog Ideas
 - [ ] Explore incremental conversion to stream Markdown output for very large DocC bundles.
