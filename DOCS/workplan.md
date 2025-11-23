@@ -38,6 +38,10 @@ The workplan distills the execution order of the phases defined in [DOCS/PRD/doc
 - ⛔ **E3 CI Signing/Notarization Setup** — BLOCKED pending Apple Developer ID credentials and GitHub secrets provisioning. Documented in `DOCS/INPROGRESS/BLOCKED_E3_SigningNotarization.md`; required to automate macOS notarization for prebuilt binaries.
 - ✅ **E4 E2E Release Simulation** — archived under `DOCS/TASK_ARCHIVE/29_E4_E2EReleaseSim/`; added comprehensive release workflow E2E tests that validate Linux/macOS artifact naming, Homebrew formula syntax, README install instructions, release gate enforcement, and checksum generation. Full dry-run CI tag simulation deferred due to timeouts and E3 blocker.
 
+## Phase F – Performance & Enhancements
+- ✅ **F1 Incremental Conversion** — archived under `DOCS/TASK_ARCHIVE/30_F1_IncrementalConversion/`; streaming-friendly Markdown generation optimizations reduce intermediate allocations while preserving determinism, backed by profiling helper (`Scripts/profile_memory.sh`) and 4 streaming optimization tests.
+- 🧭 **F2 Technology Filter Flag** — backlog candidate for future selection; would add CLI `--filter technology` option once requirements and specs are defined.
+
 ## Tracking Conventions
 - Store active task notes inside `DOCS/INPROGRESS/`.
 - Capture ready-to-pick tasks plus dependencies in [DOCS/todo.md](./todo.md).

@@ -91,7 +91,7 @@
 
 1. **No Feature Flag Required**
    - Optimization is performance-transparent (identical outputs, no API changes)
-   - Made default behavior after parity validation in tests
+   - Made default behavior; manual output comparison confirmed parity, but automated parity tests are not present
    - Old method preserved for potential backward compatibility needs
 
 2. **Synthetic Large Fixtures Deferred**
