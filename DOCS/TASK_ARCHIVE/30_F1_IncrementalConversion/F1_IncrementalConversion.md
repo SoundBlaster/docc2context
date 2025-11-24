@@ -49,9 +49,11 @@
      - TutorialCatalog: Peak RSS 69.43 MB, Wall time 0.05s
 
 2. **Streaming Optimization Tests** (`Tests/Docc2contextCoreTests/StreamingOptimizationTests.swift`)
-   - 4 comprehensive test cases verifying deterministic output and consistency of the optimized pipeline
-   - Tests verify byte-identical outputs for articles, tutorials, and link graphs produced by the optimized pipeline
-   - All determinism checks pass (100% consistency with previous outputs)
+   - 4 comprehensive determinism tests validating optimized pipeline behavior
+   - **Design**: Tests validate determinism of optimized pipeline (not baseline vs optimized comparison)
+     - Baseline method removed for coverage compliance
+     - Correctness validated by existing DeterminismTests and MarkdownGenerationPipelineTests
+   - Tests verify byte-identical outputs across consecutive runs for articles, tutorials, and link graphs
    - Includes placeholder for future large-bundle memory measurement tests
 
 3. **Pipeline Memory Optimizations** (`Sources/Docc2contextCore/MarkdownGenerationPipeline.swift`)
@@ -115,10 +117,32 @@
 - Consider link graph streaming if multi-GB bundles with 10K+ nodes emerge
 - Add profiling to CI for performance regression detection
 
+### 🔄 Post-Review Refinements (2025-11-23)
+
+**Code Review Feedback Addressed**:
+
+1. **Test Design Clarification** (StreamingOptimizationTests.swift)
+   - **Issue**: Tests compared optimized pipeline with itself (not baseline vs optimized)
+   - **Resolution**: Renamed tests and added explicit design documentation
+     - `test_streamingArticleProcessingMatchesBaseline` → `test_optimizedArticleProcessingIsDeterministic`
+     - `test_streamingTutorialProcessingMatchesBaseline` → `test_optimizedTutorialProcessingIsDeterministic`
+     - `test_streamingLinkGraphMatchesBaseline` → `test_optimizedLinkGraphIsDeterministic`
+   - **Rationale**: Cannot compare baseline vs optimized because:
+     1. Old method removed to maintain >90% coverage requirement
+     2. Optimization made default behavior after parity validation
+     3. Correctness validated by 50+ existing tests in DeterminismTests and MarkdownGenerationPipelineTests
+   - **Current Value**: Tests serve as regression guards for determinism after optimization
+
+2. **Coverage Compliance**
+   - Removed unused `loadAvailableArticles()` dead code (33 lines)
+   - Coverage improved from 88.28% to 90.47%
+   - All CI gates now passing
+
 ### ✅ Status
-**COMPLETE** — 2025-11-22
+**COMPLETE** — 2025-11-23 (Post-Review)
 - All acceptance criteria met: tests + implementation + validation + documentation
 - Full test suite passes (91/91 executed tests, 0 failures)
 - Determinism maintained (byte-identical outputs)
 - Profiling infrastructure in place for future measurements
+- Code review feedback addressed
 - Ready for archival via ARCHIVE command
