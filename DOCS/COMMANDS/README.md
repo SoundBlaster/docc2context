@@ -8,6 +8,7 @@ The `DOCS/COMMANDS` directory mirrors the workflow described in the docc2context
 | [START](./START.md) | Move a chosen task into motion by setting scope, success criteria, and INPROGRESS documentation. | Immediately after SELECT_NEXT confirms the target. |
 | [STATE](./STATE.md) | Publish a progress snapshot referencing INPROGRESS notes, TODO updates, and any blockers. | During handoffs, daily syncs, or before opening a PR. |
 | [BLOCK](./BLOCK.md) | Mark tasks as blocked by dependencies, missing resources, or external factors, with clear unblocking conditions. | When a task cannot proceed due to blockers; when dependencies are identified. |
+| [UNBLOCK](./UNBLOCK.md) | Attempt to resolve blockers for a previously blocked task and determine if work can resume. | Periodically checking blocked tasks; when blocker conditions may have changed. |
 | [BUG](./BUG.md) | Capture regressions or doc mismatches uncovered while working through the PRD acceptance criteria. | Whenever unexpected behavior or doc drift is observed. |
 | [FIX](./FIX.md) | Describe the remediation plan for an acknowledged bug, linking tests, PRD deltas, and TODO items. | Right after filing a BUG and before touching implementation. |
 | [NEW](./NEW.md) | Introduce net-new scope discovered during execution, ensuring it lands on the TODO list with PRD context. | When emerging requirements surface outside the current plan. |
