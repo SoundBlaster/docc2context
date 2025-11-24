@@ -29,170 +29,36 @@ This workflow prevents hasty fixes and ensures proper regression coverage.
 ### Step 1: Bug Documentation
 **Command:** [BUG](../COMMANDS/BUG.md)
 
-**Actions:**
-1. **Capture Observation:**
-   - Document exact behavior observed
-   - Record steps to reproduce
-   - Note affected components/files
-   - Identify which PRD acceptance criteria are violated
+Document observed behavior, reproduction steps, severity, and affected components. Create INPROGRESS doc with complete context.
 
-2. **Evidence Collection:**
-   - Save error messages, stack traces, or incorrect output
-   - Create minimal reproduction case if possible
-   - Record environment details (Swift version, OS, etc.)
-   - Check if issue exists in CI or only locally
-
-3. **Initial Analysis:**
-   - Assess severity (blocker, critical, normal, minor)
-   - Determine if this blocks current work
-   - Check if related to recent changes (git blame, recent commits)
-   - Search TASK_ARCHIVE for similar past issues
-
-4. **Documentation:**
-   - Create `DOCS/INPROGRESS/BUG_[ShortDescription].md`
-   - Include: observed vs expected, reproduction steps, affected files
-   - Link to relevant PRD sections
-   - Note any workarounds discovered
-
-**Validation:**
-- Bug is reproducible with documented steps
-- Expected behavior is clearly defined
-- Severity is appropriate
-- INPROGRESS doc exists with complete context
-
-**Output:** Bug fully documented and ready for fix planning.
+**Output:** Bug documented in `DOCS/INPROGRESS/BUG_[ShortDescription].md`
 
 ---
 
 ### Step 2: Fix Planning
 **Command:** [FIX](../COMMANDS/FIX.md)
 
-**Actions:**
-1. **Root Cause Analysis:**
-   - Trace through code to identify where behavior diverges
-   - Determine if bug is in logic, edge case handling, or data flow
-   - Check if issue affects multiple code paths
-   - Identify why existing tests didn't catch this
+Perform root cause analysis, design minimal fix, plan regression tests, assess impact. Update INPROGRESS with fix strategy.
 
-2. **Fix Design:**
-   - Plan minimal change to resolve root cause
-   - Avoid over-engineering or scope creep
-   - Consider edge cases and similar scenarios
-   - Identify if PRD needs clarification or update
-
-3. **Test Strategy:**
-   - Plan regression test that would catch this bug
-   - Identify any related scenarios to test
-   - Determine if existing tests need updates
-   - Plan for determinism/snapshot tests if applicable
-
-4. **Impact Assessment:**
-   - Estimate scope of changes needed
-   - Check for potential side effects
-   - Review if fix might affect other features
-   - Note any documentation updates required
-
-5. **Update Documentation:**
-   - Append fix plan to INPROGRESS bug doc
-   - Add TODO entry for fix implementation
-   - Link to related PRD sections
-   - Note any PRD clarifications needed
-
-**Validation:**
-- Root cause is clearly identified
-- Fix approach is minimal and targeted
-- Test strategy covers the bug and similar cases
-- Impact on other code is assessed
-- TODO has actionable fix entry
-
-**Output:** Clear fix plan ready for implementation.
+**Output:** Clear fix plan with root cause identified and test strategy defined.
 
 ---
 
 ### Step 3: Fix Implementation
 **Command:** [START](../COMMANDS/START.md)
 
-**Actions:**
-1. **TDD Red Phase - Regression Tests:**
-   - Write test that reproduces the bug (should FAIL)
-   - Verify test fails with same error observed in bug report
-   - Add tests for related edge cases
-   - Document test intent clearly
-   - **DO NOT commit failing tests**
+Implement fix using TDD: write regression test (red), fix the bug (green), refactor and validate. All tests must pass.
 
-2. **TDD Green Phase - Fix Implementation:**
-   - Implement minimal code change to fix root cause
-   - Make regression test pass
-   - Ensure all existing tests still pass
-   - Run full test suite: `swift test`
-
-3. **TDD Refactor Phase - Polish:**
-   - Clean up fix implementation
-   - Add comments explaining non-obvious logic
-   - Update related tests if needed
-   - Ensure code follows project conventions
-
-4. **Comprehensive Validation:**
-   - Verify original reproduction steps no longer trigger bug
-   - Run full test suite (all tests pass)
-   - Test edge cases manually if needed
-   - Check determinism if applicable
-   - Verify CI would pass
-
-5. **Documentation Updates:**
-   - Update INPROGRESS doc with fix outcome
-   - Note any surprises or lessons learned
-   - Document if PRD clarification is needed
-   - Mark fix complete in TODO
-
-**Quality Gates (ALL must pass):**
-- ✅ Regression test passes (reproduces and validates fix)
-- ✅ All existing tests still pass
-- ✅ Original bug reproduction steps no longer trigger issue
-- ✅ No new bugs introduced
-- ✅ Code is clean and documented
-
-**Output:** Bug fixed with regression test coverage.
+**Output:** Bug fixed with regression test coverage and all tests passing.
 
 ---
 
 ### Step 4: Archival & Knowledge Capture
 **Command:** [ARCHIVE](../COMMANDS/ARCHIVE.md)
 
-**Actions:**
-1. **Complete Documentation:**
-   - Finalize INPROGRESS doc with:
-     - Root cause explanation
-     - Fix approach taken
-     - Why this wasn't caught earlier
-     - Prevention strategy for similar bugs
-   - Link to relevant commits
+Archive bug resolution with root cause explanation, prevention strategy, and lessons learned. Update TODO and tracking docs.
 
-2. **Lessons Learned:**
-   - Document what tests were missing
-   - Note if coding patterns should change
-   - Identify if review process needs adjustment
-   - Record if documentation was misleading
-
-3. **Tracking Updates:**
-   - Move bug doc to TASK_ARCHIVE
-   - Mark TODO items complete
-   - Update PRD if clarifications needed
-   - Note in workplan if pattern affects other work
-
-4. **Prevention Measures:**
-   - Consider if similar bugs exist elsewhere
-   - Update test suites to prevent recurrence
-   - Document gotchas in code comments
-   - Share learnings with team if applicable
-
-**Validation:**
-- Bug moved from INPROGRESS to TASK_ARCHIVE
-- Archive includes root cause and prevention strategy
-- TODO reflects completion
-- Any PRD updates are documented
-
-**Output:** Bug resolved, documented, and archived with prevention measures.
+**Output:** Bug archived in `DOCS/TASK_ARCHIVE/` with prevention measures documented.
 
 ---
 

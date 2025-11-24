@@ -27,93 +27,32 @@ This workflow ensures blocked work doesn't stall indefinitely and team time rema
 ## 📋 ORCHESTRATION STEPS
 
 ### Prerequisite: Task is Already Blocked
-This workflow assumes a task was previously blocked during execution:
-- Task hit a blocker during FEATURE_CYCLE or BUG_CYCLE
-- [BLOCK](../COMMANDS/BLOCK.md) command was used to document the blocker
-- Task is marked BLOCKED in TODO
-- INPROGRESS doc contains blocker description and unblocking conditions
+This workflow assumes a task was previously blocked during execution using [BLOCK](../COMMANDS/BLOCK.md) command. Task is marked BLOCKED in TODO with documented blocker conditions in INPROGRESS.
 
 ---
 
 ### Step 1: Attempt Unblocking
 **Command:** [UNBLOCK](../COMMANDS/UNBLOCK.md)
 
-**Actions:**
-1. **Review Blocker Documentation:**
-   - Read BLOCKED section in task's INPROGRESS document
-   - Identify specific blocker and unblocking conditions
-   - Check when task was originally blocked
+Review blocker documentation, assess if unblocking conditions are met, attempt resolution, and document current status.
 
-2. **Assess Current Status:**
-   - Verify if unblocking conditions are now met
-   - Check if dependency is available
-   - Test if external blocker was resolved
-   - Look for workarounds or alternative approaches
-
-3. **Document Findings:**
-   - Update INPROGRESS with current blocker status
-   - Note any changes in conditions or timeline
-   - Record attempts made to resolve blocker
-
-**Validation:**
-- Blocker status is assessed
-- Documentation is updated
-- Clear determination made: unblocked or still blocked
+**Output:** Clear determination whether task is unblocked or still blocked.
 
 ---
 
 ### Step 2a: If Successfully Unblocked → Resume Work
 
-**Trigger:** Unblocking conditions are met
+Update documentation to reflect unblocked status, then resume work via [FEATURE_CYCLE](./FEATURE_CYCLE.md) or [BUG_CYCLE](./BUG_CYCLE.md) depending on task type.
 
-**Actions:**
-1. **Update Documentation:**
-   - Mark task as no longer blocked in TODO
-   - Update INPROGRESS (remove BLOCKED status)
-   - Document how blocker was resolved
-
-2. **Resume Normal Workflow:**
-   - Continue with [FEATURE_CYCLE](./FEATURE_CYCLE.md) if it was a feature
-   - Continue with [BUG_CYCLE](./BUG_CYCLE.md) if it was a bug fix
-   - Use [START](../COMMANDS/START.md) to complete implementation
-   - Follow through to [ARCHIVE](../COMMANDS/ARCHIVE.md)
-
-3. **Capture Learnings:**
-   - Document resolution timeline (how long blocked)
-   - Note lessons for preventing similar blockers
-   - Update workplan if timing was affected
-
-**Output:** Task successfully resumed and completed via normal workflow.
+**Output:** Task resumed and completed through normal workflow.
 
 ---
 
 ### Step 2b: If Still Blocked → Pivot to Alternative Work
 
-**Trigger:** Blocker remains unresolved
+Document unsuccessful unblock attempt, use [SELECT_NEXT](../COMMANDS/SELECT_NEXT.md) to find alternative work, set re-evaluation schedule (daily/weekly/bi-weekly based on priority).
 
-**Actions:**
-1. **Update Documentation:**
-   - Document that unblock was attempted but unsuccessful
-   - Update expected resolution timeline if changed
-   - Confirm unblocking conditions are still accurate
-
-2. **Find Alternative Work:**
-   - Use [SELECT_NEXT](../COMMANDS/SELECT_NEXT.md) to identify unblocked task
-   - Prioritize tasks that don't share the same blocker
-   - Update workplan if priorities need adjustment
-
-3. **Set Re-evaluation Schedule:**
-   - For critical blockers: retry UNBLOCK daily
-   - For normal blockers: retry UNBLOCK weekly
-   - For low-priority blockers: retry UNBLOCK bi-weekly
-   - Document when next unblock attempt will occur
-
-4. **Execute Alternative Work:**
-   - Complete the new task using [FEATURE_CYCLE](./FEATURE_CYCLE.md)
-   - Keep blocked task visible in TODO (marked BLOCKED)
-   - Continue productive work while monitoring blocker
-
-**Output:** Alternative productive work identified and executed, periodic UNBLOCK retries scheduled.
+**Output:** Alternative work selected, blocked task remains tracked with retry schedule.
 
 ---
 

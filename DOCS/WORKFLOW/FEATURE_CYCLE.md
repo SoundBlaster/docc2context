@@ -29,96 +29,27 @@ This workflow represents the standard development cadence for docc2context featu
 ### Step 1: Task Selection & Planning
 **Command:** [SELECT_NEXT](../COMMANDS/SELECT_NEXT.md)
 
-**Actions:**
-1. Review current TODO queue against PRD priorities
-2. Check for any blocking dependencies or prerequisites
-3. Evaluate workload and select appropriately-sized task
-4. Create INPROGRESS documentation with:
-   - Task objective and scope
-   - PRD references and acceptance criteria
-   - Test plan outline
-   - Known dependencies
-5. Mark task as in-progress in TODO
+Choose the next highest-priority task from TODO, create planning documentation in INPROGRESS, and mark task as active.
 
-**Validation:**
-- `DOCS/INPROGRESS/[TaskID]_[TaskName].md` exists
-- Task is marked in-progress in `DOCS/todo.md`
-- No conflicts with other team members' work
-- Prerequisites are satisfied
-
-**Output:** Task selected, planned, and ready for implementation.
+**Output:** Task selected with documented plan in `DOCS/INPROGRESS/[TaskID]_[TaskName].md`
 
 ---
 
 ### Step 2: Full Implementation
 **Command:** [START](../COMMANDS/START.md)
 
-**Actions:**
-1. **TDD Red Phase:**
-   - Write failing tests that validate PRD acceptance criteria
-   - Cover both positive and negative test cases
-   - Include snapshot/determinism tests if applicable
-   - Verify tests fail with expected error messages
-   - **DO NOT commit failing tests**
+Execute complete TDD cycle (red → green → refactor) to implement the feature with comprehensive test coverage. All tests must pass before completion.
 
-2. **TDD Green Phase:**
-   - Implement minimum code to make all tests pass
-   - Follow existing code patterns and architecture
-   - Update parsers, CLI, Markdown generators as needed
-   - Run `swift test` frequently to track progress
-
-3. **TDD Refactor Phase:**
-   - Clean up implementation (remove duplication, improve naming)
-   - Add comments for complex logic
-   - Update public API documentation if needed
-   - Ensure code follows project conventions
-
-4. **Validation:**
-   - Run full test suite: `swift test`
-   - Verify no regressions in existing tests
-   - Check determinism if applicable
-   - Ensure CI would pass (no warnings, formatting issues)
-
-**Quality Gates (ALL must pass):**
-- ✅ All new tests pass
-- ✅ All existing tests still pass
-- ✅ Implementation satisfies PRD acceptance criteria
-- ✅ Code is clean, documented, and review-ready
-- ✅ Local CI checks pass
-
-**Output:** Complete, tested feature ready for archival.
+**Output:** Complete, tested feature with all tests passing and code review-ready.
 
 ---
 
 ### Step 3: Finalization & Archival
 **Command:** [ARCHIVE](../COMMANDS/ARCHIVE.md)
 
-**Actions:**
-1. **Final Documentation:**
-   - Update INPROGRESS note with completion summary
-   - Document any lessons learned or gotchas
-   - Note any follow-up tasks discovered
-   - Update README or API docs if public interface changed
+Move completed work to TASK_ARCHIVE, update TODO and tracking documents, capture lessons learned.
 
-2. **Tracking Updates:**
-   - Mark task complete in `DOCS/todo.md`
-   - Move INPROGRESS note to `DOCS/TASK_ARCHIVE/`
-   - Update workplan if phase objectives were met
-   - Check off relevant PRD checklist items
-
-3. **Knowledge Capture:**
-   - Archive includes: objective, approach, outcomes, lessons
-   - Link to relevant commits/PRs
-   - Document any edge cases or special considerations
-   - Record test coverage details
-
-**Validation:**
-- Task moved from INPROGRESS to TASK_ARCHIVE
-- TODO reflects completion
-- PRD/workplan updated appropriately
-- All documentation is current
-
-**Output:** Feature fully delivered, documented, and archived.
+**Output:** Task archived in `DOCS/TASK_ARCHIVE/` with complete documentation trail.
 
 ---
 
