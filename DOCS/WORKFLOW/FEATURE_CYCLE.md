@@ -33,6 +33,11 @@ Choose the next highest-priority task from TODO, create planning documentation i
 
 **Output:** Task selected with documented plan in `DOCS/INPROGRESS/[TaskID]_[TaskName].md`
 
+**🔸 Commit:** After completing SELECT_NEXT, commit the INPROGRESS documentation.
+```bash
+git commit -m "SELECT_NEXT: Plan [TaskID] [TaskName]"
+```
+
 ---
 
 ### Step 2: Full Implementation
@@ -42,6 +47,11 @@ Execute complete TDD cycle (red → green → refactor) to implement the feature
 
 **Output:** Complete, tested feature with all tests passing and code review-ready.
 
+**🔸 Commit:** After completing START, commit all implementation changes (tests + code).
+```bash
+git commit -m "START: Implement [TaskID] [TaskName]"
+```
+
 ---
 
 ### Step 3: Finalization & Archival
@@ -50,6 +60,11 @@ Execute complete TDD cycle (red → green → refactor) to implement the feature
 Move completed work to TASK_ARCHIVE, update TODO and tracking documents, capture lessons learned.
 
 **Output:** Task archived in `DOCS/TASK_ARCHIVE/` with complete documentation trail.
+
+**🔸 Commit:** After completing ARCHIVE, commit the archival and tracking updates.
+```bash
+git commit -m "ARCHIVE: Complete [TaskID] [TaskName]"
+```
 
 ---
 

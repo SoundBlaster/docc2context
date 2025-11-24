@@ -33,6 +33,11 @@ Document observed behavior, reproduction steps, severity, and affected component
 
 **Output:** Bug documented in `DOCS/INPROGRESS/BUG_[ShortDescription].md`
 
+**🔸 Commit:** After completing BUG, commit the bug documentation.
+```bash
+git commit -m "BUG: Document [ShortDescription]"
+```
+
 ---
 
 ### Step 2: Fix Planning
@@ -41,6 +46,11 @@ Document observed behavior, reproduction steps, severity, and affected component
 Perform root cause analysis, design minimal fix, plan regression tests, assess impact. Update INPROGRESS with fix strategy.
 
 **Output:** Clear fix plan with root cause identified and test strategy defined.
+
+**🔸 Commit:** After completing FIX, commit the fix plan documentation.
+```bash
+git commit -m "FIX: Plan fix for [ShortDescription]"
+```
 
 ---
 
@@ -51,6 +61,11 @@ Implement fix using TDD: write regression test (red), fix the bug (green), refac
 
 **Output:** Bug fixed with regression test coverage and all tests passing.
 
+**🔸 Commit:** After completing START, commit the fix implementation (regression tests + fix).
+```bash
+git commit -m "START: Implement fix for [ShortDescription]"
+```
+
 ---
 
 ### Step 4: Archival & Knowledge Capture
@@ -59,6 +74,11 @@ Implement fix using TDD: write regression test (red), fix the bug (green), refac
 Archive bug resolution with root cause explanation, prevention strategy, and lessons learned. Update TODO and tracking docs.
 
 **Output:** Bug archived in `DOCS/TASK_ARCHIVE/` with prevention measures documented.
+
+**🔸 Commit:** After completing ARCHIVE, commit the archival and tracking updates.
+```bash
+git commit -m "ARCHIVE: Complete bug fix [ShortDescription]"
+```
 
 ---
 

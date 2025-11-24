@@ -59,8 +59,31 @@ Links to related or follow-up workflows.
 1. **Read the workflow document** to understand the full process
 2. **Verify prerequisites** mentioned in the workflow
 3. **Follow orchestration steps** sequentially
-4. **Validate outputs** match expected results
-5. **Update tracking documents** as specified
+4. **Commit after each command** - create a git commit after completing each orchestration step
+5. **Validate outputs** match expected results
+6. **Update tracking documents** as specified
+
+## 📝 Git Workflow Discipline
+
+**CRITICAL:** Commit after every command completion.
+
+Each orchestration step represents a command execution. After completing each command:
+- ✅ Create a git commit with clear message describing what was accomplished
+- ✅ Reference the command that was executed (e.g., "SELECT_NEXT: Choose B1.2 Symbol snapshots")
+- ✅ Include relevant file changes from that command only
+
+**Benefits:**
+- Provides clear progress checkpoints
+- Enables easy rollback if needed
+- Documents workflow execution trail
+- Facilitates code review by logical steps
+
+**Example commit sequence for FEATURE_CYCLE:**
+```
+1. git commit -m "SELECT_NEXT: Plan implementation for B1.2 Symbol snapshots"
+2. git commit -m "START: Implement Symbol snapshot tests and code"
+3. git commit -m "ARCHIVE: Complete B1.2 Symbol snapshots task"
+```
 
 ## 🔗 Integration with Project Documentation
 

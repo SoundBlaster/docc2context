@@ -38,6 +38,11 @@ Review blocker documentation, assess if unblocking conditions are met, attempt r
 
 **Output:** Clear determination whether task is unblocked or still blocked.
 
+**🔸 Commit:** After completing UNBLOCK, commit the updated blocker status.
+```bash
+git commit -m "UNBLOCK: Update status for [TaskID] [TaskName]"
+```
+
 ---
 
 ### Step 2a: If Successfully Unblocked → Resume Work
@@ -46,6 +51,8 @@ Update documentation to reflect unblocked status, then resume work via [FEATURE_
 
 **Output:** Task resumed and completed through normal workflow.
 
+**Note:** Follow commit discipline from the resumed workflow (FEATURE_CYCLE or BUG_CYCLE).
+
 ---
 
 ### Step 2b: If Still Blocked → Pivot to Alternative Work
@@ -53,6 +60,8 @@ Update documentation to reflect unblocked status, then resume work via [FEATURE_
 Document unsuccessful unblock attempt, use [SELECT_NEXT](../COMMANDS/SELECT_NEXT.md) to find alternative work, set re-evaluation schedule (daily/weekly/bi-weekly based on priority).
 
 **Output:** Alternative work selected, blocked task remains tracked with retry schedule.
+
+**Note:** Follow commit discipline from FEATURE_CYCLE for the alternative task.
 
 ---
 
