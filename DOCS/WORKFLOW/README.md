@@ -15,7 +15,7 @@ The `DOCS/WORKFLOW` directory contains end-to-end workflow orchestrations that c
 | --- | --- | --- |
 | [FEATURE_CYCLE](./FEATURE_CYCLE.md) | Complete feature development lifecycle: planning → implementation → delivery | SELECT_NEXT → START → ARCHIVE |
 | [BUG_CYCLE](./BUG_CYCLE.md) | Bug discovery and resolution process | BUG → FIX → START → ARCHIVE |
-| [BLOCKED_RECOVERY](./BLOCKED_RECOVERY.md) | Handle and resolve task blockers | BLOCK → resolve dependencies → SELECT_NEXT/START |
+| [BLOCKED_RECOVERY](./BLOCKED_RECOVERY.md) | Attempt to unblock and resume previously blocked tasks | UNBLOCK → (if successful) FEATURE_CYCLE/START or (if not) SELECT_NEXT |
 
 ## 🎯 When to Use Workflows
 
