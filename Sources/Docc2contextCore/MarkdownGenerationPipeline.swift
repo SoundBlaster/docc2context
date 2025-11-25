@@ -6,17 +6,20 @@ public struct MarkdownGenerationPipeline {
         public let tutorialVolumeCount: Int
         public let chapterCount: Int
         public let referenceArticleCount: Int
+        public let symbolCount: Int
 
         public init(
             outputDirectory: URL,
             tutorialVolumeCount: Int,
             chapterCount: Int,
-            referenceArticleCount: Int
+            referenceArticleCount: Int,
+            symbolCount: Int = 0
         ) {
             self.outputDirectory = outputDirectory
             self.tutorialVolumeCount = tutorialVolumeCount
             self.chapterCount = chapterCount
             self.referenceArticleCount = referenceArticleCount
+            self.symbolCount = symbolCount
         }
     }
 
@@ -102,7 +105,8 @@ public struct MarkdownGenerationPipeline {
     public func generateMarkdown(
         from inputPath: String,
         to outputPath: String,
-        forceOverwrite: Bool
+        forceOverwrite: Bool,
+        technologyFilter: [String]? = nil
     ) throws -> Summary {
         let inputURL = URL(fileURLWithPath: inputPath)
         try validateInputDirectory(inputURL)
@@ -116,7 +120,13 @@ public struct MarkdownGenerationPipeline {
             from: inputURL,
             technologyRoot: bundleMetadata.technologyRoot)
         let bundleDataMetadata = try metadataParser.loadBundleDataMetadata(from: inputURL)
-        let symbolReferences = try metadataParser.loadSymbolGraphReferences(from: inputURL)
+        var symbolReferences = try metadataParser.loadSymbolGraphReferences(from: inputURL)
+
+        // F2: Apply technology filter to symbol references
+        if let filters = technologyFilter, !filters.isEmpty {
+            let filterSet = Set(filters)
+            symbolReferences = symbolReferences.filter { filterSet.contains($0.moduleName) }
+        }
 
         let bundleModel = try modelBuilder.makeBundleModel(
             bundleMetadata: bundleMetadata,
@@ -206,7 +216,8 @@ public struct MarkdownGenerationPipeline {
             outputDirectory: outputURL,
             tutorialVolumeCount: tutorialVolumeCount,
             chapterCount: chapterCount,
-            referenceArticleCount: referenceArticleCount)
+            referenceArticleCount: referenceArticleCount,
+            symbolCount: symbolReferences.count)
     }
 
     private func validateInputDirectory(_ url: URL) throws {

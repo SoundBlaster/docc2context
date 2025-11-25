@@ -108,4 +108,50 @@ final class Docc2contextCLITests: XCTestCase {
                           "Pipeline error description should mention directory requirement")
         }
     }
+
+    func testFilterTechnologyFlagIsRecognized() throws {
+        let fixturesURL = FixtureLoader.urlForBundle(named: "ArticleReference.doccarchive")
+        try TestTemporaryDirectory.withTemporaryDirectory { temp in
+            let outputDirectory = temp.childDirectory(named: "cli-filtered")
+
+            let command = Docc2contextCommand()
+            let result = command.run(arguments: [
+                "docc2context",
+                fixturesURL.path,
+                "--output",
+                outputDirectory.path,
+                "--force",
+                "--technology", "Docc2contextCore"
+            ])
+
+            XCTAssertEqual(result.exitCode, 0, "F2 spec: --technology flag should be accepted")
+        }
+    }
+
+    func testFilterTechnologyFlagCanBeRepeated() throws {
+        let fixturesURL = FixtureLoader.urlForBundle(named: "ArticleReference.doccarchive")
+        try TestTemporaryDirectory.withTemporaryDirectory { temp in
+            let outputDirectory = temp.childDirectory(named: "cli-multi-filter")
+
+            let command = Docc2contextCommand()
+            let result = command.run(arguments: [
+                "docc2context",
+                fixturesURL.path,
+                "--output",
+                outputDirectory.path,
+                "--force",
+                "--technology", "ModuleA",
+                "--technology", "ModuleB"
+            ])
+
+            XCTAssertEqual(result.exitCode, 0, "F2 spec: --technology flag should accept multiple modules")
+        }
+    }
+
+    func testHelpDescribesFilterTechnologyFlag() throws {
+        let result = Docc2contextCommand().run(arguments: ["docc2context", "--help"])
+
+        XCTAssertTrue(result.output.contains("--technology"), "F2 spec: help text must document --technology flag.")
+        XCTAssertTrue(result.output.contains("technology"), "F2 spec: help text must document technology filter option.")
+    }
 }
