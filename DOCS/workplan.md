@@ -41,6 +41,7 @@ The workplan distills the execution order of the phases defined in [DOCS/PRD/doc
 ## Phase F – Performance & Enhancements
 - ✅ **F1 Incremental Conversion** — archived under `DOCS/TASK_ARCHIVE/30_F1_IncrementalConversion/`; streaming-friendly Markdown generation optimizations reduce intermediate allocations while preserving determinism, backed by profiling helper (`Scripts/profile_memory.sh`) and 4 streaming optimization tests.
 - ✅ **F2 Technology Filter Flag** — archived under `DOCS/TASK_ARCHIVE/31_F2_TechnologyFilterFlag/`; added repeatable `--technology <name>` flag, piped module filtering into `MarkdownGenerationPipeline`, preserved tutorials/articles output, expanded summary counts with `symbolCount`, refreshed README, and landed 8 tests covering CLI parsing + deterministic filtered exports.
+- 🧭 **G0 Test Debt Cleanup** — planning in `DOCS/INPROGRESS/G0_TestDebtCleanup.md`; target is warning-free `swift test` by fixing `XCTSkip` usage and converting placeholder skips (ArchiveExtraction, InputDetection, Logging, packaging) into real or conditional specs without breaking determinism/coverage gates.
 
 ## Tracking Conventions
 - Store active task notes inside `DOCS/INPROGRESS/`.

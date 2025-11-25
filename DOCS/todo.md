@@ -3,7 +3,7 @@
 Use this list for near-term execution. Each entry maps back to the PRD and [workplan](./workplan.md).
 
 ## In Progress
-_None – All Phase F2 work complete._
+- [ ] **G0 Test Debt Cleanup** — Remove `swift test` warnings by fixing `XCTSkip` usage and replace placeholder skips with real or conditionally skipped specs (ArchiveExtraction/InputDetection/Logging/Packaging). _Doc:_ `DOCS/INPROGRESS/G0_TestDebtCleanup.md`. _Owner:_ docc2context agent. _Status:_ Selected — planning only; implementation pending START.
 
 ## Completed
 - [x] **F2 Technology Filter Flag** — Implemented CLI `--technology <name>` flag for selective symbol exports by module name, preserving determinism and leaving tutorials/articles unaffected. _Depends on:_ Phase C link graph outputs and Phase B argument parsing foundation. _Doc:_ `DOCS/TASK_ARCHIVE/31_F2_TechnologyFilterFlag/F2_TechnologyFilterFlag.md`. _Owner:_ docc2context agent. _Status:_ Complete — 2025-11-25; added `--technology` flag (repeatable), extended `MarkdownGenerationPipeline` with filtering, added `symbolCount` to Summary, 8 new tests (all passing), updated README.
@@ -66,8 +66,7 @@ Tasks prevented from proceeding by external dependencies, missing resources, or 
 ## Under Consideration
 Following E4 selection, these candidates remain for future prioritization (pending blockers or dependencies):
 
-- _F1 Incremental Conversion moved to "In Progress" on 2025-11-22._
+- _None — awaiting new proposals post-G0 cleanup._
 
 ## Backlog Ideas
-- [ ] Explore incremental conversion to stream Markdown output for very large DocC bundles.
-- [ ] Investigate CLI `--filter technology` flag for selective exports once baseline pipeline ships.
+- [ ] Additional maintenance or enhancements TBD after G0 selection.
