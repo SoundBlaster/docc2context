@@ -40,7 +40,7 @@ The workplan distills the execution order of the phases defined in [DOCS/PRD/doc
 
 ## Phase F – Performance & Enhancements
 - ✅ **F1 Incremental Conversion** — archived under `DOCS/TASK_ARCHIVE/30_F1_IncrementalConversion/`; streaming-friendly Markdown generation optimizations reduce intermediate allocations while preserving determinism, backed by profiling helper (`Scripts/profile_memory.sh`) and 4 streaming optimization tests.
-- 🧭 **F2 Technology Filter Flag** — backlog candidate for future selection; would add CLI `--filter technology` option once requirements and specs are defined.
+- ✅ **F2 Technology Filter Flag** — archived under `DOCS/TASK_ARCHIVE/31_F2_TechnologyFilterFlag/`; added repeatable `--technology <name>` flag, piped module filtering into `MarkdownGenerationPipeline`, preserved tutorials/articles output, expanded summary counts with `symbolCount`, refreshed README, and landed 8 tests covering CLI parsing + deterministic filtered exports.
 
 ## Tracking Conventions
 - Store active task notes inside `DOCS/INPROGRESS/`.
