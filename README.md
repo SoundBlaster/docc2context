@@ -60,16 +60,17 @@ Pass additional Markdown paths as arguments (for example, `DOCS/PRD/phase_d.md`)
 
 ## CLI usage
 
-`docc2context` now executes the DocC → Markdown pipeline end-to-end. Running the command populates `<output>/markdown/` with deterministic files grouped into `tutorials/` (tutorial volumes + chapters) and `articles/` (reference content). Each invocation prints a concise summary showing how many tutorial volumes, chapters, and reference articles were rendered so scripts can validate expectations.
+`docc2context` now executes the DocC → Markdown pipeline end-to-end. Running the command populates `<output>/markdown/` with deterministic files grouped into `tutorials/` (tutorial volumes + chapters) and `articles/` (reference content). Each invocation prints a concise summary showing how many tutorial volumes, chapters, reference articles, and symbols were rendered so scripts can validate expectations.
 
 ```
-docc2context <input-path> --output <directory> [--format markdown] [--force]
+docc2context <input-path> --output <directory> [--format markdown] [--force] [--technology <name>]
 ```
 
 - `<input-path>` – Required positional argument that points to a DocC bundle or `.doccarchive` to convert.
 - `--output <directory>` – Required option describing where Markdown/link graph artifacts should be written. The directory is created if it does not already exist.
 - `--format <value>` – Optional output format selector. For now only `markdown` is accepted; other values exit with code 64 and  include the supported list in the error text.
 - `--force` – Optional boolean flag that allows the CLI to delete an existing output directory before writing fresh Markdown files.
+- `--technology <name>` – Optional filter for symbol references by module/technology name. Can be specified multiple times to include symbols from multiple modules. When specified, only symbols matching the filter are included in the output; tutorials and articles remain unaffected.
 
 Parsing errors exit with `EX_USAGE`/64 and human-readable guidance so scripts can detect misconfigurations early. `--help` prints the same usage and documents each supported flag. Successful conversions exit 0 after creating Markdown files on disk.
 

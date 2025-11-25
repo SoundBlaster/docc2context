@@ -49,6 +49,7 @@ public struct Docc2contextCommand {
         let outputPath: String
         let forceOverwrite: Bool
         let format: String
+        let technologyFilter: [String]?
     }
 
     public func run(arguments: [String]) -> Docc2contextCommandResult {
@@ -64,10 +65,11 @@ public struct Docc2contextCommand {
             let summary = try pipeline.generateMarkdown(
                 from: options.inputPath,
                 to: options.outputPath,
-                forceOverwrite: options.forceOverwrite)
+                forceOverwrite: options.forceOverwrite,
+                technologyFilter: options.technologyFilter)
             let formattedSummary = "Generated \(summary.tutorialVolumeCount) tutorial volume(s), " +
-                "\(summary.chapterCount) chapter(s), and \(summary.referenceArticleCount) reference article(s) into " +
-                "\(summary.outputDirectory.path)."
+                "\(summary.chapterCount) chapter(s), \(summary.referenceArticleCount) reference article(s), " +
+                "and \(summary.symbolCount) symbol(s) into \(summary.outputDirectory.path)."
             return Docc2contextCommandResult(exitCode: 0, output: formattedSummary)
         } catch let error as CLIError {
             return Docc2contextCommandResult(exitCode: ExitCode.usageError, output: error.description)
@@ -95,11 +97,15 @@ public struct Docc2contextCommand {
             throw CLIError.unsupportedFormat(parsedArguments.format)
         }
 
+        // F2: Use technology filters from --technology arguments
+        let technologyFilters = parsedArguments.technology.isEmpty ? nil : parsedArguments.technology
+
         return CLIOptions(
             inputPath: input,
             outputPath: output,
             forceOverwrite: parsedArguments.force,
-            format: normalizedFormat)
+            format: normalizedFormat,
+            technologyFilter: technologyFilters)
     }
 }
 
@@ -115,6 +121,9 @@ struct Docc2contextCLIOptions: ParsableArguments {
 
     @Option(name: .customLong("format"), help: "Output format. Supported values: markdown (default).")
     var format: String = "markdown"
+
+    @Option(name: .customLong("technology"), help: "Filter symbols by technology/module name. Can be specified multiple times.")
+    var technology: [String] = []
 }
 
 public struct Docc2contextHelp {
@@ -125,13 +134,14 @@ public struct Docc2contextHelp {
         docc2context – DocC to Markdown converter (bootstrap)
 
         Usage:
-          docc2context <input-path> --output <directory> [--format markdown] [--force]
+          docc2context <input-path> --output <directory> [--format markdown] [--force] [--technology <name>]
 
         Options:
-          -h, --help         Show this help message and exit.
-          --output <dir>     Required. Target directory that will contain Markdown + link graph outputs.
-          --force            Overwrite the output directory if it already exists.
-          --format <value>   Output format. Supported values: markdown (default).
+          -h, --help                Show this help message and exit.
+          --output <dir>            Required. Target directory that will contain Markdown + link graph outputs.
+          --force                   Overwrite the output directory if it already exists.
+          --format <value>          Output format. Supported values: markdown (default).
+          --technology <name>       Filter symbols by technology/module name. Can be specified multiple times.
         """
     }
 }
