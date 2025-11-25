@@ -19,7 +19,7 @@
 ## 🔗 Dependencies & Inputs
 - **Prerequisites**: Completed argument parsing infrastructure (B2), bundle normalization/extraction (B3–B4), metadata parsing + internal model (B5–B6), link graph + TOC/index outputs (C3–C4).  
 - **External blockers**: None identified; E3 remains unrelated to this scope.  
-- **Reference materials**: PRD §Phase F enhancement backlog, prior CLI flag implementations (`--force`, `--format`), and release determinism gates (C5/D2).
+- **Reference materials**: workplan.md §Phase F enhancement backlog, prior CLI flag implementations (`--force`, `--format`), and release determinism gates (C5/D2).
 
 ## 🧪 Testing & Fixture Plan (Pre-Implementation)
 1. Author failing CLI tests specifying the `--filter technology` flag syntax, error messaging for missing/unknown technologies, and combination with existing flags (`--output`, `--force`, `--format`).
@@ -36,7 +36,7 @@
 - Performance considerations: avoid duplicate parsing/rendering work when multiple filters overlap.
 
 ## 🚀 Next Steps (Before START)
-- Confirm acceptance criteria against PRD Phase F backlog and update TODO/workplan if additional follow-ups appear.  
+- Confirm acceptance criteria against workplan.md Phase F backlog and update TODO/workplan if additional follow-ups appear.  
 - Draft the failing test list and fixture requirements in this note; refine into `START` scope once confirmed.  
 - Identify impacts on documentation (README usage flags, help text) to be addressed during implementation.
 
