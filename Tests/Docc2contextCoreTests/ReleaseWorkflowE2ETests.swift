@@ -129,10 +129,6 @@ final class ReleaseWorkflowE2ETests: XCTestCase {
     /// - RPM: includes '-linux-' (e.g., docc2context-0.1.0-test-linux-x86_64.rpm)
     func test_linuxArtifactsFollowDocumentedNamingConventions() throws {
         #if os(Linux)
-        #else
-        throw XCTSkip("Linux artifact validation only runs on Linux hosts")
-        #endif
-
         guard commandExists("dpkg-deb") else {
             throw XCTSkip("dpkg-deb is required for Linux packaging validation")
         }
@@ -208,6 +204,9 @@ final class ReleaseWorkflowE2ETests: XCTestCase {
                      "RPM package must include '-linux-': expected \(expectedRpm)")
         XCTAssertTrue(fileManager.fileExists(atPath: rpmURL.path + ".sha256"),
                      "RPM checksum missing")
+        #else
+        throw XCTSkip("Linux artifact validation only runs on Linux hosts")
+        #endif
     }
 
     // MARK: - Test: macOS Artifact Naming Conventions
@@ -216,10 +215,6 @@ final class ReleaseWorkflowE2ETests: XCTestCase {
     /// - Zips: includes 'v' prefix (e.g., docc2context-v0.1.0-test-macos-arm64.zip)
     func test_macOSArtifactsFollowDocumentedNamingConventions() throws {
         #if os(macOS)
-        #else
-        throw XCTSkip("macOS artifact validation only runs on macOS hosts")
-        #endif
-
         let fileManager = FileManager.default
         let outputDirectory = TestSupportPaths.repositoryRootDirectory
             .appendingPathComponent(".build", isDirectory: true)
@@ -268,6 +263,9 @@ final class ReleaseWorkflowE2ETests: XCTestCase {
                      "macOS zip must include 'v' prefix: expected \(expectedZip)")
         XCTAssertTrue(fileManager.fileExists(atPath: zipURL.path + ".sha256"),
                      "macOS zip checksum missing")
+        #else
+        throw XCTSkip("macOS artifact validation only runs on macOS hosts")
+        #endif
     }
 
     // MARK: - Test: Homebrew Formula Validation

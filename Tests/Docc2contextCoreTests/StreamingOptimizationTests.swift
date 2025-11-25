@@ -159,6 +159,6 @@ final class StreamingOptimizationTests: XCTestCase {
         // 2. Memory measurement infrastructure beyond Scripts/profile_memory.sh
         // 3. CI integration for performance regression detection
 
-        XCTSkip("Memory measurement test requires synthetic large fixture and profiling infrastructure")
+        throw XCTSkip("Memory measurement test requires synthetic large fixture and profiling infrastructure")
     }
 }
