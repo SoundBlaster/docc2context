@@ -3,7 +3,7 @@
 Use this list for near-term execution. Each entry maps back to the PRD and [workplan](./workplan.md).
 
 ## In Progress
-_None – all active tasks completed._
+- [ ] **F2 Technology Filter Flag** — Evaluate and plan CLI `--filter technology` option for selective exports, ensuring determinism and coverage expectations stay intact. _Depends on:_ Phase C link graph outputs and Phase B argument parsing foundation. _Doc:_ `DOCS/INPROGRESS/F2_TechnologyFilterFlag.md`. _Owner:_ docc2context agent. _Status:_ Planning — 2025-11-22.
 
 ## Completed
 - [x] **F1 Incremental Conversion** — Implemented streaming/memory optimizations for Markdown generation to reduce peak memory usage for large DocC bundles while preserving determinism. _Depends on:_ Baseline performance profiling + determinism guardrails from Phase C/C5. _Doc:_ `DOCS/TASK_ARCHIVE/30_F1_IncrementalConversion/F1_IncrementalConversion.md`. _Owner:_ docc2context agent. _Status:_ Complete – 2025-11-22; created profiling infrastructure (`Scripts/profile_memory.sh`), implemented `loadAvailableArticlesDictionary()` optimization to eliminate intermediate array allocations, added 4 comprehensive streaming optimization tests (`StreamingOptimizationTests.swift`) validating determinism and correctness of the optimized implementation (91/91 tests pass). Baseline metrics: ~69 MB peak RSS for current fixtures; expected 15-25% memory reduction for large bundles (1000+ articles). All release gates pass, no coverage regressions.
@@ -65,8 +65,6 @@ Tasks prevented from proceeding by external dependencies, missing resources, or 
 Following E4 selection, these candidates remain for future prioritization (pending blockers or dependencies):
 
 - _F1 Incremental Conversion moved to "In Progress" on 2025-11-22._
-
-- **F2 Technology Filter Flag** — Investigate CLI `--filter technology` flag for selective exports, allowing users to convert only specific documentation sections. _Depends on:_ Requirements gathering and TDD specs. _References:_ todo.md Backlog Ideas. _Priority:_ Low (enhancement, full export is default use case).
 
 ## Backlog Ideas
 - [ ] Explore incremental conversion to stream Markdown output for very large DocC bundles.
