@@ -1,9 +1,52 @@
 # H1 – APT/DNF Repository Hosting
 
-**Status:** Planning Phase (SELECT_NEXT)
-**Date:** 2025-11-25
+**Status:** ⛔ BLOCKED
+**Date:** 2025-11-25 (Planning) | 2025-11-26 (Blocked)
 **Owner:** docc2context agent (deferred to maintainer for execution)
 **Depends On:** D4-LNX (✅ complete — Linux release packaging matrix)
+
+---
+
+## ⛔ BLOCKER
+
+**Status**: BLOCKED as of 2025-11-26
+**Blocked by**: External service provisioning, credentials, and infrastructure setup
+**Category**: External Dependencies
+**Blocker Details**:
+This task requires external resources and operational setup that cannot be completed without maintainer involvement:
+1. **Service Account Provisioning** — Selection and account creation on Cloudsmith, Packagecloud, or GitHub Pages repository hosting
+2. **API Credentials** — API tokens for automated package uploads (requires service account access)
+3. **GPG Signing Keys** — Generation, secure storage, and CI integration of package signing keys for apt/dnf repositories
+4. **Testing Environment** — Live repository for validation of upload/installation workflows
+5. **Operational Ownership** — Ongoing maintenance responsibilities for repository hosting service
+
+**Unblock Conditions**:
+- [ ] Repository hosting service selected (Cloudsmith recommended for free OSS tier)
+- [ ] Service account provisioned and API credentials obtained
+- [ ] GPG signing keys generated and securely stored (for apt/dnf package signing)
+- [ ] GitHub Actions secrets configured (`CLOUDSMITH_API_TOKEN`, `GPG_PRIVATE_KEY`, etc.)
+- [ ] Test repository created and manual upload verified
+- [ ] Documentation reviewed by maintainer (`DOCS/INPROGRESS/BLOCKED_H1_APTDNFRepositoryHosting.md`, `.github/SECRETS.md`)
+
+**Workarounds Considered**:
+- **Manual Repository Hosting (GitHub Pages)** — Rejected due to ongoing maintenance overhead (running `reprepro`/`createrepo` manually)
+- **PPA (Launchpad)** — Rejected; Ubuntu-specific, doesn't support dnf/rpm
+- **No Repository (Current State)** — Acceptable workaround; users install via manual downloads or Homebrew. `.deb`/`.rpm` packages still available via GitHub Releases.
+
+**Impact**:
+- **Severity**: Low — Stretch goal feature; core functionality unaffected
+- **Users**: Linux users can still install via `.deb`/`.rpm` downloads, tarballs, or build from source
+- **Alternative Channels**: Homebrew available for macOS; Linux manual install documented in README
+
+**Next Steps for Maintainer**:
+1. Review this planning document and implementation strategy
+2. Select repository hosting service (evaluate Cloudsmith, Packagecloud)
+3. Provision account and obtain API credentials
+4. Generate GPG keys following best practices (see implementation strategy Phase 2)
+5. Configure GitHub secrets per `.github/SECRETS.md` guidance (to be created during implementation)
+6. Test manual package upload to verify repository configuration
+7. Integrate automated uploads into `.github/workflows/release.yml` (script provided in Phase 3)
+8. Validate end-to-end: release → upload → `apt install docc2context` / `dnf install docc2context`
 
 ---
 

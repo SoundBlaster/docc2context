@@ -3,7 +3,7 @@
 Use this list for near-term execution. Each entry maps back to the PRD and [workplan](./workplan.md).
 
 ## In Progress
-- **H1 APT/DNF Repository Hosting** — Establish automated apt/dnf repository hosting (e.g., Cloudsmith, Packagecloud) so Linux users can install docc2context via `apt`/`dnf` instead of manual downloads. _Depends on:_ D4-LNX (✅ complete). _Doc:_ `DOCS/INPROGRESS/H1_APTDNFRepositoryHosting.md`. _Owner:_ Deferred to maintainer for execution. _Status:_ Planning phase — selected 2025-11-25.
+_(No active tasks)_
 
 ## Completed
 - [x] **G0 Test Debt Cleanup** — Eliminated all `swift test` compiler warnings by fixing `XCTSkip` usage (added `throw` keyword) and reorganizing platform-specific test code to eliminate unreachable code warnings in ReleaseWorkflowE2ETests. All 91 tests pass with zero warnings; coverage (90.43%) and determinism gates verified. _Doc:_ `DOCS/INPROGRESS/G0_TestDebtCleanup.md`. _Owner:_ docc2context agent. _Status:_ Complete — 2025-11-25; fixed StreamingOptimizationTests.swift:162 and ReleaseWorkflowE2ETests.swift platform-specific code organization.
@@ -52,6 +52,22 @@ Following H1 selection, these candidates remain for future prioritization:
 
 ## Blocked
 Tasks prevented from proceeding by external dependencies, missing resources, or pending decisions.
+
+- [ ] **H1 APT/DNF Repository Hosting** — ⛔ **BLOCKED** — Establish automated apt/dnf repository hosting (e.g., Cloudsmith, Packagecloud) so Linux users can install docc2context via `apt`/`dnf` instead of manual downloads.
+  - **Blocker Category**: External Dependencies
+  - **Blocked by**: External service account provisioning (Cloudsmith/Packagecloud), API credentials, GPG signing keys
+  - **Blocked since**: 2025-11-26
+  - **Dependencies**: D4-LNX (✅ complete — Linux release packaging matrix)
+  - **Unblock Conditions**:
+    - [ ] Repository hosting service selected and account provisioned (recommend Cloudsmith for open source)
+    - [ ] API tokens/credentials obtained and securely stored
+    - [ ] GPG keys generated for package signing (apt/dnf)
+    - [ ] GitHub Actions secrets configured for repository upload
+    - [ ] Test repository verified with manual package upload
+  - **Documentation**: `DOCS/INPROGRESS/BLOCKED_H1_APTDNFRepositoryHosting.md`
+  - **Impact**: Stretch goal feature; does not block core functionality. Users can install via manual downloads, Homebrew (macOS), or `.deb`/`.rpm` packages.
+  - **Workarounds**: Manual package distribution via GitHub Releases (current state), documented in README.
+  - **Owner**: Deferred to project maintainer for external service setup and credential management
 
 - [ ] **E3 CI Signing/Notarization Setup** — ⛔ **BLOCKED** — Configure GitHub Actions secrets for macOS codesign identity and notarytool credentials so release workflow can produce notarized macOS binaries automatically.
   - **Blocker**: Apple Developer ID credentials not available (organization lacks Apple Developer Program access)
