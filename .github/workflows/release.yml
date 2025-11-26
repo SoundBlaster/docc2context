@@ -70,12 +70,13 @@ jobs:
       - name: Install Static Linux SDK (musl builds only)
         if: matrix.variant == 'musl'
         run: |
+          case "${{ matrix.swift }}" in
+            6.0.3) CHECKSUM="67f765e0030e661a7450f7e4877cfe008db4f57f177d5a08a6e26fd661cdd0bd" ;;
+            6.1.2) CHECKSUM="2c4b4896d6496b06dab9959854eb29cd57f5c4b8c934b88cf29e173dc73c85fe" ;;
+            *) echo "ERROR: Unknown Swift version ${{ matrix.swift }}" && exit 1 ;;
+          esac
           swift sdk install https://download.swift.org/swift-${{ matrix.swift }}-release/static-sdk/swift-${{ matrix.swift }}-RELEASE/swift-${{ matrix.swift }}-RELEASE_static-linux-0.0.1.artifactbundle.tar.gz \
-            --checksum $(case "${{ matrix.swift }}" in \
-              6.0.3) echo "67f765e0030e661a7450f7e4877cfe008db4f57f177d5a08a6e26fd661cdd0bd" ;; \
-              6.1.2) echo "2c4b4896d6496b06dab9959854eb29cd57f5c4b8c934b88cf29e173dc73c85fe" ;; \
-              *) echo "UNKNOWN_SWIFT_VERSION" && exit 1 ;; \
-            esac)
+            --checksum "$CHECKSUM"
           swift sdk list
 
       - name: Package ${{ matrix.platform }} release artifact
