@@ -25,6 +25,16 @@ jobs:
             arch: aarch64
             runner: ubuntu-22.04-arm64
             swift: '6.1.2'
+          - platform: linux
+            arch: x86_64
+            variant: musl
+            runner: ubuntu-22.04
+            swift: '6.1.2'
+          - platform: linux
+            arch: aarch64
+            variant: musl
+            runner: ubuntu-22.04-arm64
+            swift: '6.1.2'
           - platform: macos
             arch: arm64
             runner: macos-latest
@@ -57,21 +67,35 @@ jobs:
       - name: Verify Swift toolchain
         run: swift --version
 
+      - name: Install Static Linux SDK (musl builds only)
+        if: matrix.variant == 'musl'
+        run: |
+          case "${{ matrix.swift }}" in
+            6.0.3) CHECKSUM="67f765e0030e661a7450f7e4877cfe008db4f57f177d5a08a6e26fd661cdd0bd" ;;
+            6.1.2) CHECKSUM="2c4b4896d6496b06dab9959854eb29cd57f5c4b8c934b88cf29e173dc73c85fe" ;;
+            *) echo "ERROR: Unknown Swift version ${{ matrix.swift }}" && exit 1 ;;
+          esac
+          swift sdk install https://download.swift.org/swift-${{ matrix.swift }}-release/static-sdk/swift-${{ matrix.swift }}-RELEASE/swift-${{ matrix.swift }}-RELEASE_static-linux-0.0.1.artifactbundle.tar.gz \
+            --checksum "$CHECKSUM"
+          swift sdk list
+
       - name: Package ${{ matrix.platform }} release artifact
         env:
           VERSION: ${{ github.ref_name }}
+          PACKAGE_RELEASE_SWIFT_BUILD_FLAGS: ${{ matrix.variant == 'musl' && format('--swift-sdk {0}-swift-linux-musl', matrix.arch) || '' }}
         run: |
           mkdir -p dist/${{ matrix.platform }}
           Scripts/package_release.sh \
             --version "$VERSION" \
             --platform ${{ matrix.platform }} \
             --arch ${{ matrix.arch }} \
+            ${{ matrix.variant && format('--variant {0}', matrix.variant) || '' }} \
             --output dist/${{ matrix.platform }}
 
       - name: Upload ${{ matrix.platform }} artifact
         uses: actions/upload-artifact@v4
         with:
-          name: docc2context-${{ matrix.platform }}-${{ matrix.arch }}
+          name: docc2context-${{ matrix.platform }}-${{ matrix.arch }}${{ matrix.variant && format('-{0}', matrix.variant) || '' }}
           path: dist/${{ matrix.platform }}
 
   publish:

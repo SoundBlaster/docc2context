@@ -18,7 +18,7 @@ log_warn() {
 
 usage() {
   cat <<USAGE
-Usage: $(basename "$0") --version <semver> --arch <arch> --stage-dir <dir> --binary <path> --output <dir> [--dry-run]
+Usage: $(basename "$0") --version <semver> --arch <arch> --stage-dir <dir> --binary <path> --output <dir> [--variant <name>] [--dry-run]
 
 Options:
   --version    Semantic version number (without the leading 'v').
@@ -26,6 +26,7 @@ Options:
   --stage-dir  Directory produced by package_release.sh that already contains docc2context + README + LICENSE.
   --binary     Absolute path to the compiled docc2context binary.
   --output     Destination directory for the generated artifacts.
+  --variant    Optional variant suffix (e.g., 'musl' for static builds).
   --dry-run    Append the -dryrun suffix to every artifact name.
   -h, --help   Show this help text.
 USAGE
@@ -36,6 +37,7 @@ arch=""
 stage_dir=""
 binary_path=""
 output_dir="$REPO_ROOT/dist"
+variant=""
 dry_run="0"
 
 while [[ $# -gt 0 ]]; do
@@ -58,6 +60,10 @@ while [[ $# -gt 0 ]]; do
       ;;
     --output)
       output_dir="$2"
+      shift 2
+      ;;
+    --variant)
+      variant="$2"
       shift 2
       ;;
     --dry-run)
@@ -172,8 +178,11 @@ map_rpm_arch() {
 }
 
 suffix=""
+if [[ -n "$variant" ]]; then
+  suffix="-${variant}"
+fi
 if [[ "$dry_run" == "1" ]]; then
-  suffix="-dryrun"
+  suffix="${suffix}-dryrun"
 fi
 
 artifact_paths=()

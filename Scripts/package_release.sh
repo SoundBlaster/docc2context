@@ -23,12 +23,13 @@ log_error() {
 
 usage() {
   cat <<USAGE
-Usage: $(basename "$0") --version <semver> [--platform linux|macos] [--arch <value>] [--output <dir>] [--dry-run]
+Usage: $(basename "$0") --version <semver> [--platform linux|macos] [--arch <value>] [--variant <name>] [--output <dir>] [--dry-run]
 
 Options:
   --version     Required semantic version or tag (accepts optional leading 'v').
   --platform    Target platform identifier (linux or macos). Defaults to host platform.
   --arch        CPU architecture (defaults to host \`uname -m\`).
+  --variant     Optional variant suffix (e.g., 'musl' for static builds). Linux only.
   --output      Directory for the packaged artifacts. Defaults to $DEFAULT_OUTPUT_DIR.
   --dry-run     Performs the full build/package flow but marks artifacts as dry-run only.
   -h, --help    Print this message.
@@ -38,6 +39,7 @@ USAGE
 version=""
 platform=""
 arch=""
+variant=""
 output_dir="$DEFAULT_OUTPUT_DIR"
 dry_run="0"
 
@@ -53,6 +55,10 @@ while [[ $# -gt 0 ]]; do
       ;;
     --arch)
       arch="$2"
+      shift 2
+      ;;
+    --variant)
+      variant="$2"
       shift 2
       ;;
     --output)
@@ -234,6 +240,9 @@ create_summary() {
   if [[ -n "$arch" ]]; then
     summary_suffix+="-$arch"
   fi
+  if [[ -n "$variant" ]]; then
+    summary_suffix+="-$variant"
+  fi
   local summary_name="docc2context-v${sanitized_version}-${summary_suffix}"
   if [[ "$dry_run" == "1" ]]; then
     summary_name+="-dryrun"
@@ -244,6 +253,7 @@ create_summary() {
     echo "- Version: $sanitized_version"
     echo "- Platform: $platform"
     echo "- Architecture: $arch"
+    echo "- Variant: ${variant:-none}"
     echo "- Release Gates: $([[ "$PACKAGE_RELEASE_SKIP_GATES" == "1" ]] && echo "SKIPPED" || echo "PASSED")"
     echo "- Dry Run: $([[ "$dry_run" == "1" ]] && echo "true" || echo "false")"
     echo "- Generated At: $(date -u +"%Y-%m-%dT%H:%M:%SZ")"
@@ -291,6 +301,9 @@ package_linux() {
     --binary "$stage_dir/docc2context"
     --output "$output_dir"
   )
+  if [[ -n "$variant" ]]; then
+    helper_args+=("--variant" "$variant")
+  fi
   if [[ "$dry_run" == "1" ]]; then
     helper_args+=("--dry-run")
   fi

@@ -158,6 +158,10 @@ Once the release gates pass, package platform-specific binaries with `Scripts/pa
 # Produce Linux artifacts (tar.gz + .deb + .rpm) for docc2context v1.2.3 on the current host architecture
 Scripts/package_release.sh --version v1.2.3 --platform linux --output dist/linux
 
+# Generate musl builds (universal Linux compatibility)
+PACKAGE_RELEASE_SWIFT_BUILD_FLAGS="--swift-sdk x86_64-swift-linux-musl" \
+  Scripts/package_release.sh --version v1.2.3 --platform linux --arch x86_64 --variant musl --output dist/linux
+
 # Generate macOS builds (codesigned when MACOS_SIGN_IDENTITY is set)
 Scripts/package_release.sh --version v1.2.3 --platform macos --arch arm64 --output dist/macos
 Scripts/package_release.sh --version v1.2.3 --platform macos --arch x86_64 --output dist/macos
@@ -180,24 +184,36 @@ The GitHub Actions workflow at `.github/workflows/release.yml` now runs a Linux 
 
 ### Linux installation snippets
 
-Every GitHub Release publishes the SHA-256 hashes next to the Linux tarball, `.deb`, and `.rpm`. Verify the checksum before installing:
+Every GitHub Release publishes the SHA-256 hashes next to the Linux tarball, `.deb`, and `.rpm`. Verify the checksum before installing.
 
-```bash
-curl -LO https://github.com/SoundBlaster/docc2context/releases/download/v1.2.3/docc2context-1.2.3-linux-x86_64.tar.gz
-curl -LO https://github.com/SoundBlaster/docc2context/releases/download/v1.2.3/docc2context-1.2.3-linux-x86_64.tar.gz.sha256
-shasum -a 256 -c docc2context-1.2.3-linux-x86_64.tar.gz.sha256
-```
+**Choosing between glibc and musl builds:**
+
+- **glibc (default)** — Standard Linux builds that work on most modern distributions (Ubuntu, Debian, Fedora, RHEL, etc.). Requires glibc 2.27+ compatibility.
+- **musl (universal)** — Fully statically linked binaries that run on any Linux distribution, including Alpine, older distros with legacy glibc, and environments with glibc version mismatches. Recommended for maximum portability.
 
 Install via whichever mechanism matches your environment:
 
-- **Tarball**
+- **Tarball (glibc)**
 
   ```bash
+  curl -LO https://github.com/SoundBlaster/docc2context/releases/download/v1.2.3/docc2context-1.2.3-linux-x86_64.tar.gz
+  curl -LO https://github.com/SoundBlaster/docc2context/releases/download/v1.2.3/docc2context-1.2.3-linux-x86_64.tar.gz.sha256
+  shasum -a 256 -c docc2context-1.2.3-linux-x86_64.tar.gz.sha256
   tar -xzf docc2context-1.2.3-linux-x86_64.tar.gz
   sudo mv docc2context-v1.2.3/docc2context /usr/local/bin/
   ```
 
-- **Debian/Ubuntu**
+- **Tarball (musl / universal)**
+
+  ```bash
+  curl -LO https://github.com/SoundBlaster/docc2context/releases/download/v1.2.3/docc2context-1.2.3-linux-x86_64-musl.tar.gz
+  curl -LO https://github.com/SoundBlaster/docc2context/releases/download/v1.2.3/docc2context-1.2.3-linux-x86_64-musl.tar.gz.sha256
+  shasum -a 256 -c docc2context-1.2.3-linux-x86_64-musl.tar.gz.sha256
+  tar -xzf docc2context-1.2.3-linux-x86_64-musl.tar.gz
+  sudo mv docc2context-v1.2.3/docc2context /usr/local/bin/
+  ```
+
+- **Debian/Ubuntu (glibc)**
 
   ```bash
   curl -LO https://github.com/SoundBlaster/docc2context/releases/download/v1.2.3/docc2context_1.2.3_linux_amd64.deb
@@ -206,7 +222,16 @@ Install via whichever mechanism matches your environment:
   sudo dpkg -i docc2context_1.2.3_linux_amd64.deb
   ```
 
-- **Fedora/RHEL**
+- **Debian/Ubuntu (musl / universal)**
+
+  ```bash
+  curl -LO https://github.com/SoundBlaster/docc2context/releases/download/v1.2.3/docc2context_1.2.3_linux_amd64-musl.deb
+  curl -LO https://github.com/SoundBlaster/docc2context/releases/download/v1.2.3/docc2context_1.2.3_linux_amd64-musl.deb.sha256
+  shasum -a 256 -c docc2context_1.2.3_linux_amd64-musl.deb.sha256
+  sudo dpkg -i docc2context_1.2.3_linux_amd64-musl.deb
+  ```
+
+- **Fedora/RHEL (glibc)**
 
   ```bash
   curl -LO https://github.com/SoundBlaster/docc2context/releases/download/v1.2.3/docc2context-1.2.3-linux-x86_64.rpm
@@ -215,7 +240,16 @@ Install via whichever mechanism matches your environment:
   sudo dnf install docc2context-1.2.3-linux-x86_64.rpm
   ```
 
-The `.deb` installs the binary under `/usr/local/bin/docc2context` with documentation in `/usr/share/doc/docc2context/`. The `.rpm` layout matches so automation scripts can rely on consistent paths across distros. Future work on apt/dnf repositories and musl builds is tracked in the TODO backlog.
+- **Fedora/RHEL (musl / universal)**
+
+  ```bash
+  curl -LO https://github.com/SoundBlaster/docc2context/releases/download/v1.2.3/docc2context-1.2.3-linux-x86_64-musl.rpm
+  curl -LO https://github.com/SoundBlaster/docc2context/releases/download/v1.2.3/docc2context-1.2.3-linux-x86_64-musl.rpm.sha256
+  shasum -a 256 -c docc2context-1.2.3-linux-x86_64-musl.rpm.sha256
+  sudo dnf install docc2context-1.2.3-linux-x86_64-musl.rpm
+  ```
+
+The `.deb` installs the binary under `/usr/local/bin/docc2context` with documentation in `/usr/share/doc/docc2context/`. The `.rpm` layout matches so automation scripts can rely on consistent paths across distros. Both glibc and musl variants are functionally identical and produce byte-identical outputs (determinism preserved). Future work on apt/dnf repository hosting is tracked in the TODO backlog.
 
 ### macOS installation snippets
 
