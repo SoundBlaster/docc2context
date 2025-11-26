@@ -3,7 +3,7 @@
 Use this list for near-term execution. Each entry maps back to the PRD and [workplan](./workplan.md).
 
 ## In Progress
-_(No active tasks)_
+- [ ] **H2 musl Build Support** — Explore static musl builds for universal Linux compatibility across glibc-diverse distributions. _Depends on:_ D4-LNX packaging infrastructure (✅ complete). _Doc:_ `DOCS/INPROGRESS/H2_muslBuildSupport.md`. _Owner:_ docc2context agent. _Status:_ Planning – Selected 2025-11-26 via SELECT_NEXT; planning documentation complete. _Phase:_ F – Performance & Enhancements (Stretch Goals). _Next step:_ Execute via START command.
 
 ## Completed
 - [x] **G0 Test Debt Cleanup** — Eliminated all `swift test` compiler warnings by fixing `XCTSkip` usage (added `throw` keyword) and reorganizing platform-specific test code to eliminate unreachable code warnings in ReleaseWorkflowE2ETests. All 91 tests pass with zero warnings; coverage (90.43%) and determinism gates verified. _Doc:_ `DOCS/INPROGRESS/G0_TestDebtCleanup.md`. _Owner:_ docc2context agent. _Status:_ Complete — 2025-11-25; fixed StreamingOptimizationTests.swift:162 and ReleaseWorkflowE2ETests.swift platform-specific code organization.
@@ -46,8 +46,7 @@ _(No active tasks)_
 - [x] **C1 Tutorial Chapter Snapshot Spec** Capture the deterministic Markdown contract for the first tutorial chapter page (`tutorialcatalog/tutorials/getting-started`) and lock it via `MarkdownSnapshotSpecsTests.test_tutorialChapterPageMatchesSnapshot`. _Depends on:_ C1 outline + tutorial overview snapshot harness. _Doc:_ PRD §Phase C (snapshot specs). _Owner:_ docc2context agent. _Status:_ Complete – archived under `DOCS/TASK_ARCHIVE/15_C1_TutorialChapterSnapshot/`; validated with `swift test --filter MarkdownSnapshotSpecsTests.test_tutorialChapterPageMatchesSnapshot` and the full `swift test` suite, with follow-on tutorial + article specs tracked in `DOCS/TASK_ARCHIVE/16_C1_MarkdownSnapshotSpecs/` and `17_C1_ReferenceArticleSnapshot/`.
 
 ## Ready to Start
-Following H1 selection, these candidates remain for future prioritization:
-- **H2 musl Build Support** — Explore static musl builds for universal Linux compatibility across glibc-diverse distributions. _Depends on:_ D4-LNX packaging infrastructure. _Stretch goal:_ Pre-built musl binaries or CI matrix for musl targets.
+Following H2 selection, this candidate remains for future prioritization:
 - **H3 Additional Package Manager Integration** — Investigate Arch Linux (AUR), Nixpkgs, or other community package managers. _Depends on:_ H1 completion and maintainer network.
 
 ## Blocked
@@ -84,7 +83,7 @@ Tasks prevented from proceeding by external dependencies, missing resources, or 
   - **Workarounds**: Manual post-release notarization by maintainer; Homebrew source-only builds; ad-hoc self-signing (not recommended)
 
 ## Under Consideration
-Completed. All candidates from E-phase closure are now cataloged in "Ready to Start" (H2, H3) or "In Progress" (H1). Post-H1 selection, await feedback from maintainer execution phase before proposing additional work.
+Completed. All candidates from E-phase closure have been triaged: H1 blocked (external dependencies), H2 selected for planning (2025-11-26), H3 awaits H1 completion. Post-H2 execution, review maintainer feedback before proposing additional work.
 
 ## Backlog Ideas
-- [ ] Additional maintenance or enhancements TBD after G0 selection.
+- [ ] Additional maintenance or enhancements TBD after H2 execution.
