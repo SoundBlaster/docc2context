@@ -1,7 +1,7 @@
 # H2 – musl Build Support
 
-**Status:** 📋 PLANNING (Selected via SELECT_NEXT)
-**Date:** 2025-11-26 (Planning)
+**Status:** 🚧 IN PROGRESS (START 2025-11-28)
+**Date:** 2025-11-26 (Planning), 2025-11-28 (Execution)
 **Owner:** docc2context agent
 **Depends On:** D4-LNX (✅ complete — Linux release packaging matrix)
 **Phase:** F – Performance & Enhancements (Stretch Goals)
@@ -114,7 +114,7 @@ Explore and implement static musl builds for universal Linux compatibility acros
   - Add "Linux (musl / universal)" subsection
   - Document when to use musl vs glibc builds (Alpine, old distros, compatibility issues)
   - Include curl/tar download snippet for musl tarballs
-- [ ] Update release notes template (`.github/RELEASE_TEMPLATE.md`):
+- [x] Update release notes template (`.github/RELEASE_TEMPLATE.md`):
   - List musl artifacts alongside glibc packages
   - Explain musl benefits (universal compatibility)
 - [ ] Add troubleshooting entry: "Binary won't run — try musl build"

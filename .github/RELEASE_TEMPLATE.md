@@ -38,6 +38,8 @@ docc2context --version
 
 ### Manual Installation (Linux & macOS)
 
+> Replace `[VERSION]` with the tag (e.g., `v1.2.3`) and `[VERSION_NO_PREFIX]` with the numeric version (e.g., `1.2.3`).
+
 #### macOS
 
 **arm64 (Apple Silicon):**
@@ -57,21 +59,45 @@ sudo mv docc2context-[VERSION]/docc2context /usr/local/bin/
 #### Linux
 
 **Debian/Ubuntu (.deb):**
+
+_glibc (default):_
 ```bash
-wget https://github.com/SoundBlaster/docc2context/releases/download/[VERSION]/docc2context-[VERSION]-linux-x86_64.deb
-sudo dpkg -i docc2context-[VERSION]-linux-x86_64.deb
+wget https://github.com/SoundBlaster/docc2context/releases/download/[VERSION]/docc2context_[VERSION_NO_PREFIX]_linux_amd64.deb
+sudo dpkg -i docc2context_[VERSION_NO_PREFIX]_linux_amd64.deb
+```
+
+_musl / universal (recommended for Alpine or glibc mismatches):_
+```bash
+wget https://github.com/SoundBlaster/docc2context/releases/download/[VERSION]/docc2context_[VERSION_NO_PREFIX]_linux_amd64-musl.deb
+sudo dpkg -i docc2context_[VERSION_NO_PREFIX]_linux_amd64-musl.deb
 ```
 
 **RHEL/Fedora/CentOS (.rpm):**
+
+_glibc (default):_
 ```bash
-wget https://github.com/SoundBlaster/docc2context/releases/download/[VERSION]/docc2context-[VERSION]-linux-x86_64.rpm
-sudo rpm -i docc2context-[VERSION]-linux-x86_64.rpm
+wget https://github.com/SoundBlaster/docc2context/releases/download/[VERSION]/docc2context-[VERSION_NO_PREFIX]-linux-x86_64.rpm
+sudo rpm -i docc2context-[VERSION_NO_PREFIX]-linux-x86_64.rpm
+```
+
+_musl / universal (recommended for Alpine or glibc mismatches):_
+```bash
+wget https://github.com/SoundBlaster/docc2context/releases/download/[VERSION]/docc2context-[VERSION_NO_PREFIX]-linux-x86_64-musl.rpm
+sudo rpm -i docc2context-[VERSION_NO_PREFIX]-linux-x86_64-musl.rpm
 ```
 
 **Generic tarball:**
+
+_glibc (default):_
 ```bash
-curl -L https://github.com/SoundBlaster/docc2context/releases/download/[VERSION]/docc2context-[VERSION]-linux-x86_64.tar.gz | tar -xz
-sudo mv docc2context-[VERSION]/docc2context /usr/local/bin/
+curl -L https://github.com/SoundBlaster/docc2context/releases/download/[VERSION]/docc2context-[VERSION_NO_PREFIX]-linux-x86_64.tar.gz | tar -xz
+sudo mv docc2context-v[VERSION_NO_PREFIX]/docc2context /usr/local/bin/
+```
+
+_musl / universal (recommended for Alpine or glibc mismatches):_
+```bash
+curl -L https://github.com/SoundBlaster/docc2context/releases/download/[VERSION]/docc2context-[VERSION_NO_PREFIX]-linux-x86_64-musl.tar.gz | tar -xz
+sudo mv docc2context-v[VERSION_NO_PREFIX]/docc2context /usr/local/bin/
 ```
 
 ---
@@ -107,7 +133,7 @@ This release has passed all quality gates:
 
 - **Homebrew Tap:** The formula is automatically published to [SoundBlaster/homebrew-tap](https://github.com/SoundBlaster/homebrew-tap) as part of the release workflow.
 - **Compatibility:** Requires Swift 6.0.3 or later for building from source.
-- **Platforms:** Supports macOS (arm64, x86_64) and Linux (x86_64, aarch64).
+- **Platforms:** Supports macOS (arm64, x86_64) and Linux (x86_64, aarch64) with both glibc and musl (universal) release assets.
 
 ---
 
