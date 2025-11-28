@@ -376,6 +376,31 @@ final class ReleaseWorkflowE2ETests: XCTestCase {
                      "README must include Homebrew installation instructions")
     }
 
+    // MARK: - Test: Release Template Documents musl Artifacts
+
+    /// Validates that the GitHub release template includes instructions for downloading
+    /// musl (universal) Linux artifacts alongside glibc builds. This ensures release notes
+    /// remain aligned with the musl packaging workflow introduced for H2.
+    func test_releaseTemplateDocumentsMuslArtifacts() throws {
+        let fileManager = FileManager.default
+        let templatePath = TestSupportPaths.repositoryRootDirectory
+            .appendingPathComponent(".github", isDirectory: true)
+            .appendingPathComponent("RELEASE_TEMPLATE.md")
+
+        XCTAssertTrue(fileManager.fileExists(atPath: templatePath.path), "Release template must exist")
+
+        let template = try String(contentsOf: templatePath, encoding: .utf8)
+
+        XCTAssertTrue(template.localizedCaseInsensitiveContains("musl"),
+                      "Release template must mention musl / universal Linux artifacts")
+        XCTAssertTrue(template.contains("linux-x86_64-musl"),
+                      "Release template must include musl tarball example")
+        XCTAssertTrue(template.contains("linux_amd64-musl"),
+                      "Release template must include musl Debian package example")
+        XCTAssertTrue(template.contains("linux-x86_64-musl.rpm"),
+                      "Release template must include musl RPM example")
+    }
+
     // MARK: - Test: Release Gates Pass Before Packaging
 
     /// Validates that release gates script exists and is executable.

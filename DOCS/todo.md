@@ -3,7 +3,7 @@
 Use this list for near-term execution. Each entry maps back to the PRD and [workplan](./workplan.md).
 
 ## In Progress
-- [ ] **H2 musl Build Support** — Explore static musl builds for universal Linux compatibility across glibc-diverse distributions. _Depends on:_ D4-LNX packaging infrastructure (✅ complete). _Doc:_ `DOCS/INPROGRESS/H2_muslBuildSupport.md`. _Owner:_ docc2context agent. _Status:_ Planning – Selected 2025-11-26 via SELECT_NEXT; planning documentation complete. _Phase:_ F – Performance & Enhancements (Stretch Goals). _Next step:_ Execute via START command.
+- [ ] **H2 musl Build Support** — Explore static musl builds for universal Linux compatibility across glibc-diverse distributions. _Depends on:_ D4-LNX packaging infrastructure (✅ complete). _Doc:_ `DOCS/INPROGRESS/H2_muslBuildSupport.md`. _Owner:_ docc2context agent. _Status:_ In progress – START triggered 2025-11-28; release notes template updated for musl artifacts. _Phase:_ F – Performance & Enhancements (Stretch Goals). _Next step:_ Continue CI integration and distro validation.
 
 ## Completed
 - [x] **G0 Test Debt Cleanup** — Eliminated all `swift test` compiler warnings by fixing `XCTSkip` usage (added `throw` keyword) and reorganizing platform-specific test code to eliminate unreachable code warnings in ReleaseWorkflowE2ETests. All 91 tests pass with zero warnings; coverage (90.43%) and determinism gates verified. _Doc:_ `DOCS/INPROGRESS/G0_TestDebtCleanup.md`. _Owner:_ docc2context agent. _Status:_ Complete — 2025-11-25; fixed StreamingOptimizationTests.swift:162 and ReleaseWorkflowE2ETests.swift platform-specific code organization.
