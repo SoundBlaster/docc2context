@@ -6,6 +6,8 @@ This helper stays offline-friendly by templating the PKGBUILD from provided
 URLs and checksums without invoking network operations.
 """
 
+from __future__ import annotations
+
 import argparse
 from pathlib import Path
 import sys
@@ -13,7 +15,10 @@ import textwrap
 
 
 def normalize_version(version: str) -> str:
-    return version[1:] if version.startswith("v") else version
+    normalized = version.lstrip("v")
+    if not normalized:
+        raise ValueError("Version must contain at least one numeric component")
+    return normalized
 
 
 def build_pkgbuild(args: argparse.Namespace) -> str:

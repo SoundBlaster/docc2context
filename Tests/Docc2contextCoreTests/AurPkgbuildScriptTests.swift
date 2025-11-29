@@ -82,4 +82,19 @@ final class AurPkgbuildScriptTests: XCTestCase {
         XCTAssertNotEqual(exitCode, 0, "Script should fail when required args are missing")
         XCTAssertTrue(output.lowercased().contains("required"), "Output should mention missing required arguments")
     }
+
+    func test_versionWithoutNumericComponentFails() throws {
+        let (exitCode, output) = try runScript(arguments: [
+            "--version", "v",
+            "--pkgrel", "1",
+            "--x86_64-url", "https://example.com/docc2context-v-linux-x86_64.tar.gz",
+            "--x86_64-sha256", "deadbeefdeadbeefdeadbeefdeadbeefdeadbeefdeadbeefdeadbeefdeadbeef",
+            "--aarch64-url", "https://example.com/docc2context-v-linux-aarch64.tar.gz",
+            "--aarch64-sha256", "cafebabecafebabecafebabecafebabecafebabecafebabecafebabecafebabe",
+            "--output", FileManager.default.temporaryDirectory.appendingPathComponent(UUID().uuidString).path
+        ])
+
+        XCTAssertNotEqual(exitCode, 0, "Script should fail when version lacks numeric components: \(output)")
+        XCTAssertTrue(output.contains("Version must contain at least one numeric component"))
+    }
 }
