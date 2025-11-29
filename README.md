@@ -249,7 +249,26 @@ Install via whichever mechanism matches your environment:
   sudo dnf install docc2context-1.2.3-linux-x86_64-musl.rpm
   ```
 
-The `.deb` installs the binary under `/usr/local/bin/docc2context` with documentation in `/usr/share/doc/docc2context/`. The `.rpm` layout matches so automation scripts can rely on consistent paths across distros. Both glibc and musl variants are functionally identical and produce byte-identical outputs (determinism preserved). Future work on apt/dnf repository hosting is tracked in the TODO backlog.
+  The `.deb` installs the binary under `/usr/local/bin/docc2context` with documentation in `/usr/share/doc/docc2context/`. The `.rpm` layout matches so automation scripts can rely on consistent paths across distros. Both glibc and musl variants are functionally identical and produce byte-identical outputs (determinism preserved). Future work on apt/dnf repository hosting is tracked in the TODO backlog.
+
+  #### Arch Linux / AUR packaging
+
+  Use the released tarballs and checksums to generate a PKGBUILD offline, then build/install with `makepkg`:
+
+  ```bash
+  VERSION=v1.2.3
+  python3 Scripts/build_aur_pkgbuild.py \
+    --version $VERSION \
+    --x86_64-url https://github.com/SoundBlaster/docc2context/releases/download/$VERSION/docc2context-${VERSION#v}-linux-x86_64.tar.gz \
+    --x86_64-sha256 <paste-x86_64-sha256-from-release> \
+    --aarch64-url https://github.com/SoundBlaster/docc2context/releases/download/$VERSION/docc2context-${VERSION#v}-linux-aarch64.tar.gz \
+    --aarch64-sha256 <paste-aarch64-sha256-from-release> \
+    --output PKGBUILD
+
+  makepkg --cleanbuild --syncdeps --install
+  ```
+
+  The helper normalizes the version (stripping any leading `v`), writes architecture-specific `source_*` and `sha256sums_*` arrays, and installs the staged `docc2context`, `README.md`, and `LICENSE` from the tarball into `/usr/local/bin` and `/usr/share/doc/docc2context`. It works with both glibc and musl tarballs as long as the matching checksum is provided.
 
 ### macOS installation snippets
 

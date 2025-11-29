@@ -1,8 +1,8 @@
-# H3 Additional Package Manager Integration — SELECT_NEXT Planning
+# H3 Additional Package Manager Integration — START Execution
 
 - **Owner:** docc2context agent
-- **Status:** Planning initiated 2025-11-29 via `SELECT_NEXT`; awaiting H1 unblock
-- **Objective:** Identify the next package ecosystem(s) (e.g., Arch Linux AUR, Nixpkgs) that expand installation options beyond the existing tarball/DEB/RPM/Homebrew channels while preserving deterministic artifacts and offline-friendly tooling.
+- **Status:** Completed 2025-11-29 via `START`
+- **Objective:** Deliver a deterministic, offline-friendly packaging path for an additional ecosystem (Arch Linux AUR) without new infrastructure dependencies while reusing existing release artifacts and checksums.
 
 ## Context & Dependencies
 - **Upstream dependency:** H1 apt/dnf repository hosting remains blocked on external credentials; H3 execution must either (a) wait for H1 completion or (b) target ecosystems that do not require the blocked infra.
@@ -15,15 +15,16 @@
 - Clear maintenance story (automated updates on tag publish, documented secrets if required)
 - Alignment with PRD installation guidance and existing release workflow triggers
 
-## Planned Actions (pre-START)
-1. **Scope selection:** Choose one ecosystem to pursue first (likely Arch AUR due to low infra needs; Nixpkgs if maintainer sponsorship available). Document rationale vs. H1 status.
-2. **Acceptable outputs:** Define acceptance criteria (e.g., PKGBUILD template + test harness, nfpm config, or nix derivation) that reuse released tarballs and validate checksums deterministically.
-3. **Testing approach:** Outline XCTest/script tests mirroring `HomebrewTapPublishScriptTests`/`PackageReleaseScriptTests` to lock naming, checksum usage, and update flows without hitting external networks.
-4. **CI/automation hooks:** Identify where to integrate into release workflow once accepted (conditional jobs behind secrets/maintainer toggles).
-5. **Docs impact:** Plan README/SECRETS additions (installation snippets, maintainer steps) to keep user guidance synced once implementation proceeds.
+## Execution Summary
+- Selected **Arch Linux AUR** as the low-infrastructure target (H1 apt/dnf hosting remains blocked). Added `Scripts/build_aur_pkgbuild.py` to template PKGBUILDs from existing Linux tarballs and checksums (supports glibc or musl artifacts) without network calls.
+- Added `AurPkgbuildScriptTests` to validate the script exists, normalizes versions, injects architecture-specific sources/checksums, and writes install paths for the binary/README/LICENSE.
+- Documented maintainer usage in `README.md` with a `makepkg` workflow that references release assets and checksum validation.
+- Updated `DOCS/todo.md` (moved H3 to Completed) and archived this task under `DOCS/TASK_ARCHIVE/34_H3_AURPackageIntegration/`.
 
-## Exit Criteria for START handoff
-- Selected target ecosystem with documented reasoning and dependency status
-- Draft acceptance criteria + test strategy recorded here
-- TODO updated to reflect active planning state (done)
-- Ready to execute [COMMANDS/START](../COMMANDS/START.md) once H1 unblock/maintainer approval is confirmed
+## Evidence
+- Tests: `swift test --filter AurPkgbuildScriptTests` (Linux, Python-driven PKGBUILD generation)
+- Documentation: README Arch Linux / AUR packaging section
+
+## Follow-ups
+- Consider adding CI wiring to publish the generated PKGBUILD to AUR once maintainer credentials/publishing process is defined.
+- If H1 unblocks, revisit repository-hosted apt/dnf feeds for deeper package manager coverage.
