@@ -41,6 +41,7 @@ The workplan distills the execution order of the phases defined in [DOCS/PRD/doc
 ## Phase F – Performance & Enhancements
 - ✅ **F1 Incremental Conversion** — archived under `DOCS/TASK_ARCHIVE/30_F1_IncrementalConversion/`; streaming-friendly Markdown generation optimizations reduce intermediate allocations while preserving determinism, backed by profiling helper (`Scripts/profile_memory.sh`) and 4 streaming optimization tests.
 - ✅ **F2 Technology Filter Flag** — archived under `DOCS/TASK_ARCHIVE/31_F2_TechnologyFilterFlag/`; added repeatable `--technology <name>` flag, piped module filtering into `MarkdownGenerationPipeline`, preserved tutorials/articles output, expanded summary counts with `symbolCount`, refreshed README, and landed 8 tests covering CLI parsing + deterministic filtered exports.
+- ✅ **H2 musl Build Support** — archived under `DOCS/TASK_ARCHIVE/33_H2_muslBuildSupport/`; integrated Swift Static Linux SDK into the Linux matrix to publish musl tarball/DEB/RPM variants, documented installation guidance in README and release template, and validated determinism parity with glibc builds across fixtures.
 - ✅ **G0 Test Debt Cleanup** — archived under `DOCS/TASK_ARCHIVE/32_G0_TestDebtCleanup/`; eliminated all `swift test` warnings by fixing XCTSkip usage with `throw` keyword and reorganizing platform-specific test code via preprocessor directives. All 91 tests pass with zero warnings; coverage gate (90.43%) and determinism gates verified.
 
 ## Tracking Conventions

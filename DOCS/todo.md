@@ -3,9 +3,10 @@
 Use this list for near-term execution. Each entry maps back to the PRD and [workplan](./workplan.md).
 
 ## In Progress
-- [ ] **H2 musl Build Support** — Explore static musl builds for universal Linux compatibility across glibc-diverse distributions. _Depends on:_ D4-LNX packaging infrastructure (✅ complete). _Doc:_ `DOCS/INPROGRESS/H2_muslBuildSupport.md`. _Owner:_ docc2context agent. _Status:_ In progress – START triggered 2025-11-28; release notes template updated for musl artifacts. _Phase:_ F – Performance & Enhancements (Stretch Goals). _Next step:_ Continue CI integration and distro validation.
+- _None._
 
 ## Completed
+- [x] **H2 musl Build Support** — Added musl variants (tarball, `.deb`, `.rpm`) for x86_64/aarch64 to the release workflow via the Swift Static Linux SDK, documented installation guidance in README and release template, and validated determinism against glibc builds. _Doc:_ `DOCS/TASK_ARCHIVE/33_H2_muslBuildSupport/H2_muslBuildSupport.md`. _Owner:_ docc2context agent. _Status:_ Complete — 2025-11-28; musl packaging and documentation archived.
 - [x] **G0 Test Debt Cleanup** — Eliminated all `swift test` compiler warnings by fixing `XCTSkip` usage (added `throw` keyword) and reorganizing platform-specific test code to eliminate unreachable code warnings in ReleaseWorkflowE2ETests. All 91 tests pass with zero warnings; coverage (90.43%) and determinism gates verified. _Doc:_ `DOCS/INPROGRESS/G0_TestDebtCleanup.md`. _Owner:_ docc2context agent. _Status:_ Complete — 2025-11-25; fixed StreamingOptimizationTests.swift:162 and ReleaseWorkflowE2ETests.swift platform-specific code organization.
 
 - [x] **F2 Technology Filter Flag** — Implemented CLI `--technology <name>` flag for selective symbol exports by module name, preserving determinism and leaving tutorials/articles unaffected. _Depends on:_ Phase C link graph outputs and Phase B argument parsing foundation. _Doc:_ `DOCS/TASK_ARCHIVE/31_F2_TechnologyFilterFlag/F2_TechnologyFilterFlag.md`. _Owner:_ docc2context agent. _Status:_ Complete — 2025-11-25; added `--technology` flag (repeatable), extended `MarkdownGenerationPipeline` with filtering, added `symbolCount` to Summary, 8 new tests (all passing), updated README.
