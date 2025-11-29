@@ -3,7 +3,7 @@
 Use this list for near-term execution. Each entry maps back to the PRD and [workplan](./workplan.md).
 
 ## In Progress
-- _None._
+- [ ] **H3 Additional Package Manager Integration** — Investigate Arch Linux (AUR), Nixpkgs, or other community package managers to broaden installation options beyond tarball/DEB/RPM releases; contingent on H1 apt/dnf hosting and maintainer outreach. _Owner:_ docc2context agent. _Status:_ Planning via SELECT_NEXT (2025-11-29) with dependency check on H1 (blocked) and identification of candidate ecosystems.
 
 ## Completed
 - [x] **H2 musl Build Support** — Added musl variants (tarball, `.deb`, `.rpm`) for x86_64/aarch64 to the release workflow via the Swift Static Linux SDK, documented installation guidance in README and release template, and validated determinism against glibc builds. _Doc:_ `DOCS/TASK_ARCHIVE/33_H2_muslBuildSupport/H2_muslBuildSupport.md`. _Owner:_ docc2context agent. _Status:_ Complete — 2025-11-28; musl packaging and documentation archived.
