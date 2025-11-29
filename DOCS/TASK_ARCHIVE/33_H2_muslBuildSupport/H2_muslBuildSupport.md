@@ -152,6 +152,7 @@ Explore and implement static musl builds for universal Linux compatibility acros
 - `swift test` (Linux) — 100 tests executed, 16 skipped (platform/tooling gatekeepers) with zero failures; warnings are limited to existing platform-conditional XCTSkip placeholders. Command output captured on 2025-11-28.
 - GitHub Actions release workflow exercises musl variants for x86_64 and aarch64, installing the Static Linux SDK and generating checksums before uploading tarball/DEB/RPM assets.
 - Fixture smoke runs show musl binaries produce byte-identical Markdown, link graph, and TOC outputs compared to glibc builds across TutorialCatalog and ArticleReference archives.
+- Local Linux verification (static musl) performed with `swift build -c release --swift-sdk swift-6.2-RELEASE_static-linux-0.0.1` after installing the Swift 6.2 Static Linux SDK (checksum computed locally); resulting binary at `.build/x86_64-swift-linux-musl/release/docc2context` reports `not a dynamic executable` via `ldd`.
 
 ---
 
