@@ -2,7 +2,7 @@
 
 - **Owner:** docc2context agent
 - **Status:** Planning initiated 2025-11-29 via `SELECT_NEXT`; awaiting H1 unblock
-- **Objective:** Identify the next package ecosystem(s) (e.g., Arch Linux AUR, Nixpkgs, Scoop/Chocolatey) that expand installation options beyond the existing tarball/DEB/RPM/Homebrew channels while preserving deterministic artifacts and offline-friendly tooling.
+- **Objective:** Identify the next package ecosystem(s) (e.g., Arch Linux AUR, Nixpkgs) that expand installation options beyond the existing tarball/DEB/RPM/Homebrew channels while preserving deterministic artifacts and offline-friendly tooling.
 
 ## Context & Dependencies
 - **Upstream dependency:** H1 apt/dnf repository hosting remains blocked on external credentials; H3 execution must either (a) wait for H1 completion or (b) target ecosystems that do not require the blocked infra.
