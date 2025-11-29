@@ -6,7 +6,7 @@
 
 ## Context & Dependencies
 - **Upstream dependency:** H1 apt/dnf repository hosting remains blocked on external credentials; H3 execution must either (a) wait for H1 completion or (b) target ecosystems that do not require the blocked infra.
-- **PRD alignment:** Distribution scope already mandates deterministic tarballs plus `.deb`/`.rpm` outputs and documented install snippets; additional package managers should consume the existing signed artifacts and semver tags without introducing new build inputs or non-deterministic steps. See PRD §4.6 packaging/distribution bullets about semver-tagged artifacts and package manager snippets.【F:DOCS/PRD/docc2context_prd.md†L129-L137】
+- **PRD alignment:** Distribution scope already mandates deterministic tarballs plus `.deb`/`.rpm` outputs and documented install snippets; additional package managers should consume the existing signed artifacts and semver tags without introducing new build inputs or non-deterministic steps. See [PRD §4.6 packaging/distribution requirements](../PRD/docc2context_prd.md#46-release-packaging--distribution-requirements) for details about semver-tagged artifacts and package manager snippets.
 - **Recent work:** H2 musl build support expanded Linux artifacts; reuse musl/glibc binaries to avoid rebuilding per ecosystem.
 
 ## Candidate Evaluation Criteria
