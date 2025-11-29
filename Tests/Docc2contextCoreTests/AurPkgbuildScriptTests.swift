@@ -71,6 +71,7 @@ final class AurPkgbuildScriptTests: XCTestCase {
                       "aarch64 source URL must be included")
         XCTAssertTrue(content.contains("sha256sums_aarch64=('cafebabecafebabecafebabecafebabecafebabecafebabecafebabecafebabe')"),
                       "aarch64 checksum must be included")
+        XCTAssertTrue(content.contains("docc2context-v${pkgver}"), "Staged directory must include versioned prefix")
         XCTAssertTrue(content.contains("/usr/local/bin/docc2context"), "Binary install path must be defined")
         XCTAssertTrue(content.contains("/usr/share/doc/docc2context/README.md"), "README install path must be defined")
         XCTAssertTrue(content.contains("/usr/share/doc/docc2context/LICENSE"), "LICENSE install path must be defined")

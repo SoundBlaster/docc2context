@@ -59,9 +59,10 @@ package() {{
   esac
 
   bsdtar -xf "$srcdir/$archive" -C "$srcdir/extracted"
-  install -Dm755 "$srcdir/extracted/docc2context" "$pkgdir/usr/local/bin/docc2context"
-  install -Dm644 "$srcdir/extracted/README.md" "$pkgdir/usr/share/doc/docc2context/README.md"
-  install -Dm644 "$srcdir/extracted/LICENSE" "$pkgdir/usr/share/doc/docc2context/LICENSE"
+  local staged_dir="$srcdir/extracted/docc2context-v${{pkgver}}"
+  install -Dm755 "$staged_dir/docc2context" "$pkgdir/usr/local/bin/docc2context"
+  install -Dm644 "$staged_dir/README.md" "$pkgdir/usr/share/doc/docc2context/README.md"
+  install -Dm644 "$staged_dir/LICENSE" "$pkgdir/usr/share/doc/docc2context/LICENSE"
 }}
 """
     return textwrap.dedent(pkgbuild)
