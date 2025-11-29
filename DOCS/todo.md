@@ -3,10 +3,11 @@
 Use this list for near-term execution. Each entry maps back to the PRD and [workplan](./workplan.md).
 
 ## In Progress
-- [ ] **H3 Additional Package Manager Integration** — Investigate Arch Linux (AUR), Nixpkgs, or other community package managers to broaden installation options beyond tarball/DEB/RPM releases; contingent on H1 apt/dnf hosting and maintainer outreach. _Owner:_ docc2context agent. _Status:_ Planning via SELECT_NEXT (2025-11-29) with dependency check on H1 (blocked) and identification of candidate ecosystems.
+_(none)_
 
 ## Completed
 - [x] **H2 musl Build Support** — Added musl variants (tarball, `.deb`, `.rpm`) for x86_64/aarch64 to the release workflow via the Swift Static Linux SDK, documented installation guidance in README and release template, and validated determinism against glibc builds. _Doc:_ `DOCS/TASK_ARCHIVE/33_H2_muslBuildSupport/H2_muslBuildSupport.md`. _Owner:_ docc2context agent. _Status:_ Complete — 2025-11-28; musl packaging and documentation archived.
+- [x] **H3 Additional Package Manager Integration** — Added `Scripts/build_aur_pkgbuild.py` to generate Arch Linux PKGBUILDs from existing Linux tarballs/checksums, documented the `makepkg` workflow in README, and verified the generator with targeted tests. _Doc:_ `DOCS/TASK_ARCHIVE/34_H3_AURPackageIntegration/H3_AURPackageIntegration.md`. _Owner:_ docc2context agent. _Status:_ Complete — 2025-11-29; AUR path ships without new hosting dependencies while H1 remains blocked.
 - [x] **G0 Test Debt Cleanup** — Eliminated all `swift test` compiler warnings by fixing `XCTSkip` usage (added `throw` keyword) and reorganizing platform-specific test code to eliminate unreachable code warnings in ReleaseWorkflowE2ETests. All 91 tests pass with zero warnings; coverage (90.43%) and determinism gates verified. _Doc:_ `DOCS/INPROGRESS/G0_TestDebtCleanup.md`. _Owner:_ docc2context agent. _Status:_ Complete — 2025-11-25; fixed StreamingOptimizationTests.swift:162 and ReleaseWorkflowE2ETests.swift platform-specific code organization.
 
 - [x] **F2 Technology Filter Flag** — Implemented CLI `--technology <name>` flag for selective symbol exports by module name, preserving determinism and leaving tutorials/articles unaffected. _Depends on:_ Phase C link graph outputs and Phase B argument parsing foundation. _Doc:_ `DOCS/TASK_ARCHIVE/31_F2_TechnologyFilterFlag/F2_TechnologyFilterFlag.md`. _Owner:_ docc2context agent. _Status:_ Complete — 2025-11-25; added `--technology` flag (repeatable), extended `MarkdownGenerationPipeline` with filtering, added `symbolCount` to Summary, 8 new tests (all passing), updated README.
@@ -47,8 +48,7 @@ Use this list for near-term execution. Each entry maps back to the PRD and [work
 - [x] **C1 Tutorial Chapter Snapshot Spec** Capture the deterministic Markdown contract for the first tutorial chapter page (`tutorialcatalog/tutorials/getting-started`) and lock it via `MarkdownSnapshotSpecsTests.test_tutorialChapterPageMatchesSnapshot`. _Depends on:_ C1 outline + tutorial overview snapshot harness. _Doc:_ PRD §Phase C (snapshot specs). _Owner:_ docc2context agent. _Status:_ Complete – archived under `DOCS/TASK_ARCHIVE/15_C1_TutorialChapterSnapshot/`; validated with `swift test --filter MarkdownSnapshotSpecsTests.test_tutorialChapterPageMatchesSnapshot` and the full `swift test` suite, with follow-on tutorial + article specs tracked in `DOCS/TASK_ARCHIVE/16_C1_MarkdownSnapshotSpecs/` and `17_C1_ReferenceArticleSnapshot/`.
 
 ## Ready to Start
-Following H2 selection, this candidate remains for future prioritization:
-- **H3 Additional Package Manager Integration** — Investigate Arch Linux (AUR), Nixpkgs, or other community package managers. _Depends on:_ H1 completion and maintainer network.
+_(none)_
 
 ## Blocked
 Tasks prevented from proceeding by external dependencies, missing resources, or pending decisions.
