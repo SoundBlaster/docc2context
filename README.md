@@ -251,6 +251,16 @@ Install via whichever mechanism matches your environment:
 
   The `.deb` installs the binary under `/usr/local/bin/docc2context` with documentation in `/usr/share/doc/docc2context/`. The `.rpm` layout matches so automation scripts can rely on consistent paths across distros. Both glibc and musl variants are functionally identical and produce byte-identical outputs (determinism preserved). Future work on apt/dnf repository hosting is tracked in the TODO backlog.
 
+#### Cloudsmith APT/DNF repository (pending maintainer setup)
+
+The release workflow now includes an optional Cloudsmith upload step (backed by `Scripts/publish_to_cloudsmith.sh`) so `.deb` and `.rpm` packages can ship via a hosted apt/dnf repository. The step remains **disabled until the maintainer provisions a Cloudsmith account/repository and secrets**. Once enabled, Linux users will be able to add the Cloudsmith repository and install with `apt install docc2context` / `dnf install docc2context` instead of downloading artifacts manually.
+
+For now, continue using the manual tarball/apt/rpm commands above. Maintainer TODO:
+
+- Configure `CLOUDSMITH_*` secrets documented in `.github/SECRETS.md` (owner, repository, API key, distribution/release slugs, optional component)
+- Provision a Cloudsmith repository (e.g., `ubuntu/jammy` + `any-distro/any-version` for RPM) and verify dry-run uploads locally via `./Scripts/publish_to_cloudsmith.sh --dry-run`
+- Trigger a tagged release once secrets are in place to publish packages automatically
+
   #### Arch Linux / AUR packaging
 
   Use the released tarballs and checksums to generate a PKGBUILD offline, then build/install with `makepkg`:

@@ -1,0 +1,193 @@
+#!/usr/bin/env bash
+set -euo pipefail
+
+SCRIPT_DIR="$(cd "$(dirname "${BASH_SOURCE[0]}")" && pwd)"
+REPO_ROOT="$(cd "${SCRIPT_DIR}/.." && pwd)"
+
+log_step() {
+  printf '\n[%s] %s\n' "$(date -u +%H:%M:%S)" "$1" >&2
+}
+
+log_warn() {
+  printf '\n[%s][WARN] %s\n' "$(date -u +%H:%M:%S)" "$1" >&2
+}
+
+log_error() {
+  printf '\n[%s][ERROR] %s\n' "$(date -u +%H:%M:%S)" "$1" >&2
+}
+
+usage() {
+  cat <<USAGE
+Usage: $(basename "$0") --owner <cloudsmith-owner> --repository <repo> --version <semver> --artifact-dir <dir> [options]
+
+Required:
+  --owner           Cloudsmith organization/owner slug (or set CLOUDSMITH_OWNER)
+  --repository      Cloudsmith repository slug (or set CLOUDSMITH_REPOSITORY)
+  --version         Release version (accepts optional leading 'v')
+  --artifact-dir    Directory containing .deb and .rpm artifacts (searches recursively)
+
+Options:
+  --apt-distribution  Debian distribution slug (default: CLOUDSMITH_APT_DISTRIBUTION or 'ubuntu')
+  --apt-release       Debian release codename (default: CLOUDSMITH_APT_RELEASE or 'jammy')
+  --apt-component     Debian component name (default: CLOUDSMITH_APT_COMPONENT or 'main')
+  --rpm-distribution  RPM distribution slug (default: CLOUDSMITH_RPM_DISTRIBUTION or 'any-distro')
+  --rpm-release       RPM release version (default: CLOUDSMITH_RPM_RELEASE or 'any-version')
+  --dry-run           Print intended actions without invoking the Cloudsmith API
+  -h, --help          Show this message
+USAGE
+}
+
+owner="${CLOUDSMITH_OWNER:-""}"
+repository="${CLOUDSMITH_REPOSITORY:-""}"
+version=""
+artifact_dir=""
+apt_distribution="${CLOUDSMITH_APT_DISTRIBUTION:-"ubuntu"}"
+apt_release="${CLOUDSMITH_APT_RELEASE:-"jammy"}"
+apt_component="${CLOUDSMITH_APT_COMPONENT:-"main"}"
+rpm_distribution="${CLOUDSMITH_RPM_DISTRIBUTION:-"any-distro"}"
+rpm_release="${CLOUDSMITH_RPM_RELEASE:-"any-version"}"
+dry_run="0"
+
+while [[ $# -gt 0 ]]; do
+  case "$1" in
+    --owner)
+      owner="$2"
+      shift 2
+      ;;
+    --repository)
+      repository="$2"
+      shift 2
+      ;;
+    --version)
+      version="$2"
+      shift 2
+      ;;
+    --artifact-dir)
+      artifact_dir="$2"
+      shift 2
+      ;;
+    --apt-distribution)
+      apt_distribution="$2"
+      shift 2
+      ;;
+    --apt-release)
+      apt_release="$2"
+      shift 2
+      ;;
+    --apt-component)
+      apt_component="$2"
+      shift 2
+      ;;
+    --rpm-distribution)
+      rpm_distribution="$2"
+      shift 2
+      ;;
+    --rpm-release)
+      rpm_release="$2"
+      shift 2
+      ;;
+    --dry-run)
+      dry_run="1"
+      shift 1
+      ;;
+    -h|--help)
+      usage
+      exit 0
+      ;;
+    *)
+      log_error "Unknown argument: $1"
+      usage
+      exit 1
+      ;;
+  esac
+done
+
+if [[ -z "$owner" || -z "$repository" || -z "$version" || -z "$artifact_dir" ]]; then
+  log_error "Missing required arguments. --owner, --repository, --version, and --artifact-dir are required."
+  usage
+  exit 1
+fi
+
+sanitized_version="${version#v}"
+if [[ -z "$sanitized_version" || ! "$sanitized_version" =~ ^[0-9]+(\.[0-9A-Za-z-]+)*$ ]]; then
+  log_error "Version '$version' is not a valid semantic version"
+  exit 1
+fi
+
+if [[ ! -d "$artifact_dir" ]]; then
+  log_error "Artifact directory does not exist: $artifact_dir"
+  exit 1
+fi
+
+mapfile -t deb_files < <(find "$artifact_dir" -type f -name "*.deb" | sort)
+mapfile -t rpm_files < <(find "$artifact_dir" -type f -name "*.rpm" | sort)
+
+missing_artifacts=0
+if [[ ${#deb_files[@]} -eq 0 ]]; then
+  log_error "No .deb packages found under $artifact_dir"
+  missing_artifacts=1
+fi
+if [[ ${#rpm_files[@]} -eq 0 ]]; then
+  log_error "No .rpm packages found under $artifact_dir"
+  missing_artifacts=1
+fi
+if [[ "$missing_artifacts" -ne 0 ]]; then
+  exit 1
+fi
+
+print_plan() {
+  log_step "DRY RUN: would upload ${#deb_files[@]} Debian package(s) and ${#rpm_files[@]} RPM package(s) to $owner/$repository"
+  printf '  APT target: %s/%s (component: %s)\n' "$apt_distribution" "$apt_release" "$apt_component" >&2
+  printf '  RPM target: %s/%s\n' "$rpm_distribution" "$rpm_release" >&2
+  printf '  Version: %s\n' "$sanitized_version" >&2
+
+  for deb in "${deb_files[@]}"; do
+    printf '  cloudsmith push deb %s/%s "%s" --api-key $CLOUDSMITH_API_KEY --distribution "%s" --release "%s" --component "%s" --version "%s" --republish\n' \
+      "$owner" "$repository" "$deb" "$apt_distribution" "$apt_release" "$apt_component" "$sanitized_version" >&2
+  done
+
+  for rpm in "${rpm_files[@]}"; do
+    printf '  cloudsmith push rpm %s/%s "%s" --api-key $CLOUDSMITH_API_KEY --distribution "%s" --release "%s" --version "%s" --republish\n' \
+      "$owner" "$repository" "$rpm" "$rpm_distribution" "$rpm_release" "$sanitized_version" >&2
+  done
+}
+
+if [[ "$dry_run" == "1" ]]; then
+  print_plan
+  exit 0
+fi
+
+if [[ -z "${CLOUDSMITH_API_KEY:-}" ]]; then
+  log_error "CLOUDSMITH_API_KEY is required for uploads"
+  exit 1
+fi
+
+if ! command -v cloudsmith >/dev/null 2>&1; then
+  log_error "cloudsmith CLI not found. Install with: python3 -m pip install --upgrade cloudsmith-cli"
+  exit 1
+fi
+
+log_step "Uploading Debian packages to Cloudsmith"
+for deb in "${deb_files[@]}"; do
+  cloudsmith push deb "$owner/$repository" "$deb" \
+    --api-key "$CLOUDSMITH_API_KEY" \
+    --distribution "$apt_distribution" \
+    --release "$apt_release" \
+    --component "$apt_component" \
+    --version "$sanitized_version" \
+    --republish
+  log_step "Uploaded $(basename "$deb")"
+done
+
+log_step "Uploading RPM packages to Cloudsmith"
+for rpm in "${rpm_files[@]}"; do
+  cloudsmith push rpm "$owner/$repository" "$rpm" \
+    --api-key "$CLOUDSMITH_API_KEY" \
+    --distribution "$rpm_distribution" \
+    --release "$rpm_release" \
+    --version "$sanitized_version" \
+    --republish
+  log_step "Uploaded $(basename "$rpm")"
+done
+
+log_step "Cloudsmith uploads complete"
