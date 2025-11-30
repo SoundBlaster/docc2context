@@ -3,7 +3,7 @@
 Use this list for near-term execution. Each entry maps back to the PRD and [workplan](./workplan.md).
 
 ## In Progress
-_(none)_
+- [ ] **H1 APT/DNF Repository Hosting (Planning & Unblock Prep)** — Planning the repository hosting path while execution remains blocked pending external credentials; scoping upload helper design, secret inventory, and provider selection criteria. _Doc:_ `DOCS/INPROGRESS/H1_APTDNFRepositoryHostingPlan.md`. _Owner:_ docc2context agent. _Status:_ Planning — 2025-11-30; execution deferred until repository service + signing keys are provisioned.
 
 ## Completed
 - [x] **H2 musl Build Support** — Added musl variants (tarball, `.deb`, `.rpm`) for x86_64/aarch64 to the release workflow via the Swift Static Linux SDK, documented installation guidance in README and release template, and validated determinism against glibc builds. _Doc:_ `DOCS/TASK_ARCHIVE/33_H2_muslBuildSupport/H2_muslBuildSupport.md`. _Owner:_ docc2context agent. _Status:_ Complete — 2025-11-28; musl packaging and documentation archived.
