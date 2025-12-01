@@ -235,10 +235,12 @@ public struct MarkdownGenerationPipeline {
     }
 
     private func validateOutputPathDoesNotOverlapInput(inputURL: URL, outputURL: URL) throws {
-        let inputComponents = inputURL.standardizedFileURL.pathComponents
-        let outputComponents = outputURL.standardizedFileURL.pathComponents
+        let inputComponents = inputURL.pathComponents
+        let outputComponents = outputURL.pathComponents
 
-        if outputComponents == inputComponents || outputComponents.starts(with: inputComponents) {
+        if outputComponents == inputComponents ||
+            outputComponents.starts(with: inputComponents) ||
+            inputComponents.starts(with: outputComponents) {
             throw Error.outputDirectoryOverlapsInput(outputURL)
         }
     }
