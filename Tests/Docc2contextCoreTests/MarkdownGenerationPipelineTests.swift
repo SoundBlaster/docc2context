@@ -44,6 +44,49 @@ final class MarkdownGenerationPipelineTests: XCTestCase {
         }
     }
 
+    func test_pipelineRejectsOutputDirectoryThatMatchesInput() throws {
+        let tutorialFixture = FixtureLoader.urlForBundle(named: "TutorialCatalog.doccarchive")
+        try TestTemporaryDirectory.withTemporaryDirectory { temp in
+            let inputCopy = temp.childDirectory(named: "TutorialCatalog.doccarchive")
+            try FileManager.default.copyItem(at: tutorialFixture, to: inputCopy)
+            let pipeline = MarkdownGenerationPipeline()
+
+            XCTAssertThrowsError(
+                try pipeline.generateMarkdown(
+                    from: inputCopy.path,
+                    to: inputCopy.path,
+                    forceOverwrite: true)) { error in
+                guard case let .outputDirectoryOverlapsInput(url) = error as? MarkdownGenerationPipeline.Error else {
+                    XCTFail("Expected outputDirectoryOverlapsInput but received \(error)")
+                    return
+                }
+                XCTAssertEqual(url.standardizedFileURL.path, inputCopy.standardizedFileURL.path)
+            }
+        }
+    }
+
+    func test_pipelineRejectsOutputDirectoryNestedInsideInput() throws {
+        let tutorialFixture = FixtureLoader.urlForBundle(named: "TutorialCatalog.doccarchive")
+        try TestTemporaryDirectory.withTemporaryDirectory { temp in
+            let inputCopy = temp.childDirectory(named: "TutorialCatalog.doccarchive")
+            try FileManager.default.copyItem(at: tutorialFixture, to: inputCopy)
+            let nestedOutput = inputCopy.appendingPathComponent("Derived/Markdown", isDirectory: true)
+            let pipeline = MarkdownGenerationPipeline()
+
+            XCTAssertThrowsError(
+                try pipeline.generateMarkdown(
+                    from: inputCopy.path,
+                    to: nestedOutput.path,
+                    forceOverwrite: true)) { error in
+                guard case let .outputDirectoryOverlapsInput(url) = error as? MarkdownGenerationPipeline.Error else {
+                    XCTFail("Expected outputDirectoryOverlapsInput but received \(error)")
+                    return
+                }
+                XCTAssertEqual(url.standardizedFileURL.path, nestedOutput.standardizedFileURL.path)
+            }
+        }
+    }
+
     func test_pipelineSurfacesOutputCreationFailures() throws {
         let tutorialFixture = FixtureLoader.urlForBundle(named: "TutorialCatalog.doccarchive")
         try TestTemporaryDirectory.withTemporaryDirectory { temp in

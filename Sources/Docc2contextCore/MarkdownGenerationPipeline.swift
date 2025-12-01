@@ -26,6 +26,7 @@ public struct MarkdownGenerationPipeline {
     public enum Error: Swift.Error, LocalizedError {
         case inputDoesNotExist(URL)
         case inputIsNotDirectory(URL)
+        case outputDirectoryOverlapsInput(URL)
         case outputDirectoryAlreadyExists(URL)
         case failedToRemoveExistingOutput(URL, Swift.Error)
         case failedToCreateOutput(URL, Swift.Error)
@@ -37,6 +38,8 @@ public struct MarkdownGenerationPipeline {
                 return "Input path does not exist at \(url.path)."
             case .inputIsNotDirectory(let url):
                 return "Input path must be a directory containing a DocC bundle: \(url.path)."
+            case .outputDirectoryOverlapsInput(let url):
+                return "Output directory overlaps the input bundle at \(url.path). Choose a different output path to avoid deleting the source when using --force."
             case .outputDirectoryAlreadyExists(let url):
                 return "Output directory already exists at \(url.path). Pass --force to overwrite it."
             case .failedToRemoveExistingOutput(let url, let underlying):
@@ -108,10 +111,11 @@ public struct MarkdownGenerationPipeline {
         forceOverwrite: Bool,
         technologyFilter: [String]? = nil
     ) throws -> Summary {
-        let inputURL = URL(fileURLWithPath: inputPath)
+        let inputURL = URL(fileURLWithPath: inputPath).standardizedFileURL
         try validateInputDirectory(inputURL)
 
-        let outputURL = URL(fileURLWithPath: outputPath, isDirectory: true)
+        let outputURL = URL(fileURLWithPath: outputPath, isDirectory: true).standardizedFileURL
+        try validateOutputPathDoesNotOverlapInput(inputURL: inputURL, outputURL: outputURL)
         try prepareOutputDirectory(at: outputURL, forceOverwrite: forceOverwrite)
 
         let bundleMetadata = try metadataParser.loadInfoPlist(from: inputURL)
@@ -227,6 +231,15 @@ public struct MarkdownGenerationPipeline {
         }
         guard isDirectory.boolValue else {
             throw Error.inputIsNotDirectory(url)
+        }
+    }
+
+    private func validateOutputPathDoesNotOverlapInput(inputURL: URL, outputURL: URL) throws {
+        let inputComponents = inputURL.standardizedFileURL.pathComponents
+        let outputComponents = outputURL.standardizedFileURL.pathComponents
+
+        if outputComponents == inputComponents || outputComponents.starts(with: inputComponents) {
+            throw Error.outputDirectoryOverlapsInput(outputURL)
         }
     }
 
