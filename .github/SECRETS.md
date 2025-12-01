@@ -109,6 +109,66 @@ After configuring the secrets, you can verify the setup:
 - **Cause:** Workflow conditions might not be met (only runs on tag pushes starting with `v`)
 - **Solution:** Check workflow logs in Actions tab, verify tag format (e.g., `v1.0.0`)
 
+## Cloudsmith Repository Publishing
+
+### CLOUDSMITH_API_KEY
+
+**Purpose:** Authenticates the Cloudsmith CLI/API for uploading `.deb`/`.rpm` packages from the release workflow.
+
+**Type:** Cloudsmith API token scoped to the target repository.
+
+**Setup Instructions:**
+
+1. Sign in to Cloudsmith and navigate to **Your Profile → API Keys**.
+2. Create a new key (recommended name: `docc2context-release`), scoped to the organization that will host the repository.
+3. Copy the token value.
+4. Add it as a repository secret named `CLOUDSMITH_API_KEY` under Settings → Secrets and variables → Actions.
+
+### CLOUDSMITH_OWNER / CLOUDSMITH_REPOSITORY
+
+**Purpose:** Identify the Cloudsmith owner/organization slug and repository slug used by the upload helper.
+
+**Setup Instructions:**
+
+1. Create (or select) the target Cloudsmith repository for apt/dnf hosting.
+2. Note the **owner** slug (e.g., `soundblaster`) and **repository** slug (e.g., `docc2context`).
+3. Add both values as repository secrets `CLOUDSMITH_OWNER` and `CLOUDSMITH_REPOSITORY`.
+
+### CLOUDSMITH_APT_DISTRIBUTION / CLOUDSMITH_APT_RELEASE / CLOUDSMITH_APT_COMPONENT
+
+**Purpose:** Configure Debian upload metadata for `cloudsmith push deb`.
+
+- `CLOUDSMITH_APT_DISTRIBUTION`: distro slug (e.g., `ubuntu`)
+- `CLOUDSMITH_APT_RELEASE`: release codename (e.g., `jammy`)
+- `CLOUDSMITH_APT_COMPONENT`: component name (e.g., `main`)
+
+**Setup Instructions:**
+
+1. In Cloudsmith, ensure the apt repository is configured for the chosen distribution/release.
+2. Add the distribution, release, and component values as repository secrets.
+3. If unset, the upload helper defaults to `ubuntu/jammy` and `main`.
+
+### CLOUDSMITH_RPM_DISTRIBUTION / CLOUDSMITH_RPM_RELEASE
+
+**Purpose:** Configure RPM upload metadata for `cloudsmith push rpm`.
+
+- `CLOUDSMITH_RPM_DISTRIBUTION`: distro slug (e.g., `any-distro` or `centos`)
+- `CLOUDSMITH_RPM_RELEASE`: release identifier (e.g., `any-version` or `7`)
+
+**Setup Instructions:**
+
+1. Align slugs with the RPM repository configuration inside Cloudsmith.
+2. Add the values as repository secrets; defaults (`any-distro` / `any-version`) are used if unset.
+
+### Activation checklist (Cloudsmith)
+
+- [ ] Repository owner/repo created in Cloudsmith with apt/dnf formats enabled
+- [ ] `CLOUDSMITH_API_KEY` secret added
+- [ ] `CLOUDSMITH_OWNER` and `CLOUDSMITH_REPOSITORY` secrets added
+- [ ] Distribution/release/component secrets set (or confirm defaults are acceptable)
+- [ ] Optional dry-run executed locally: `./Scripts/publish_to_cloudsmith.sh --owner <owner> --repository <repo> --version vX.Y.Z --artifact-dir dist --dry-run`
+- [ ] Tagged release pushed after secrets configured to exercise the Cloudsmith upload step
+
 ## Related Documentation
 
 - [GitHub Actions Secrets Documentation](https://docs.github.com/en/actions/security-guides/encrypted-secrets)

@@ -64,6 +64,10 @@ Tasks prevented from proceeding by external dependencies, missing resources, or 
     - [ ] GPG keys generated for package signing (apt/dnf)
     - [ ] GitHub Actions secrets configured for repository upload
     - [ ] Test repository verified with manual package upload
+  - **Pending follow-ups (blocked):**
+    - [ ] Choose distribution slugs for Cloudsmith (apt: distribution/release/component; rpm: distribution/release) and add them as repository secrets
+    - [ ] Enable optional Cloudsmith upload step in `.github/workflows/release.yml` by providing `CLOUDSMITH_*` secrets
+    - [ ] Run `Scripts/publish_to_cloudsmith.sh --dry-run` against release artifacts to validate wiring before enabling live uploads
   - **Documentation**: `DOCS/INPROGRESS/BLOCKED_H1_APTDNFRepositoryHosting.md`
   - **Impact**: Stretch goal feature; does not block core functionality. Users can install via manual downloads, Homebrew (macOS), or `.deb`/`.rpm` packages.
   - **Workarounds**: Manual package distribution via GitHub Releases (current state), documented in README.
