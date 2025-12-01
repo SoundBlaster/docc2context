@@ -119,8 +119,15 @@ if [[ ! -d "$artifact_dir" ]]; then
   exit 1
 fi
 
-mapfile -t deb_files < <(find "$artifact_dir" -type f -name "*.deb" | sort)
-mapfile -t rpm_files < <(find "$artifact_dir" -type f -name "*.rpm" | sort)
+deb_files=()
+while IFS= read -r deb_file; do
+  deb_files+=("$deb_file")
+done < <(find "$artifact_dir" -type f -name "*.deb" | sort)
+
+rpm_files=()
+while IFS= read -r rpm_file; do
+  rpm_files+=("$rpm_file")
+done < <(find "$artifact_dir" -type f -name "*.rpm" | sort)
 
 missing_artifacts=0
 if [[ ${#deb_files[@]} -eq 0 ]]; then
