@@ -179,3 +179,27 @@ jobs:
             dist/**/*.rpm.sha256
             dist/**/*.md
             dist/homebrew/docc2context.rb
+
+      - name: Publish Linux packages to Cloudsmith (optional)
+        if: github.event_name == 'push' && startsWith(github.ref, 'refs/tags/v')
+        env:
+          CLOUDSMITH_API_KEY: ${{ secrets.CLOUDSMITH_API_KEY }}
+          CLOUDSMITH_OWNER: ${{ secrets.CLOUDSMITH_OWNER }}
+          CLOUDSMITH_REPOSITORY: ${{ secrets.CLOUDSMITH_REPOSITORY }}
+          CLOUDSMITH_APT_DISTRIBUTION: ${{ secrets.CLOUDSMITH_APT_DISTRIBUTION }}
+          CLOUDSMITH_APT_RELEASE: ${{ secrets.CLOUDSMITH_APT_RELEASE }}
+          CLOUDSMITH_APT_COMPONENT: ${{ secrets.CLOUDSMITH_APT_COMPONENT }}
+          CLOUDSMITH_RPM_DISTRIBUTION: ${{ secrets.CLOUDSMITH_RPM_DISTRIBUTION }}
+          CLOUDSMITH_RPM_RELEASE: ${{ secrets.CLOUDSMITH_RPM_RELEASE }}
+        run: |
+          if [[ -z "${CLOUDSMITH_API_KEY:-}" || -z "${CLOUDSMITH_OWNER:-}" || -z "${CLOUDSMITH_REPOSITORY:-}" ]]; then
+            echo "Cloudsmith secrets not configured; skipping upload."
+            exit 0
+          fi
+
+          python3 -m pip install --upgrade cloudsmith-cli
+          bash Scripts/publish_to_cloudsmith.sh \
+            --owner "$CLOUDSMITH_OWNER" \
+            --repository "$CLOUDSMITH_REPOSITORY" \
+            --version "${{ github.ref_name }}" \
+            --artifact-dir dist

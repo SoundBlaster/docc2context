@@ -38,6 +38,20 @@ This task requires external resources and operational setup that cannot be compl
 - **Users**: Linux users can still install via `.deb`/`.rpm` downloads, tarballs, or build from source
 - **Alternative Channels**: Homebrew available for macOS; Linux manual install documented in README
 
+## 📌 Progress Update (2025-12-02)
+
+- Added `Scripts/publish_to_cloudsmith.sh` with dry-run support so uploads can be rehearsed without credentials
+- Wired `.github/workflows/release.yml` to call the Cloudsmith helper on tagged releases once `CLOUDSMITH_*` secrets are configured
+- Documented Cloudsmith secrets and maintainer activation steps in `.github/SECRETS.md` and README (Linux install section)
+
+### Remaining Blockers After Automation Prep
+
+- Cloudsmith account/repository creation (owner/repo slugs required by upload helper)
+- API key provisioning and secret configuration (`CLOUDSMITH_API_KEY`, `CLOUDSMITH_OWNER`, `CLOUDSMITH_REPOSITORY`)
+- Distribution metadata decisions (apt: distribution/release/component; rpm: distribution/release) and corresponding secrets
+- GPG signing keys for apt/dnf repositories and CI integration
+- Test repository to validate real uploads before enabling the workflow condition
+
 **Next Steps for Maintainer**:
 1. Review this planning document and implementation strategy
 2. Select repository hosting service (evaluate Cloudsmith, Packagecloud)
