@@ -3,7 +3,7 @@
 **Status:** Planning (SELECT_NEXT)
 **Date:** 2025-12-01
 **Owner:** docc2context agent
-**Depends On:** H1 repository hosting unblock (provider + credentials), D4-LNX packaging outputs, E4 validation framework
+**Depends On:** H1 repository hosting unblock (provider + credentials), D4-LNX packaging outputs, E4 E2E release simulation
 
 ---
 
