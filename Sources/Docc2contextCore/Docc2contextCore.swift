@@ -97,28 +97,12 @@ public struct Docc2contextCommand {
             throw CLIError.unsupportedFormat(parsedArguments.format)
         }
 
-        // F2: Use technology filters from --technology arguments (normalized for casing/whitespace)
-        let technologyFilters = normalizeTechnologyFilters(parsedArguments.technology)
-
         return CLIOptions(
             inputPath: input,
             outputPath: output,
             forceOverwrite: parsedArguments.force,
             format: normalizedFormat,
-            technologyFilter: technologyFilters)
-    }
-
-    private func normalizeTechnologyFilters(_ filters: [String]) -> [String]? {
-        let normalized = filters
-            .map { $0.trimmingCharacters(in: .whitespacesAndNewlines).lowercased() }
-            .filter { !$0.isEmpty }
-        guard !normalized.isEmpty else { return nil }
-
-        var deduplicated: [String] = []
-        for value in normalized where !deduplicated.contains(value) {
-            deduplicated.append(value)
-        }
-        return deduplicated
+            technologyFilter: parsedArguments.technology)
     }
 }
 
