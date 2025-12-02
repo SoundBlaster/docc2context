@@ -36,6 +36,23 @@ final class TechnologyFilterTests: XCTestCase {
         }
     }
 
+    func test_filteringIsCaseInsensitiveAndTrimsWhitespace() throws {
+        let fixturesURL = FixtureLoader.urlForBundle(named: "ArticleReference.doccarchive")
+        try TestTemporaryDirectory.withTemporaryDirectory { temp in
+            let outputDirectory = temp.childDirectory(named: "case-insensitive-output")
+
+            let pipeline = MarkdownGenerationPipeline()
+            let summary = try pipeline.generateMarkdown(
+                from: fixturesURL.path,
+                to: outputDirectory.path,
+                forceOverwrite: false,
+                technologyFilter: ["  docc2contextcore  "])
+
+            XCTAssertGreaterThan(summary.symbolCount, 0,
+                                  "Technology filters should ignore case and surrounding whitespace")
+        }
+    }
+
     func test_filteringWithNonMatchingModuleProducesEmptySymbolSet() throws {
         let fixturesURL = FixtureLoader.urlForBundle(named: "ArticleReference.doccarchive")
         try TestTemporaryDirectory.withTemporaryDirectory { temp in

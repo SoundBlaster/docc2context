@@ -127,9 +127,8 @@ public struct MarkdownGenerationPipeline {
         var symbolReferences = try metadataParser.loadSymbolGraphReferences(from: inputURL)
 
         // F2: Apply technology filter to symbol references
-        if let filters = technologyFilter, !filters.isEmpty {
-            let filterSet = Set(filters)
-            symbolReferences = symbolReferences.filter { filterSet.contains($0.moduleName) }
+        if let filterSet = normalizedTechnologyFilterSet(technologyFilter) {
+            symbolReferences = symbolReferences.filter { filterSet.contains($0.moduleName.lowercased()) }
         }
 
         let bundleModel = try modelBuilder.makeBundleModel(
@@ -222,6 +221,15 @@ public struct MarkdownGenerationPipeline {
             chapterCount: chapterCount,
             referenceArticleCount: referenceArticleCount,
             symbolCount: symbolReferences.count)
+    }
+
+    private func normalizedTechnologyFilterSet(_ filters: [String]?) -> Set<String>? {
+        guard let filters else { return nil }
+        let normalizedFilters = filters
+            .map { $0.trimmingCharacters(in: .whitespacesAndNewlines).lowercased() }
+            .filter { !$0.isEmpty }
+        guard !normalizedFilters.isEmpty else { return nil }
+        return Set(normalizedFilters)
     }
 
     private func validateInputDirectory(_ url: URL) throws {
