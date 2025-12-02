@@ -97,15 +97,12 @@ public struct Docc2contextCommand {
             throw CLIError.unsupportedFormat(parsedArguments.format)
         }
 
-        // F2: Use technology filters from --technology arguments
-        let technologyFilters = parsedArguments.technology.isEmpty ? nil : parsedArguments.technology
-
         return CLIOptions(
             inputPath: input,
             outputPath: output,
             forceOverwrite: parsedArguments.force,
             format: normalizedFormat,
-            technologyFilter: technologyFilters)
+            technologyFilter: parsedArguments.technology)
     }
 }
 

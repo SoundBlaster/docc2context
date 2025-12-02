@@ -36,6 +36,50 @@ final class TechnologyFilterTests: XCTestCase {
         }
     }
 
+    func test_filteringIsCaseInsensitiveAndTrimsWhitespace() throws {
+        let fixturesURL = FixtureLoader.urlForBundle(named: "ArticleReference.doccarchive")
+        try TestTemporaryDirectory.withTemporaryDirectory { temp in
+            let outputDirectory = temp.childDirectory(named: "case-insensitive-output")
+
+            let pipeline = MarkdownGenerationPipeline()
+            let summary = try pipeline.generateMarkdown(
+                from: fixturesURL.path,
+                to: outputDirectory.path,
+                forceOverwrite: false,
+                technologyFilter: ["  docc2contextcore  "])
+
+            XCTAssertGreaterThan(summary.symbolCount, 0,
+                                  "Technology filters should ignore case and surrounding whitespace")
+        }
+    }
+
+    func test_filteringDeduplicatesEquivalentTechnologyNames() throws {
+        let fixturesURL = FixtureLoader.urlForBundle(named: "ArticleReference.doccarchive")
+        try TestTemporaryDirectory.withTemporaryDirectory { temp in
+            let duplicateOutput = temp.childDirectory(named: "duplicate-filters-output")
+            let singleOutput = temp.childDirectory(named: "single-filter-output")
+
+            let pipeline = MarkdownGenerationPipeline()
+
+            let duplicateSummary = try pipeline.generateMarkdown(
+                from: fixturesURL.path,
+                to: duplicateOutput.path,
+                forceOverwrite: false,
+                technologyFilter: ["Docc2contextCore", " docc2contextcore "])
+
+            let singleSummary = try pipeline.generateMarkdown(
+                from: fixturesURL.path,
+                to: singleOutput.path,
+                forceOverwrite: false,
+                technologyFilter: ["docc2contextcore"])
+
+            XCTAssertGreaterThan(duplicateSummary.symbolCount, 0,
+                                  "Duplicate filters should still include matching symbols")
+            XCTAssertEqual(duplicateSummary.symbolCount, singleSummary.symbolCount,
+                           "Equivalent technology filters should be deduplicated")
+        }
+    }
+
     func test_filteringWithNonMatchingModuleProducesEmptySymbolSet() throws {
         let fixturesURL = FixtureLoader.urlForBundle(named: "ArticleReference.doccarchive")
         try TestTemporaryDirectory.withTemporaryDirectory { temp in
