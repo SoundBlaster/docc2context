@@ -3,10 +3,9 @@ import XCTest
 
 final class MacInstallScriptTests: XCTestCase {
     func test_installScriptDryRunPrintsPlannedOperations() throws {
-        #if os(macOS)
-        #else
+        #if !os(macOS)
         throw XCTSkip("macOS install script is only validated on macOS hosts")
-        #endif
+        #else
 
         let fileManager = FileManager.default
         let scriptURL = TestSupportPaths.repositoryRootDirectory
@@ -55,5 +54,6 @@ final class MacInstallScriptTests: XCTestCase {
         XCTAssertTrue(output.contains(expectedArtifact + ".sha256"))
         XCTAssertTrue(output.contains(prefix.appendingPathComponent("bin/docc2context").path))
         XCTAssertTrue(output.lowercased().contains("dry run"), "Dry-run execution should be reported")
+        #endif
     }
 }

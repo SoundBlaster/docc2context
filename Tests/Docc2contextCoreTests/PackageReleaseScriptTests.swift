@@ -206,10 +206,9 @@ final class PackageReleaseScriptTests: XCTestCase {
     }
 
     func test_packageScriptProducesMacOSArtifactsWithArchSuffixesInDryRunMode() throws {
-        #if os(macOS)
-        #else
+        #if !os(macOS)
         throw XCTSkip("macOS packaging test only runs on macOS hosts")
-        #endif
+        #else
 
         let fileManager = FileManager.default
         let script = scriptURL()
@@ -268,5 +267,6 @@ final class PackageReleaseScriptTests: XCTestCase {
         XCTAssertTrue(summaryContents.contains("Architecture: \(hostArch)"))
         XCTAssertTrue(summaryContents.contains("Dry Run: true"))
         XCTAssertTrue(summaryContents.contains(expectedZip))
+        #endif
     }
 }
