@@ -1,9 +1,9 @@
 # H4 – Repository Validation Harness Implementation (SELECT_NEXT Planning)
 
-**Status:** Planning (SELECT_NEXT)
-**Date:** 2025-12-20
+**Status:** Planning (SELECT_NEXT → queued for START)
+**Date:** 2025-12-03
 **Owner:** docc2context agent
-**Depends On:** H1 repository hosting unblock (service + credentials), H5 metadata fixtures/offline harness, D4-LNX packaging artifacts, E4 release simulation coverage
+**Depends On:** H1 repository hosting unblock (service + credentials), H5 metadata fixtures/offline harness (implementation now landed), D4-LNX packaging artifacts, E4 release simulation coverage
 
 ---
 
@@ -15,9 +15,16 @@ Select the implementation work that will operationalize the repository validatio
 
 ## ✅ Selection Rationale
 - **Phase alignment:** Builds directly on completed packaging (D4-LNX) and musl support (H2) while extending prior H4/H5 planning into executable code.
-- **Dependency awareness:** Keeps validation logic feature-flagged until hosting credentials and fixture sets exist, minimizing risk to current release workflows.
+- **Dependency awareness:** Keeps validation logic feature-flagged until hosting credentials exist and leans on H5 fixtures to cover offline flows, minimizing risk to current release workflows.
 - **Testing-first:** Commits to landing fixture-backed XCTests plus scripted probes before enabling live network checks, preserving determinism.
 - **Doc sync:** Creates a path to update README/SECRETS once the harness is integrated, keeping operators informed about repository gates.
+
+---
+
+## 🔎 Readiness Snapshot (2025-12-03)
+- **TODO:** Updated to mark this implementation as the next START candidate with offline focus (see `DOCS/todo.md`).
+- **Dependencies:** H5 repository metadata fixtures implementation is archived, providing deterministic apt/dnf metadata and signing keys for offline validation. H1 hosting remains blocked, so live probes stay feature-flagged.
+- **Open questions:** Need provider-aligned endpoint naming (Cloudsmith vs. Packagecloud) and container image choices for smoke testing once credentials exist.
 
 ---
 
@@ -31,6 +38,7 @@ When START runs for this task, implement and validate:
    - Include negative cases for missing metadata, mismatched versions, or invalid signatures.
 3. **CI integration hooks**
    - Wire an optional job into the release workflow that executes fixture-mode by default and live-mode only when repository credentials + staging URLs are provided.
+   - Reuse existing release gate entry points so validation stays opt-in until H1 hosting is live.
 4. **Documentation updates**
    - Extend README installation docs with repository validation expectations and flags.
    - Update `.github/SECRETS.md` with required secrets/environment variables for live probes (repo URLs, GPG keys, staging tokens) and guidance on masking outputs.
@@ -53,10 +61,11 @@ When START runs for this task, implement and validate:
 ---
 
 ## 🔜 Next Steps (before START)
-- Finalize fixture schema and test GPG keys in `H5_RepositoryMetadataFixtures.md`; record expected artifact names/hashes.
-- Inventory release workflow touchpoints that will consume the validation script and note any required feature flags.
-- Coordinate with H1 hosting plan to align repository endpoints, distribution names, and signing key handling.
-- Draft README/SECRETS sections offline so text changes can ship alongside code/test updates during START.
+- Cross-link to the completed H5 fixture implementation and capture which fixture directories + signing keys should be exercised first.
+- Inventory release workflow touchpoints that will consume the validation script and note any required feature flags or environment toggles to keep CI deterministic.
+- Coordinate with H1 hosting plan to align repository endpoints, distribution names, and signing key handling so fixture expectations mirror the eventual provider.
+- Draft README/SECRETS sections offline so text changes can ship alongside code/test updates during START (documenting fixture-mode vs. live-mode usage).
+- Identify container images for Debian/Ubuntu/Fedora smoke runs and decide which should be enabled in offline-only mode using local fixtures.
 
 ---
 
