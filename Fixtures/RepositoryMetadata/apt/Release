@@ -1,0 +1,10 @@
+Origin: docc2context
+Label: docc2context
+Suite: stable
+Version: 0.0.0-test
+Date: Mon, 22 Dec 2025 00:00:00 UTC
+Architectures: amd64
+Components: main
+Description: Offline apt repository fixture for validation
+SHA256:
+ b664c40030a80a51f8ee0eea3dd079cc400cce0ce41578c64e7c415b0a44a29b Packages

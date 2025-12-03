@@ -1,0 +1,35 @@
+{
+  "_schema": 1,
+  "fixtures": [
+    {
+      "id": "apt-release",
+      "relative_path": "apt/Release",
+      "sha256": "de87fdb9e36a808100a8b1e1a8bce088f9a3b2d50ebabf938b1ba6a7d090d171",
+      "size_bytes": 291
+    },
+    {
+      "id": "apt-inrelease",
+      "relative_path": "apt/InRelease",
+      "sha256": "6bd1aa02bfaac1ddf6c6850f084d25da38e93995af03b94bc2c60c68bd5f4b78",
+      "size_bytes": 379
+    },
+    {
+      "id": "apt-packages",
+      "relative_path": "apt/Packages",
+      "sha256": "b664c40030a80a51f8ee0eea3dd079cc400cce0ce41578c64e7c415b0a44a29b",
+      "size_bytes": 301
+    },
+    {
+      "id": "dnf-repomd",
+      "relative_path": "dnf/repodata/repomd.xml",
+      "sha256": "0cba2a7bbc2f09d3c2bdfea7c8236e03e01830fe44fdf9a5954bba2003211fb1",
+      "size_bytes": 265
+    },
+    {
+      "id": "dnf-primary",
+      "relative_path": "dnf/repodata/primary.xml",
+      "sha256": "7e0765dc3bf8a54a5c22e5eda6aa016d0052b64e6f840eb99b16cb058a5fd7fc",
+      "size_bytes": 400
+    }
+  ]
+}

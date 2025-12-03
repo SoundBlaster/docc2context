@@ -1,0 +1,8 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<repomd>
+  <revision>0</revision>
+  <data type="primary">
+    <location href="repodata/primary.xml"/>
+    <checksum type="sha256">cccccccccccccccccccccccccccccccccccccccccccccccccccccccccccccccc</checksum>
+  </data>
+</repomd>

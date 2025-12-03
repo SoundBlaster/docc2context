@@ -1,0 +1,17 @@
+-----BEGIN PGP SIGNED MESSAGE-----
+Hash: SHA256
+
+Origin: docc2context
+Label: docc2context
+Suite: stable
+Version: 0.0.0-test
+Architectures: amd64
+Components: main
+Description: Offline apt repository fixture for validation
+
+-----BEGIN PGP SIGNATURE-----
+Version: docc2context-test
+
+wsFcBAEBCAAQBQJk+t0uCRCxJ0uWkJ1UHAAAJqoQAHF7mF3Kke0KwoEMbgZwO+7y
+=abcd
+-----END PGP SIGNATURE-----
