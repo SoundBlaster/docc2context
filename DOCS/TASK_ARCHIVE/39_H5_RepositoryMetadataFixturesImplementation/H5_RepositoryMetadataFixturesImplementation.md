@@ -1,6 +1,6 @@
 # H5 – Repository Metadata Fixtures Implementation (SELECT_NEXT Planning)
 
-**Status:** In Progress (START)
+**Status:** Complete (ARCHIVE)
 **Date:** 2025-12-21
 **Owner:** docc2context agent
 **Depends On:** H1 repository hosting decisions, H4 validation harness design, D4-LNX packaging outputs, H2/H3 packaging extensions
@@ -53,11 +53,14 @@ When START executes this task, implement:
 
 ---
 
-## ✅ Work completed during START
+## ✅ Work completed
 - Added deterministic offline apt/dnf metadata fixtures under `Fixtures/RepositoryMetadata` with a dedicated manifest tracking SHA-256 hashes and byte sizes for Release/InRelease/Packages and repodata files.
 - Implemented `RepositoryMetadataFixturesValidator` to load the manifest, compute hashes/sizes, and report mismatches to support the H4 validation harness.
 - Added `RepositoryMetadataFixturesTests` covering the happy path and tampering detection by mutating fixture copies in temporary directories.
 - Documented the new fixtures and validation harness usage in `Fixtures/README.md` and the top-level README.
+
+## 🧪 Validation evidence
+- `swift test --filter RepositoryMetadataFixturesTests` (Linux, 2025-12-03) — 2 tests passed, validating manifest alignment and tamper detection.
 
 ## 🔜 Next Steps
 - Thread the validator into the broader repository validation harness once H4 execution begins and wire optional CI hooks that exercise the offline fixtures.
@@ -67,9 +70,9 @@ When START executes this task, implement:
 ---
 
 ## 📎 References
-- [PRD §4.6 Release Packaging & Distribution Requirements](../PRD/docc2context_prd.md#46-release-packaging--distribution-requirements)
-- [Workplan – Phase E/H follow-ups](../workplan.md)
-- [H1 APT/DNF Repository Hosting Plan](H1_APTDNFRepositoryHostingPlan.md)
-- [H4 Repository Validation Harness Implementation](H4_RepoValidationHarnessImplementation.md)
-- [H5 Repository Metadata Fixtures & Offline Harness (Planning)](H5_RepositoryMetadataFixtures.md)
-- [D4-LNX Linux Release Packaging Matrix](../TASK_ARCHIVE/25_D4-LNX_LinuxReleasePackagingMatrix/)
+- [PRD §4.6 Release Packaging & Distribution Requirements](../../PRD/docc2context_prd.md#46-release-packaging--distribution-requirements)
+- [Workplan – Phase E/H follow-ups](../../workplan.md)
+- [H1 APT/DNF Repository Hosting Plan](../../INPROGRESS/H1_APTDNFRepositoryHostingPlan.md)
+- [H4 Repository Validation Harness Implementation](../../INPROGRESS/H4_RepoValidationHarnessImplementation.md)
+- [H5 Repository Metadata Fixtures & Offline Harness (Planning)](../../INPROGRESS/H5_RepositoryMetadataFixtures.md)
+- [D4-LNX Linux Release Packaging Matrix](../25_D4-LNX_LinuxReleasePackagingMatrix/)
