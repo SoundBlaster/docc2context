@@ -164,6 +164,14 @@ run_full_determinism_check() {
   log_step "Full output determinism check passed"
 }
 
+run_repository_metadata_validation() {
+  log_step "Validating repository metadata fixtures"
+  if ! swift run repository-validation --fixtures-path "$REPO_ROOT/Fixtures/RepositoryMetadata"; then
+    log_error "Repository metadata validation failed"
+    exit 1
+  fi
+}
+
 verify_fixture_manifest() {
   log_step "Validating fixture manifest at $MANIFEST_PATH"
   if [[ ! -f "$MANIFEST_PATH" ]]; then
@@ -182,6 +190,7 @@ main() {
   run_coverage_gate
   run_determinism_check
   run_full_determinism_check
+  run_repository_metadata_validation
   verify_fixture_manifest
   log_step "Release gate checks completed successfully"
 }

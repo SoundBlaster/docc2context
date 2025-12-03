@@ -22,7 +22,7 @@
     {
       "id": "dnf-repomd",
       "relative_path": "dnf/repodata/repomd.xml",
-      "sha256": "0cba2a7bbc2f09d3c2bdfea7c8236e03e01830fe44fdf9a5954bba2003211fb1",
+      "sha256": "6664c6be31db18bcd25069894ed7538c83385cc38b96f766c402926981f48d26",
       "size_bytes": 265
     },
     {
