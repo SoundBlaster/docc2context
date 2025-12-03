@@ -1,0 +1,8 @@
+Package: docc2context
+Version: 0.0.0-test
+Architecture: amd64
+Maintainer: docc2context
+Description: Fixture package metadata for offline validation
+Filename: pool/main/d/docc2context/docc2context_0.0.0-test_amd64.deb
+Size: 1024
+SHA256: ffffffffffffffffffffffffffffffffffffffffffffffffffffffffffffffff

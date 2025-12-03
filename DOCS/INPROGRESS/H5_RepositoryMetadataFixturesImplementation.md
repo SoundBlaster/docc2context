@@ -1,6 +1,6 @@
 # H5 – Repository Metadata Fixtures Implementation (SELECT_NEXT Planning)
 
-**Status:** Planning (SELECT_NEXT)
+**Status:** In Progress (START)
 **Date:** 2025-12-21
 **Owner:** docc2context agent
 **Depends On:** H1 repository hosting decisions, H4 validation harness design, D4-LNX packaging outputs, H2/H3 packaging extensions
@@ -53,11 +53,16 @@ When START executes this task, implement:
 
 ---
 
-## 🔜 Next Steps (before START)
-- Align with H1 hosting plan on target distributions/components so fixture directory names match anticipated repository slugs.
-- Draft fixture manifest structure (hash files, directory layout, key paths) and note expected artifact names/versions drawn from existing release outputs.
-- Identify which release workflow touchpoints will consume the fixtures for validation to ensure START work threads through scripts + CI gating.
-- Sketch README/SECRETS text so documentation can ship alongside code/test changes during START.
+## ✅ Work completed during START
+- Added deterministic offline apt/dnf metadata fixtures under `Fixtures/RepositoryMetadata` with a dedicated manifest tracking SHA-256 hashes and byte sizes for Release/InRelease/Packages and repodata files.
+- Implemented `RepositoryMetadataFixturesValidator` to load the manifest, compute hashes/sizes, and report mismatches to support the H4 validation harness.
+- Added `RepositoryMetadataFixturesTests` covering the happy path and tampering detection by mutating fixture copies in temporary directories.
+- Documented the new fixtures and validation harness usage in `Fixtures/README.md` and the top-level README.
+
+## 🔜 Next Steps
+- Thread the validator into the broader repository validation harness once H4 execution begins and wire optional CI hooks that exercise the offline fixtures.
+- Add signed fixture variants (GPG test keys) once hosting decisions clarify the expected trust model.
+- Extend fixtures to cover additional architectures/components as package outputs expand beyond the current placeholders.
 
 ---
 
