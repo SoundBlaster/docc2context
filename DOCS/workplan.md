@@ -45,6 +45,12 @@ The workplan distills the execution order of the phases defined in [DOCS/PRD/doc
 - ✅ **H3 Additional Package Manager Integration** — archived under `DOCS/TASK_ARCHIVE/34_H3_AURPackageIntegration/`; added the Arch Linux AUR PKGBUILD generator (`Scripts/build_aur_pkgbuild.py`), validated it with `AurPkgbuildScriptTests`, and documented `makepkg` usage in README while keeping H1 apt/dnf repository hosting deferred.
 - ✅ **G0 Test Debt Cleanup** — archived under `DOCS/TASK_ARCHIVE/32_G0_TestDebtCleanup/`; eliminated all `swift test` warnings by fixing XCTSkip usage with `throw` keyword and reorganizing platform-specific test code via preprocessor directives. All 91 tests pass with zero warnings; coverage gate (90.43%) and determinism gates verified.
 
+## Phase H – Repository Distribution Hardening
+- ⛔ **H1 APT/DNF Repository Hosting** — blocked by external service credentials and signing keys; tracked in `DOCS/INPROGRESS/BLOCKED_H1_APTDNFRepositoryHosting.md` while Linux users rely on manual downloads/Homebrew/DEB/RPM artifacts.
+- 🟡 **H4 Repository Validation Harness (Planning)** — designing repository health checks and offline validation gates pending hosting access. Notes live in `DOCS/INPROGRESS/H4_RepoValidationHarness.md` and `DOCS/INPROGRESS/H4_RepoValidationHarnessImplementation.md`.
+- 🟡 **H5 Repository Metadata Fixtures & Offline Harness (Planning)** — outlines fixture schema, signing approaches, and offline harness scaffolding under `DOCS/INPROGRESS/H5_RepositoryMetadataFixtures.md`.
+- ✅ **H5 Repository Metadata Fixtures Implementation** — archived under `DOCS/TASK_ARCHIVE/39_H5_RepositoryMetadataFixturesImplementation/`; delivered deterministic apt/dnf metadata fixtures, a manifest-driven validator, XCTests for tamper detection, and documentation for fixture usage.
+
 ## Tracking Conventions
 - Store active task notes inside `DOCS/INPROGRESS/`.
 - Capture ready-to-pick tasks plus dependencies in [DOCS/todo.md](./todo.md).
