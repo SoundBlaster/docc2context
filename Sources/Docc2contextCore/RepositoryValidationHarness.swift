@@ -2,6 +2,12 @@ import Crypto
 import Foundation
 #if canImport(FoundationXML)
 import FoundationXML
+#else
+// XMLParser and XMLParserDelegate live in Foundation on platforms where FoundationXML
+// is unavailable (e.g., some macOS environments). Provide aliases so the harness
+// continues to compile without importing the separate module.
+private typealias XMLParser = Foundation.XMLParser
+private typealias XMLParserDelegate = Foundation.XMLParserDelegate
 #endif
 
 public struct RepositoryValidationExpectation {
