@@ -80,6 +80,7 @@ The repository ships two curated DocC bundles in `Fixtures/` (`TutorialCatalog.d
 
 - **Inspecting fixtures** – Run `python3 Scripts/validate_fixtures_manifest.py Fixtures/manifest.json` to confirm hashes before recording new data. `swift test` depends on these bundles, so a mismatch indicates accidental edits.
 - **Adding fixtures** – Compress the `.doccarchive`, calculate its SHA-256 hash (`shasum -a 256`), and append the metadata to the manifest. Update `Fixtures/README.md` with provenance notes so future contributors know the origin of each bundle.
+- **Validating repository metadata** – Execute `swift run repository-validation --fixtures-path Fixtures/RepositoryMetadata` to assert the apt/dnf fixture hashes, declared fields, and RPM/Debian metadata match the expectations baked into the harness. Override `--package-version`, `--apt-suite`, or checksum flags to exercise staged repository outputs before enabling uploads.
 - **Using fixtures in tests** – Leverage the harness utilities under `Tests/Shared/` to load fixture paths without duplicating boilerplate. `HarnessTemporaryDirectory` exposes scratch space for deterministic copy tests.
 
 ## Testing & automation overview
@@ -90,7 +91,7 @@ Most contributions touch multiple automation layers. Keep the following workflow
 2. `swift test` – Executes the entire suite, including CLI integration, determinism, and documentation guards such as `DocumentationGuidanceTests` and `InternalModelDocumentationTests`.
 3. `swift test --enable-code-coverage` – Produces `.profdata` for coverage enforcement. Follow up with `python3 Scripts/enforce_coverage.py --threshold 90` to ensure both the CLI and core targets remain above the D2 floor.
 4. `python3 Scripts/lint_markdown.py README.md DOCS/PRD/phase_d.md` – Validates Markdown formatting and asserts that required README sections exist. The script exits non-zero when a rule fails, matching the CI `docs` job.
-5. `bash Scripts/release_gates.sh` – Runs tests with coverage, determinism smoke + full conversions, fixture validation, and coverage enforcement before you tag a release or push a significant change.
+5. `bash Scripts/release_gates.sh` – Runs tests with coverage, determinism smoke + full conversions, repository metadata validation via `repository-validation`, fixture validation, and coverage enforcement before you tag a release or push a significant change.
 
 ## Metadata parsing pipeline
 

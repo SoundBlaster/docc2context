@@ -1,20 +1,51 @@
 import XCTest
 @testable import Docc2contextCore
 
-/// Placeholder tests for PRD Phase D task D1 (structured logging).
-///
-/// These will be replaced with concrete failing specs once the logging
-/// facade API solidifies per `DOCS/INPROGRESS/D1_StructuredLogging.md`.
+private final class BufferingSink: LogSink {
+    private(set) var lines: [String] = []
+    func write(_ message: String) {
+        lines.append(message.trimmingCharacters(in: .newlines))
+    }
+}
+
 final class LoggingTests: XCTestCase {
-    func testEmitsPhaseLifecycleEventsPlaceholder() throws {
-        throw XCTSkip("D1 – Replace with failing phase lifecycle spec during implementation.")
+    func testEmitsPhaseLifecycleEvents() {
+        let sink = BufferingSink()
+        let logger = StructuredLogger(sink: sink)
+
+        logger.logPhase("convert", state: .started)
+        logger.logPhase("convert", state: .finished)
+
+        XCTAssertEqual(logger.phaseEvents, [
+            PhaseLifecycleEvent(phase: "convert", state: .started),
+            PhaseLifecycleEvent(phase: "convert", state: .finished),
+        ])
+        XCTAssertEqual(sink.lines, ["phase=convert state=started", "phase=convert state=finished"])
     }
 
-    func testRecordsSummaryCountsPlaceholder() throws {
-        throw XCTSkip("D1 – Replace with failing summary logging spec during implementation.")
+    func testRecordsSummaryCounts() {
+        let sink = BufferingSink()
+        let logger = StructuredLogger(sink: sink)
+
+        logger.recordSummary(tutorialVolumes: 2, chapters: 3, articles: 5, symbols: 8)
+
+        XCTAssertEqual(logger.summaryEvents, [
+            SummaryLogEvent(tutorialVolumes: 2, chapters: 3, articles: 5, symbols: 8),
+        ])
+        XCTAssertEqual(sink.lines, ["summary tutorialVolumes=2 chapters=3 articles=5 symbols=8"])
     }
 
-    func testFormatsErrorEventsPlaceholder() throws {
-        throw XCTSkip("D1 – Replace with failing error logging spec during implementation.")
+    func testFormatsErrorEvents() {
+        struct FixtureError: LocalizedError { var errorDescription: String? { "failed to render" } }
+
+        let sink = BufferingSink()
+        let logger = StructuredLogger(sink: sink)
+
+        logger.logError(phase: "render", error: FixtureError())
+
+        XCTAssertEqual(logger.errorEvents, [
+            ErrorLogEvent(phase: "render", message: "failed to render"),
+        ])
+        XCTAssertEqual(sink.lines, ["error phase=render message=failed to render"])
     }
 }

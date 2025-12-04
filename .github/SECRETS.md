@@ -169,6 +169,16 @@ After configuring the secrets, you can verify the setup:
 - [ ] Optional dry-run executed locally: `./Scripts/publish_to_cloudsmith.sh --owner <owner> --repository <repo> --version vX.Y.Z --artifact-dir dist --dry-run`
 - [ ] Tagged release pushed after secrets configured to exercise the Cloudsmith upload step
 
+## Repository validation harness (apt/dnf)
+
+The offline repository validation harness ships as `swift run repository-validation` and defaults to the in-repo fixtures. It requires **no secrets** when invoked in fixture mode. When H1 hosting is provisioned and live probes are enabled, plan to add the following secrets to keep CI inputs configurable and isolated from logs:
+
+- `REPO_VALIDATION_APT_URL` – staging apt repository base URL for metadata checks.
+- `REPO_VALIDATION_DNF_URL` – staging dnf repository base URL for metadata checks.
+- `REPO_VALIDATION_GPG_KEY_PATH` – path (or mounted secret) to the trusted GPG public key used to verify InRelease signatures.
+
+Until those secrets are defined, the validation step should continue running in fixture mode by passing `--fixtures-path Fixtures/RepositoryMetadata` through the release gates script.
+
 ## Related Documentation
 
 - [GitHub Actions Secrets Documentation](https://docs.github.com/en/actions/security-guides/encrypted-secrets)
