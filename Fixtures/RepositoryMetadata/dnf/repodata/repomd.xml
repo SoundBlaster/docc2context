@@ -3,6 +3,6 @@
   <revision>0</revision>
   <data type="primary">
     <location href="repodata/primary.xml"/>
-    <checksum type="sha256">cccccccccccccccccccccccccccccccccccccccccccccccccccccccccccccccc</checksum>
+    <checksum type="sha256">7e0765dc3bf8a54a5c22e5eda6aa016d0052b64e6f840eb99b16cb058a5fd7fc</checksum>
   </data>
 </repomd>
