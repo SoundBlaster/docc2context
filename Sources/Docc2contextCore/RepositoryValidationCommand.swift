@@ -20,8 +20,8 @@ public struct RepositoryValidationCommand {
         }
 
         do {
-            var options = try RepositoryValidationCLIOptions.parse(trimmedArguments)
-            let configuration = try buildConfiguration(options: &options)
+            let options = try RepositoryValidationCLIOptions.parse(trimmedArguments)
+            let configuration = try buildConfiguration(options: options)
             let result = try harness.validate(configuration: configuration)
 
             if result.isValid {
@@ -41,7 +41,7 @@ public struct RepositoryValidationCommand {
         }
     }
 
-    private func buildConfiguration(options: inout RepositoryValidationCLIOptions) throws -> RepositoryValidationHarness.Configuration {
+    private func buildConfiguration(options: RepositoryValidationCLIOptions) throws -> RepositoryValidationHarness.Configuration {
         let fixturesRoot = URL(fileURLWithPath: options.fixturesPath ?? defaultFixturesPath())
         let aptRelease = URL(fileURLWithPath: options.aptRelease ?? fixturesRoot.appendingPathComponent("apt/Release").path)
         let aptInRelease = URL(fileURLWithPath: options.aptInRelease ?? fixturesRoot.appendingPathComponent("apt/InRelease").path)
