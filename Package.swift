@@ -14,6 +14,10 @@ let package = Package(
         .executable(
             name: "docc2context",
             targets: ["docc2context"]
+        ),
+        .executable(
+            name: "repository-validation",
+            targets: ["repository-validation"]
         )
     ],
     dependencies: [
@@ -30,6 +34,13 @@ let package = Package(
         ),
         .executableTarget(
             name: "docc2context",
+            dependencies: [
+                "Docc2contextCore",
+                .product(name: "ArgumentParser", package: "swift-argument-parser")
+            ]
+        ),
+        .executableTarget(
+            name: "repository-validation",
             dependencies: [
                 "Docc2contextCore",
                 .product(name: "ArgumentParser", package: "swift-argument-parser")

@@ -1,7 +1,7 @@
 # H4 – Repository Validation Harness Implementation (SELECT_NEXT Planning)
 
-**Status:** Planning (SELECT_NEXT → queued for START)
-**Date:** 2025-12-03
+**Status:** Complete (START finished; archived)
+**Date:** 2025-12-22
 **Owner:** docc2context agent
 **Depends On:** H1 repository hosting unblock (service + credentials), H5 metadata fixtures/offline harness (implementation now landed), D4-LNX packaging artifacts, E4 release simulation coverage
 
@@ -60,12 +60,12 @@ When START runs for this task, implement and validate:
 
 ---
 
-## 🔜 Next Steps (before START)
-- Cross-link to the completed H5 fixture implementation and capture which fixture directories + signing keys should be exercised first.
-- Inventory release workflow touchpoints that will consume the validation script and note any required feature flags or environment toggles to keep CI deterministic.
-- Coordinate with H1 hosting plan to align repository endpoints, distribution names, and signing key handling so fixture expectations mirror the eventual provider.
-- Draft README/SECRETS sections offline so text changes can ship alongside code/test updates during START (documenting fixture-mode vs. live-mode usage).
-- Identify container images for Debian/Ubuntu/Fedora smoke runs and decide which should be enabled in offline-only mode using local fixtures.
+## ✅ Completion Summary
+- Implemented `RepositoryValidationHarness` + `RepositoryValidationCommand` to validate apt/dnf metadata with fixture defaults and override flags for staged repositories; added `repository-validation` executable target.
+- Added XCTests covering fixture success, tampered apt/dnf failure detection, and CLI flag behaviors.
+- Wired `Scripts/release_gates.sh` to run the harness against `Fixtures/RepositoryMetadata` by default with optional `REPOSITORY_VALIDATION_FLAGS` overrides; documented usage in README and `.github/SECRETS.md`.
+
+See `DOCS/TASK_ARCHIVE/40_H4_RepositoryValidationHarnessImplementation/` for the full archive entry.
 
 ---
 

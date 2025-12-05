@@ -82,6 +82,27 @@ The repository ships two curated DocC bundles in `Fixtures/` (`TutorialCatalog.d
 - **Adding fixtures** – Compress the `.doccarchive`, calculate its SHA-256 hash (`shasum -a 256`), and append the metadata to the manifest. Update `Fixtures/README.md` with provenance notes so future contributors know the origin of each bundle.
 - **Using fixtures in tests** – Leverage the harness utilities under `Tests/Shared/` to load fixture paths without duplicating boilerplate. `HarnessTemporaryDirectory` exposes scratch space for deterministic copy tests.
 
+## Repository validation harness
+
+`repository-validation` is a Swift CLI that validates repository metadata for both apt and dnf. It defaults to the offline fixtures shipped in `Fixtures/RepositoryMetadata`, verifying the manifest hashes, apt `Release`/`InRelease`/`Packages` contents, and dnf `repomd.xml`/`primary.xml` package details.
+
+- **Fixture-mode (default):**
+
+  ```bash
+  swift run repository-validation --fixtures-path Fixtures/RepositoryMetadata
+  ```
+
+- **Staged overrides:** Supply alternate metadata without touching live credentials by passing override flags (for example, after downloading staged metadata to `/tmp/repo-metadata`):
+
+  ```bash
+  REPOSITORY_VALIDATION_FLAGS="--apt-release /tmp/repo-metadata/Release --apt-inrelease /tmp/repo-metadata/InRelease \
+    --apt-packages /tmp/repo-metadata/Packages --dnf-repomd /tmp/repo-metadata/repodata/repomd.xml \
+    --dnf-primary /tmp/repo-metadata/repodata/primary.xml --expected-version v1.2.3" \
+    bash Scripts/release_gates.sh
+  ```
+
+The harness remains offline-first, emitting descriptive failures for mismatched versions, architectures, checksums, and manifest entries. Live probes stay opt-in via explicit override flags so CI remains deterministic.
+
 ## Testing & automation overview
 
 Most contributions touch multiple automation layers. Keep the following workflow handy:
@@ -90,7 +111,7 @@ Most contributions touch multiple automation layers. Keep the following workflow
 2. `swift test` – Executes the entire suite, including CLI integration, determinism, and documentation guards such as `DocumentationGuidanceTests` and `InternalModelDocumentationTests`.
 3. `swift test --enable-code-coverage` – Produces `.profdata` for coverage enforcement. Follow up with `python3 Scripts/enforce_coverage.py --threshold 90` to ensure both the CLI and core targets remain above the D2 floor.
 4. `python3 Scripts/lint_markdown.py README.md DOCS/PRD/phase_d.md` – Validates Markdown formatting and asserts that required README sections exist. The script exits non-zero when a rule fails, matching the CI `docs` job.
-5. `bash Scripts/release_gates.sh` – Runs tests with coverage, determinism smoke + full conversions, fixture validation, and coverage enforcement before you tag a release or push a significant change.
+5. `bash Scripts/release_gates.sh` – Runs tests with coverage, determinism smoke + full conversions, fixture validation, repository metadata checks, and coverage enforcement before you tag a release or push a significant change.
 
 ## Metadata parsing pipeline
 
@@ -144,6 +165,7 @@ The script performs the following checks:
 3. **Determinism Smoke Test** – Runs a deterministic smoke test twice (defaults to `swift run docc2context --help`) and compares the SHA-256 hashes of the outputs. This verifies that command output is deterministic across runs.
 4. **Full Output Determinism** – Converts the TutorialCatalog fixture twice to separate output directories and compares all generated Markdown files byte-for-byte, ensuring that the conversion pipeline produces identical outputs on repeated runs.
 5. **Fixture Validation** – Validates `Fixtures/manifest.json` via `Scripts/validate_fixtures_manifest.py`, confirming that every listed bundle exists, matches the recorded checksum, and reports the expected byte size.
+6. **Repository Metadata Validation** – Executes `swift run repository-validation --fixtures-path Fixtures/RepositoryMetadata` (plus any `REPOSITORY_VALIDATION_FLAGS` overrides) to confirm apt/dnf metadata and expected package versions/checksums match the offline fixtures.
 
 All steps must succeed for the script to exit 0, making it suitable for CI wiring or pre-push hooks.
 
