@@ -1,6 +1,8 @@
 import Crypto
 import Foundation
+#if canImport(FoundationXML)
 import FoundationXML
+#endif
 
 public struct RepositoryValidationHarness {
     public struct Configuration {
