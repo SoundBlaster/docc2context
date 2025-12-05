@@ -172,8 +172,7 @@ public struct RepositoryValidationHarness {
         var version: String?
         var architectures: [String] = []
         var components: [String] = []
-        var packageHash: String?
-        var packagePath: String?
+        var packageHashes: [String: String] = [:]
     }
 
     private struct AptPackageEntry {
@@ -209,11 +208,13 @@ public struct RepositoryValidationHarness {
 
         let packagesData = try Data(contentsOf: configuration.paths.aptPackages)
         let packagesHash = sha256Hex(for: packagesData)
-        if let expectedHash = release.packageHash, expectedHash != packagesHash {
-            releaseMismatches.append("Packages hash mismatch: release lists \(expectedHash), actual \(packagesHash)")
-        }
-        if let expectedPath = release.packagePath, expectedPath != configuration.paths.aptPackages.lastPathComponent {
-            releaseMismatches.append("Release Packages path \(expectedPath) does not match provided path \(configuration.paths.aptPackages.lastPathComponent)")
+        let releasePackagePath = configuration.paths.aptPackages.lastPathComponent
+        if let expectedHash = release.packageHashes[releasePackagePath] {
+            if expectedHash != packagesHash {
+                releaseMismatches.append("Packages hash mismatch: release lists \(expectedHash), actual \(packagesHash)")
+            }
+        } else if !release.packageHashes.isEmpty {
+            releaseMismatches.append("Release does not list Packages entry for \(releasePackagePath)")
         }
 
         if !releaseMismatches.isEmpty {
@@ -242,11 +243,10 @@ public struct RepositoryValidationHarness {
 
             if parsingHashes {
                 let parts = line.split(whereSeparator: { $0.isWhitespace }).map(String.init)
-                guard let hash = parts.first else { continue }
-                metadata.packageHash = hash
-                if parts.count >= 2 {
-                    metadata.packagePath = parts.last
-                }
+                guard parts.count >= 2 else { continue }
+                let hash = parts[0]
+                let path = parts.last!
+                metadata.packageHashes[path] = hash
                 continue
             }
 
