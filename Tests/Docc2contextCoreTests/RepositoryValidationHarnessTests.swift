@@ -47,7 +47,7 @@ final class RepositoryValidationHarnessTests: XCTestCase {
             XCTAssertTrue(identifiers.contains("apt-packages"))
             XCTAssertTrue(identifiers.contains("dnf-primary"))
             XCTAssertTrue(result.issues.contains { $0.message.contains("Package version") })
-            XCTAssertTrue(result.issues.contains { $0.message.contains("primary checksum") })
+            XCTAssertTrue(result.issues.contains { $0.message.contains("Package checksum") })
         }
     }
 }
