@@ -69,4 +69,7 @@ repository metadata to support the H4 validation harness.
   metadata deterministically without reaching live package hosts.
 - **Validation:** `RepositoryMetadataFixturesValidator` (Swift) computes hashes
   and sizes for each entry and reports mismatches; see
-  `RepositoryMetadataFixturesTests` for usage.
+  `RepositoryMetadataFixturesTests` for usage. The `repository-validation`
+  executable extends this to validate apt/dnf metadata structures end-to-end
+  (Release/InRelease/Packages + repomd.xml/primary.xml) using these fixtures by
+  default.

@@ -169,6 +169,25 @@ After configuring the secrets, you can verify the setup:
 - [ ] Optional dry-run executed locally: `./Scripts/publish_to_cloudsmith.sh --owner <owner> --repository <repo> --version vX.Y.Z --artifact-dir dist --dry-run`
 - [ ] Tagged release pushed after secrets configured to exercise the Cloudsmith upload step
 
+## Repository Metadata Validation (Optional)
+
+### REPOSITORY_VALIDATION_FLAGS
+
+**Purpose:** Supplies override flags to the `repository-validation` CLI when running against staged apt/dnf metadata instead of the built-in fixtures.
+
+**Typical usage:** Download staged metadata inside the workflow (using existing repository hosting credentials), then pass the local paths to the validator. Example:
+
+```
+REPOSITORY_VALIDATION_FLAGS="--apt-release /tmp/repo/Release --apt-inrelease /tmp/repo/InRelease \
+  --apt-packages /tmp/repo/Packages --dnf-repomd /tmp/repo/repodata/repomd.xml \
+  --dnf-primary /tmp/repo/repodata/primary.xml --expected-version v1.2.3"
+```
+
+**Security considerations:**
+- Keep this flag string free of credentials; use it only to reference local files produced by earlier authenticated steps.
+- Mask any URLs or tokens used to fetch staged metadata via dedicated secrets (e.g., Cloudsmith API keys) and avoid echoing them in logs.
+- Leave the variable unset to keep CI in offline/fixture mode.
+
 ## Related Documentation
 
 - [GitHub Actions Secrets Documentation](https://docs.github.com/en/actions/security-guides/encrypted-secrets)
