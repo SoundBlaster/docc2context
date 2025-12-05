@@ -170,7 +170,7 @@ run_full_determinism_check() {
 
 run_repository_validation() {
   log_step "Validating repository metadata fixtures"
-  swift run repository-validation --fixtures-path "$REPO_ROOT/Fixtures/RepositoryMetadata" "${REPOSITORY_VALIDATION_FLAGS_ARRAY[@]}"
+  swift run repository-validation --fixtures-path "$REPO_ROOT/Fixtures/RepositoryMetadata" "${REPOSITORY_VALIDATION_FLAGS_ARRAY[@]:-}"
 }
 
 verify_fixture_manifest() {
