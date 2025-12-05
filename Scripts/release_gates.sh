@@ -8,7 +8,10 @@ VALIDATOR_SCRIPT="$SCRIPT_DIR/validate_fixtures_manifest.py"
 DETERMINISM_COMMAND=${DETERMINISM_COMMAND:-"swift run docc2context --help"}
 TMP_ROOT=${DETERMINISM_TMP_DIR:-"$REPO_ROOT/.build/release-gates"}
 COVERAGE_THRESHOLD=${COVERAGE_THRESHOLD:-"90"}
-REPOSITORY_VALIDATION_FLAGS=${REPOSITORY_VALIDATION_FLAGS:-""}
+REPOSITORY_VALIDATION_FLAGS_ARRAY=()
+if [[ -n "${REPOSITORY_VALIDATION_FLAGS:-}" ]]; then
+  read -r -a REPOSITORY_VALIDATION_FLAGS_ARRAY <<<"${REPOSITORY_VALIDATION_FLAGS}"
+fi
 mkdir -p "$TMP_ROOT"
 cd "$REPO_ROOT"
 
@@ -167,7 +170,7 @@ run_full_determinism_check() {
 
 run_repository_validation() {
   log_step "Validating repository metadata fixtures"
-  swift run repository-validation --fixtures-path "$REPO_ROOT/Fixtures/RepositoryMetadata" $REPOSITORY_VALIDATION_FLAGS
+  swift run repository-validation --fixtures-path "$REPO_ROOT/Fixtures/RepositoryMetadata" "${REPOSITORY_VALIDATION_FLAGS_ARRAY[@]}"
 }
 
 verify_fixture_manifest() {

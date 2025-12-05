@@ -20,19 +20,34 @@ public struct RepositoryValidationCommand {
         }
 
         do {
-            var options = try RepositoryValidationCLIOptions.parse(trimmedArguments)
-            let configuration = try buildConfiguration(options: &options)
+            let options = try RepositoryValidationCLIOptions.parse(trimmedArguments)
+            let configuration = try buildConfiguration(options: options)
             let result = try harness.validate(configuration: configuration)
 
+            let ignoredArguments = options.unrecognizedArguments
+            let ignoredArgumentsMessage: String?
+            if !ignoredArguments.isEmpty {
+                ignoredArgumentsMessage = "Ignored unexpected arguments: \(ignoredArguments.joined(separator: " "))"
+            } else {
+                ignoredArgumentsMessage = nil
+            }
+
             if result.isValid {
-                let successSummary = "Validation succeeded for \(options.expectedPackageName) version \(options.expectedVersion)"
+                var successSummary = "Validation succeeded for \(options.expectedPackageName) version \(options.expectedVersion)"
+                if let ignoredArgumentsMessage {
+                    successSummary.append("\n\(ignoredArgumentsMessage)")
+                }
+
                 return Docc2contextCommandResult(exitCode: 0, output: successSummary)
             }
 
             let details = result.issues
                 .map { "- [\($0.identifier)] \($0.message)" }
                 .joined(separator: "\n")
-            let output = "Validation failed:\n\(details)"
+            var output = "Validation failed:\n\(details)"
+            if let ignoredArgumentsMessage {
+                output.append("\n\(ignoredArgumentsMessage)")
+            }
             return Docc2contextCommandResult(exitCode: ExitCode.validationFailed, output: output)
         } catch let error as ValidationError {
             return Docc2contextCommandResult(exitCode: ExitCode.usageError, output: error.description)
@@ -41,7 +56,7 @@ public struct RepositoryValidationCommand {
         }
     }
 
-    private func buildConfiguration(options: inout RepositoryValidationCLIOptions) throws -> RepositoryValidationHarness.Configuration {
+    private func buildConfiguration(options: RepositoryValidationCLIOptions) throws -> RepositoryValidationHarness.Configuration {
         let fixturesRoot = URL(fileURLWithPath: options.fixturesPath ?? defaultFixturesPath())
         let aptRelease = URL(fileURLWithPath: options.aptRelease ?? fixturesRoot.appendingPathComponent("apt/Release").path)
         let aptInRelease = URL(fileURLWithPath: options.aptInRelease ?? fixturesRoot.appendingPathComponent("apt/InRelease").path)
@@ -129,4 +144,7 @@ struct RepositoryValidationCLIOptions: ParsableArguments {
 
     @Option(name: .customLong("expected-rpm-sha256"), help: "Expected rpm checksum value")
     var expectedRpmSHA256: String = "bbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbb"
+
+    @Argument(parsing: .captureForPassthrough, help: "Additional arguments are ignored for compatibility with older workflows.")
+    var unrecognizedArguments: [String] = []
 }

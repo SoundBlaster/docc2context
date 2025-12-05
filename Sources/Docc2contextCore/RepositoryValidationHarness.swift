@@ -301,8 +301,8 @@ public struct RepositoryValidationHarness {
         _ entries: [AptPackageEntry],
         expected: Configuration.ExpectedPackageMetadata
     ) -> [String] {
-        guard let entry = entries.first else {
-            return ["No package entries found in Packages file"]
+        guard let entry = entries.first(where: { $0.name == expected.name }) else {
+            return ["Package \(expected.name) not found in Packages file"]
         }
 
         var mismatches: [String] = []
@@ -375,7 +375,7 @@ public struct RepositoryValidationHarness {
             packageMismatches.append("Package location expected \(configuration.expectedPackage.rpmLocation) but found \(primary.location ?? "missing")")
         }
         if primary.checksum != configuration.expectedPackage.rpmSHA256 {
-            packageMismatches.append("Primary checksum expected \(configuration.expectedPackage.rpmSHA256) but found \(primary.checksum ?? "missing")")
+            packageMismatches.append("Package checksum expected \(configuration.expectedPackage.rpmSHA256) but found \(primary.checksum ?? "missing")")
         }
 
         if !packageMismatches.isEmpty {
