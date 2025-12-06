@@ -73,6 +73,6 @@ When START executes this task, implement:
 - [PRD §4.6 Release Packaging & Distribution Requirements](../../PRD/docc2context_prd.md#46-release-packaging--distribution-requirements)
 - [Workplan – Phase E/H follow-ups](../../workplan.md)
 - [H1 APT/DNF Repository Hosting Plan](../../INPROGRESS/H1_APTDNFRepositoryHostingPlan.md)
-- [H4 Repository Validation Harness Implementation](../../INPROGRESS/H4_RepoValidationHarnessImplementation.md)
+- [H4 Repository Validation Harness Implementation](../40_H4_RepositoryValidationHarnessImplementation/H4_RepositoryValidationHarnessImplementation.md)
 - [H5 Repository Metadata Fixtures & Offline Harness (Planning)](../../INPROGRESS/H5_RepositoryMetadataFixtures.md)
 - [D4-LNX Linux Release Packaging Matrix](../25_D4-LNX_LinuxReleasePackagingMatrix/)
