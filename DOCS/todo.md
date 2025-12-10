@@ -3,7 +3,6 @@
 Use this list for near-term execution. Each entry maps back to the PRD and [workplan](./workplan.md).
 
 ## In Progress
-- [ ] **F3 Performance Benchmark Harness (Planning)** — Define a repeatable runtime benchmarking harness that validates the PRD performance target (convert a ~10 MB DocC bundle within 10 seconds on modern Apple Silicon) using deterministic fixtures and scripted runs. _Doc:_ `DOCS/INPROGRESS/F3_PerformanceBenchmarkHarness.md`. _Owner:_ docc2context agent. _Status:_ Planning — 2025-12-06; scope tests/fixtures before START.
 - [ ] **H1 APT/DNF Repository Hosting (Planning & Unblock Prep)** — Planning the repository hosting path while execution remains blocked pending external credentials; scoping upload helper design, secret inventory, and provider selection criteria. _Doc:_ `DOCS/INPROGRESS/H1_APTDNFRepositoryHostingPlan.md`. _Owner:_ docc2context agent. _Status:_ Planning — 2025-11-30; execution deferred until repository service + signing keys are provisioned.
 - [ ] **H4 Repository Validation Harness (Planning)** — Design deterministic verification for future apt/dnf repositories (metadata signatures, package availability, install smoke runs) so once hosting is unblocked we can gate releases on repository health. _Doc:_ `DOCS/INPROGRESS/H4_RepoValidationHarness.md`. _Owner:_ docc2context agent. _Status:_ Planning — 2025-12-01; prep work only until H1 hosting access exists.
 - [ ] **H5 Repository Metadata Fixtures & Offline Harness (Planning)** — Prepare deterministic apt/dnf repository metadata fixtures and offline validation harness scaffolding so H4 can progress without live hosting; map fixture schema to Cloudsmith/Packagecloud layouts and existing `.deb`/`.rpm` artifacts. _Doc:_ `DOCS/INPROGRESS/H5_RepositoryMetadataFixtures.md`. _Owner:_ docc2context agent. _Status:_ Planning — 2025-12-10; offline-only groundwork pending H1 unblock.
@@ -57,7 +56,7 @@ Use this list for near-term execution. Each entry maps back to the PRD and [work
 - [x] **C1 Tutorial Chapter Snapshot Spec** Capture the deterministic Markdown contract for the first tutorial chapter page (`tutorialcatalog/tutorials/getting-started`) and lock it via `MarkdownSnapshotSpecsTests.test_tutorialChapterPageMatchesSnapshot`. _Depends on:_ C1 outline + tutorial overview snapshot harness. _Doc:_ PRD §Phase C (snapshot specs). _Owner:_ docc2context agent. _Status:_ Complete – archived under `DOCS/TASK_ARCHIVE/15_C1_TutorialChapterSnapshot/`; validated with `swift test --filter MarkdownSnapshotSpecsTests.test_tutorialChapterPageMatchesSnapshot` and the full `swift test` suite, with follow-on tutorial + article specs tracked in `DOCS/TASK_ARCHIVE/16_C1_MarkdownSnapshotSpecs/` and `17_C1_ReferenceArticleSnapshot/`.
 
 ## Ready to Start
-_(none)_
+- [ ] **F3 Performance Benchmark Harness (Selected for START)** — Implement the benchmarking harness to validate the PRD runtime target (≤10s for ~10 MB bundles on modern Apple Silicon) using deterministic fixtures and an opt-in runner. _Doc:_ `DOCS/INPROGRESS/F3_PerformanceBenchmarkHarness.md`. _Owner:_ docc2context agent. _Status:_ Selected — 2026-01-05; planning complete, ready to begin START with fixture/runner implementation and pass/fail thresholds.
 
 ## Blocked
 Tasks prevented from proceeding by external dependencies, missing resources, or pending decisions.
