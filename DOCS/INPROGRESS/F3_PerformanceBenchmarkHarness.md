@@ -1,7 +1,7 @@
 # F3 – Performance Benchmark Harness (Planning)
 
-**Status:** Planning (SELECT_NEXT)
-**Date:** 2025-12-06
+**Status:** Selected for START (planning complete)
+**Date:** 2026-01-05
 **Owner:** docc2context agent
 **Depends On:** C5 determinism validator (complete), D2 coverage gate (complete), F1 streaming optimizations (complete)
 
@@ -32,7 +32,7 @@ When START is invoked, implement the following:
 ---
 
 ## 🔎 Current State Check
-- **TODO:** No "Ready to Start" entries; this note adds an actionable planning item to keep performance work moving.
+- **TODO:** Previously no "Ready to Start" entries; this task is now selected to move into START execution next.
 - **INPROGRESS:** F1 optimization archive plus `Scripts/profile_memory.sh` provide memory-focused profiling, but no runtime benchmark or gate exists.
 - **ARCHIVE:** C5 determinism and D2 coverage gates confirm stability for repeated conversions; workplan shows Phase F enhancements are the active area for incremental quality improvements.
 
@@ -55,7 +55,8 @@ When START is invoked, implement the following:
 ---
 
 ## 🔜 Next Actions Before START
-- Keep `DOCS/todo.md` updated with this planning entry (done alongside this note).
+- Keep `DOCS/todo.md` updated with this selection (done alongside this note) and mark it as ready for START.
 - Draft benchmark fixture options and size estimates; propose whether to expand existing fixtures or add a new synthetic bundle.
 - Sketch the CLI interface and output format for the benchmark runner so implementation can begin immediately after START.
+- Identify whether benchmark execution should live as a standalone script, an XCTest suite, or both, and list expected metrics to capture (wall-clock, RSS, CPU%).
 
