@@ -1,5 +1,10 @@
 # DocC generation + iterative development notes
 
+**Archive metadata**
+- **Status:** Archived informational note (documentation-only)
+- **Archived on:** 2025-12-10
+- **Validation evidence:** Documentation-only reference; no code changes or tests executed for this archival move.
+
 This note answers whether we can generate DocC from the actual Swift code in this Swift Package Manager (SPM) project and reuse the output to grow features incrementally.
 
 ## Can we generate DocC from the SPM codebase?
