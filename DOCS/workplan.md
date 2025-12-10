@@ -55,3 +55,5 @@ The workplan distills the execution order of the phases defined in [DOCS/PRD/doc
 - Store active task notes inside `DOCS/INPROGRESS/`.
 - Capture ready-to-pick tasks plus dependencies in [DOCS/todo.md](./todo.md).
 - Archive completed efforts under `DOCS/TASK_ARCHIVE/` and append summary entries to `ARCHIVE_SUMMARY.md`.
+- DocC generation workflow guidance now lives in `DOCS/TASK_ARCHIVE/42_S0_DocCGenerationNotes/` for future snapshot and fixture
+ planning reference.
