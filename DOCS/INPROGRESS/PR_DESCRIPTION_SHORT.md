@@ -1,7 +1,7 @@
 ## Summary
-- add a helper script to compress the Swift build directory into a reusable cache archive
+- add helper scripts to create, restore, and update Swift build cache archives stored under `.build-cache/`
 - configure Git LFS to track generated `.build-cache/` archives
-- relocate the short PR description into the INPROGRESS folder for active tracking
+- document the cache workflow in the README and keep the short PR description in the INPROGRESS folder for active tracking
 
 ## Testing
 - not run (documentation-only change)

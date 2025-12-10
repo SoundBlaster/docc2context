@@ -58,6 +58,16 @@ python3 Scripts/lint_markdown.py README.md
 
 Pass additional Markdown paths as arguments (for example, `DOCS/PRD/phase_d.md`) whenever you update deeper documentation trees.
 
+### 6. Build cache helpers
+
+SwiftPM caches accumulate in `.build/` and can be reused across runs to speed up local builds and CI warm starts. Cache archives live under `.build-cache/` (tracked via Git LFS) and default to the host OS/architecture in their filename.
+
+- **Create/refresh a cache:** `bash Scripts/create-build-cache.sh [cache-name]` (uses `.build-cache/swift-build-cache-<os>-<arch>.tar.gz` by default).
+- **Restore a cache:** `bash Scripts/restore-build-cache.sh [cache-file]` extracts the archive into `.build/`, prompting before overwriting existing outputs (auto-forced in CI).
+- **Update after rebuilding:** `bash Scripts/update-build-cache.sh [cache-name]` runs `swift build` (respecting `SWIFT_BUILD_FLAGS`) and repacks the cache so downstream environments can pick up the latest artifacts.
+
+Restoring a cache typically reduces SwiftPM fetch/compile time from ~82s to roughly 5–10s; subsequent incremental builds are even faster.
+
 ## CLI usage
 
 `docc2context` now executes the DocC → Markdown pipeline end-to-end. Running the command populates `<output>/markdown/` with deterministic files grouped into `tutorials/` (tutorial volumes + chapters) and `articles/` (reference content). Each invocation prints a concise summary showing how many tutorial volumes, chapters, reference articles, and symbols were rendered so scripts can validate expectations.
