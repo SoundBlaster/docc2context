@@ -73,4 +73,20 @@ final class InputDetectionTests: XCTestCase {
             XCTAssertEqual(location, .doccArchive(archiveURL))
         }
     }
+
+    func testRejectsMissingInputPath() throws {
+        let detector = InputLocationDetector()
+        let missingPath = URL(fileURLWithPath: "/non-existent/docc/input").standardizedFileURL
+
+        XCTAssertThrowsError(try detector.detect(inputPath: missingPath.path)) { error in
+            guard let detectionError = error as? InputLocationDetector.DetectionError else {
+                return XCTFail("Unexpected error type: \(error)")
+            }
+            XCTAssertEqual(detectionError, .inputDoesNotExist(missingPath))
+            XCTAssertEqual(
+                detectionError.errorDescription,
+                "Input path does not exist at \(missingPath.path)"
+            )
+        }
+    }
 }

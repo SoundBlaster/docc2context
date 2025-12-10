@@ -1,6 +1,6 @@
-#!/bin/bash
+#!/usr/bin/env bash
 #
-# Create build cache for Hyperprompt project
+# Create build cache for docc2context project
 #
 # This script creates a compressed archive of the .build directory
 # to speed up subsequent builds (from 82s to 5-10s).
