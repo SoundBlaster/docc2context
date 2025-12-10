@@ -12,7 +12,16 @@ public struct Docc2contextCommandResult {
 }
 
 public struct Docc2contextCommand {
-    public init() {}
+    private let inputDetector: InputLocationDetector
+    private let pipeline: MarkdownGenerationPipeline
+
+    public init(
+        inputDetector: InputLocationDetector = .init(),
+        pipeline: MarkdownGenerationPipeline = .init()
+    ) {
+        self.inputDetector = inputDetector
+        self.pipeline = pipeline
+    }
 
     enum ExitCode {
         static let usageError = 64
@@ -61,9 +70,10 @@ public struct Docc2contextCommand {
         do {
             let parsedArguments = try Docc2contextCLIOptions.parse(trimmedArguments)
             let options = try resolveOptions(from: parsedArguments)
-            let pipeline = MarkdownGenerationPipeline()
+            let inputLocation = try inputDetector.detect(inputPath: options.inputPath)
+            let inputURL = try inputDetector.resolvedBundleURL(from: inputLocation)
             let summary = try pipeline.generateMarkdown(
-                from: options.inputPath,
+                from: inputURL.path,
                 to: options.outputPath,
                 forceOverwrite: options.forceOverwrite,
                 technologyFilter: options.technologyFilter)
