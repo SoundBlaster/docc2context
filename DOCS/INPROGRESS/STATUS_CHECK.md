@@ -1,4 +1,4 @@
-# In-Progress Task Audit – 2025-02-09
+# In-Progress Task Audit – 2025-12-01
 
 Reviewed `DOCS/INPROGRESS/` for entries ready to archive per `DOCS/COMMANDS/ARCHIVE.md`.
 
