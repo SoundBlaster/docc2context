@@ -109,6 +109,29 @@ final class Docc2contextCLITests: XCTestCase {
         }
     }
 
+    func testArchiveInputProvidesExtractionGuidance() throws {
+        try TestTemporaryDirectory.withTemporaryDirectory { temp in
+            let archiveFile = temp.url.appendingPathComponent("Bundle.doccarchive")
+            try Data("archive".utf8).write(to: archiveFile)
+            let outputDirectory = temp.childDirectory(named: "cli-archive-output")
+
+            let command = Docc2contextCommand()
+            let result = command.run(arguments: [
+                "docc2context",
+                archiveFile.path,
+                "--output",
+                outputDirectory.path,
+                "--force"
+            ])
+
+            XCTAssertEqual(result.exitCode, 64)
+            XCTAssertTrue(
+                result.output.contains("archive file; extract it before converting"),
+                "Detection error should mention archive inputs requiring extraction"
+            )
+        }
+    }
+
     func testFilterTechnologyFlagIsRecognized() throws {
         let fixturesURL = FixtureLoader.urlForBundle(named: "ArticleReference.doccarchive")
         try TestTemporaryDirectory.withTemporaryDirectory { temp in
