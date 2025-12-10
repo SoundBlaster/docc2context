@@ -8,6 +8,7 @@ public struct InputLocationDetector {
 
     public enum DetectionError: Error, LocalizedError, Equatable {
         case inputDoesNotExist(URL)
+        case inputIsNotDirectory(URL)
         case inputIsNotDoccBundle(URL)
         case archiveInputRequiresExtraction(URL)
 
@@ -15,6 +16,8 @@ public struct InputLocationDetector {
             switch self {
             case .inputDoesNotExist(let url):
                 return "Input path does not exist at \(url.path)"
+            case .inputIsNotDirectory(let url):
+                return "Input path must be a directory containing a DocC bundle: \(url.path)"
             case .inputIsNotDoccBundle(let url):
                 return "Input is not a valid DocC bundle or archive: \(url.path)"
             case .archiveInputRequiresExtraction(let url):
@@ -44,7 +47,7 @@ public struct InputLocationDetector {
         }
 
         guard url.pathExtension.lowercased() == "doccarchive" else {
-            throw DetectionError.inputIsNotDoccBundle(url)
+            throw DetectionError.inputIsNotDirectory(url)
         }
 
         return .doccArchive(url)

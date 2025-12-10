@@ -51,10 +51,10 @@ final class InputDetectionTests: XCTestCase {
                 guard let detectionError = error as? InputLocationDetector.DetectionError else {
                     return XCTFail("Unexpected error type: \(error)")
                 }
-                XCTAssertEqual(detectionError, .inputIsNotDoccBundle(invalidFile))
+                XCTAssertEqual(detectionError, .inputIsNotDirectory(invalidFile))
                 XCTAssertEqual(
                     detectionError.errorDescription,
-                    "Input is not a valid DocC bundle or archive: \(invalidFile.path)"
+                    "Input path must be a directory containing a DocC bundle: \(invalidFile.path)"
                 )
             }
         }
