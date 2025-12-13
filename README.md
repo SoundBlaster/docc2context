@@ -131,6 +131,19 @@ Most contributions touch multiple automation layers. Keep the following workflow
 
 Options: `--fixture <path>` to benchmark a specific DocC bundle, `--keep-output` to retain iteration outputs, and `--metrics-json` to persist per-iteration durations, output sizes, and summary counts. The synthetic bundle builder inflates article content only (no new external assets) to remain deterministic and offline-friendly.
 
+- **Baseline comparison (for CI/manual checks):** Use the checked-in baseline at `Benchmarks/performance-baseline.json` with configurable tolerances (default x2 on average/max). Enable failure on regression with `--fail-on-regression`.
+
+  ```bash
+  swift run docc2context-benchmark --synthesize-megabytes 10 \
+    --iterations 3 --threshold-seconds 10 \
+    --baseline Benchmarks/performance-baseline.json \
+    --tolerance-average 2.0 --tolerance-max 2.0 \
+    --fail-on-regression \
+    --metrics-json /tmp/docc2context-benchmark.json
+  ```
+
+- **Optional CI job:** Add the `perf-check` label to a PR (or run the `Performance Benchmark` workflow manually) to execute the harness in CI, compare against the baseline, upload metrics as an artifact, and flag regressions without blocking merges by default.
+
 ## Metadata parsing pipeline
 
 `DoccMetadataParser` in the core library currently covers every metadata artifact that ships with DocC bundles so downstream Markdown rendering has strongly typed inputs without needing additional CLI flags. The parser expects the B3 input detection stage (and eventually the B4 archive extractor) to hand it a normalized bundle directory; within that directory it loads:

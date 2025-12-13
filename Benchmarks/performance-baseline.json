@@ -1,0 +1,23 @@
+{
+  "fixturePath": "ArticleReference-Benchmark.doccarchive",
+  "fixtureSizeBytes": 10489856,
+  "thresholdSeconds": 10,
+  "averageSeconds": 0.02,
+  "maxSeconds": 0.03,
+  "passed": true,
+  "samples": [
+    {
+      "iteration": 1,
+      "durationSeconds": 0.02,
+      "outputBytes": 10477568,
+      "outputFileCount": 4,
+      "summary": {
+        "outputDirectory": "file:///tmp/docc2context-benchmark/baseline/",
+        "tutorialVolumeCount": 0,
+        "chapterCount": 0,
+        "referenceArticleCount": 3,
+        "symbolCount": 1
+      }
+    }
+  ]
+}

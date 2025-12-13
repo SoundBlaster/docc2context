@@ -11,18 +11,27 @@ public struct BenchmarkCommandResult {
     }
 }
 
+public protocol BenchmarkRunning {
+    func run(configuration: PerformanceBenchmarkHarness.Configuration) throws -> PerformanceBenchmarkHarness.Result
+}
+
+extension PerformanceBenchmarkHarness: BenchmarkRunning {}
+
 public struct BenchmarkCommand {
-    private let harness: PerformanceBenchmarkHarness
+    private let harness: BenchmarkRunning
     private let fixtureBuilder: BenchmarkFixtureBuilder
+    private let comparator: BenchmarkComparator
     private let fileManager: FileManager
 
     public init(
-        harness: PerformanceBenchmarkHarness = .init(),
+        harness: BenchmarkRunning = PerformanceBenchmarkHarness(),
         fixtureBuilder: BenchmarkFixtureBuilder = .init(),
+        comparator: BenchmarkComparator = .init(),
         fileManager: FileManager = .default
     ) {
         self.harness = harness
         self.fixtureBuilder = fixtureBuilder
+        self.comparator = comparator
         self.fileManager = fileManager
     }
 
@@ -30,6 +39,9 @@ public struct BenchmarkCommand {
         case missingFixture
         case iterationsMustBePositive
         case thresholdMustBePositive
+        case baselineMissing(String)
+        case invalidBaseline(String)
+        case toleranceMustBePositive
 
         var description: String {
             switch self {
@@ -39,6 +51,12 @@ public struct BenchmarkCommand {
                 return "Iterations must be greater than zero."
             case .thresholdMustBePositive:
                 return "Threshold seconds must be greater than zero."
+            case .baselineMissing(let path):
+                return "Baseline file not found at \(path)."
+            case .invalidBaseline(let reason):
+                return "Baseline file is invalid: \(reason)"
+            case .toleranceMustBePositive:
+                return "Tolerance multipliers must be greater than zero."
             }
         }
     }
@@ -64,6 +82,18 @@ public struct BenchmarkCommand {
 
         @Flag(name: .customLong("keep-output"), help: "Retain per-iteration outputs instead of cleaning them up.")
         var keepOutputs: Bool = false
+
+        @Option(name: .customLong("baseline"), help: "Optional path to a baseline metrics JSON for regression comparison.")
+        var baselinePath: String?
+
+        @Option(name: .customLong("tolerance-average"), help: "Multiplier tolerance for average duration regression checks (default 2.0).")
+        var toleranceAverage: Double = 2.0
+
+        @Option(name: .customLong("tolerance-max"), help: "Multiplier tolerance for max duration regression checks (default 2.0).")
+        var toleranceMax: Double = 2.0
+
+        @Flag(name: .customLong("fail-on-regression"), help: "Exit non-zero if regression detected against baseline.")
+        var failOnRegression: Bool = false
     }
 
     public func run(arguments: [String]) -> BenchmarkCommandResult {
@@ -97,12 +127,35 @@ public struct BenchmarkCommand {
                 try data.write(to: metricsURL, options: .atomic)
             }
 
+            let metrics = result.makeMetrics(
+                fixtureURL: fixtureURL,
+                fixtureSizeBytes: fixtureSize)
+
+            var messages: [String] = []
+            var passed = result.passed
+
+            if let baseline = try loadBaselineIfNeeded(options: options) {
+                let tolerance = BenchmarkComparator.Tolerance(
+                    averageMultiplier: options.toleranceAverage,
+                    maxMultiplier: options.toleranceMax)
+                let comparison = comparator.compare(
+                    baseline: baseline,
+                    candidate: metrics,
+                    tolerance: tolerance,
+                    thresholdSeconds: options.thresholdSeconds)
+                messages.append(contentsOf: comparison.messages)
+                if options.failOnRegression && !comparison.passed {
+                    passed = false
+                }
+            }
+
             let summary = renderSummary(
                 fixtureURL: fixtureURL,
                 fixtureSize: fixtureSize,
-                result: result)
+                result: result,
+                messages: messages)
             return BenchmarkCommandResult(
-                exitCode: result.passed ? 0 : 1,
+                exitCode: passed ? 0 : 1,
                 output: summary)
         } catch let error as CLIError {
             return BenchmarkCommandResult(exitCode: 64, output: error.description)
@@ -119,6 +172,9 @@ public struct BenchmarkCommand {
         }
         guard options.thresholdSeconds > 0 else {
             throw CLIError.thresholdMustBePositive
+        }
+        guard options.toleranceAverage > 0, options.toleranceMax > 0 else {
+            throw CLIError.toleranceMustBePositive
         }
         return options
     }
@@ -179,7 +235,8 @@ public struct BenchmarkCommand {
     private func renderSummary(
         fixtureURL: URL,
         fixtureSize: Int,
-        result: PerformanceBenchmarkHarness.Result
+        result: PerformanceBenchmarkHarness.Result,
+        messages: [String]
     ) -> String {
         let fixtureLabel = fixtureURL.lastPathComponent
         let sizeMB = Double(fixtureSize) / (1024 * 1024)
@@ -190,7 +247,28 @@ public struct BenchmarkCommand {
         lines.append("Average: \(String(format: "%.3f", result.averageSeconds))s")
         lines.append("Max: \(String(format: "%.3f", result.maxSeconds))s")
         lines.append("Status: \(result.passed ? "PASS" : "FAIL")")
+        if !messages.isEmpty {
+            lines.append("Regression checks:")
+            lines.append(contentsOf: messages.map { "- \($0)" })
+        }
         return lines.joined(separator: "\n")
+    }
+
+    private func loadBaselineIfNeeded(options: CLIOptions) throws -> PerformanceBenchmarkHarness.BenchmarkMetrics? {
+        guard let baselinePath = options.baselinePath else {
+            return nil
+        }
+        let url = URL(fileURLWithPath: baselinePath).standardizedFileURL
+        guard fileManager.fileExists(atPath: url.path) else {
+            throw CLIError.baselineMissing(url.path)
+        }
+        do {
+            let data = try Data(contentsOf: url)
+            let decoder = DeterministicJSONEncoder.makeDecoder()
+            return try decoder.decode(PerformanceBenchmarkHarness.BenchmarkMetrics.self, from: data)
+        } catch {
+            throw CLIError.invalidBaseline(error.localizedDescription)
+        }
     }
 }
 
@@ -202,7 +280,7 @@ public struct BenchmarkCommandHelp {
         docc2context-benchmark – Performance harness for DocC conversions
 
         Usage:
-          docc2context-benchmark [--fixture <path>] [--synthesize-megabytes <size>] [--iterations <n>] [--threshold-seconds <seconds>] [--output <dir>] [--metrics-json <path>] [--keep-output]
+          docc2context-benchmark [--fixture <path>] [--synthesize-megabytes <size>] [--iterations <n>] [--threshold-seconds <seconds>] [--output <dir>] [--metrics-json <path>] [--baseline <path>] [--tolerance-average <x>] [--tolerance-max <x>] [--fail-on-regression] [--keep-output]
 
         Options:
           -h, --help                 Show this help message and exit.
@@ -212,6 +290,10 @@ public struct BenchmarkCommandHelp {
           --threshold-seconds <n>    Fail if the slowest iteration exceeds this duration (default: 10 seconds).
           --output <dir>             Directory to store benchmark outputs and synthetic fixtures (default: system temp).
           --metrics-json <path>      Optional path to write benchmark metrics as JSON.
+          --baseline <path>          Optional baseline metrics JSON to compare against.
+          --tolerance-average <x>    Multiplier tolerance for average duration (default: 2.0).
+          --tolerance-max <x>        Multiplier tolerance for max duration (default: 2.0).
+          --fail-on-regression       Exit non-zero when regression checks fail (default: off).
           --keep-output              Retain per-iteration outputs instead of cleaning them up.
         """
     }
