@@ -4,7 +4,8 @@ import PackageDescription
 let package = Package(
     name: "docc2context",
     platforms: [
-        .macOS(.v13)
+        .macOS(.v13),
+        .iOS(.v13)
     ],
     products: [
         .library(
