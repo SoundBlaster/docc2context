@@ -78,4 +78,33 @@ final class DoccMetadataParserAdditionalTests: XCTestCase {
 
         XCTAssertEqual(decoded, article)
     }
+
+    func testDocumentationCatalogInvalidJSONThrowsHelpfulError() throws {
+        try TestTemporaryDirectory.withTemporaryDirectory { temporaryDirectory in
+            let dataDir = temporaryDirectory.url
+                .appendingPathComponent("data", isDirectory: true)
+                .appendingPathComponent("documentation", isDirectory: true)
+            try FileManager.default.createDirectory(at: dataDir, withIntermediateDirectories: true)
+            let badURL = dataDir.appendingPathComponent("badroot.json")
+            try Data("not json".utf8).write(to: badURL)
+
+            let parser = DoccMetadataParser()
+            XCTAssertThrowsError(try parser.loadDocumentationCatalog(from: temporaryDirectory.url, technologyRoot: "badroot")) { error in
+                XCTAssertEqual(error as? DoccMetadataParserError, .invalidDocumentationCatalog(badURL))
+            }
+        }
+    }
+
+    func testBundleDataMetadataMissingThrowsHelpfulError() throws {
+        try TestTemporaryDirectory.withTemporaryDirectory { temporaryDirectory in
+            let parser = DoccMetadataParser()
+            XCTAssertThrowsError(try parser.loadBundleDataMetadata(from: temporaryDirectory.url)) { error in
+                let expectedURL = temporaryDirectory.url
+                    .appendingPathComponent("data", isDirectory: true)
+                    .appendingPathComponent("metadata", isDirectory: true)
+                    .appendingPathComponent("metadata.json", isDirectory: false)
+                XCTAssertEqual(error as? DoccMetadataParserError, .metadataJSONMissing(expectedURL))
+            }
+        }
+    }
 }
