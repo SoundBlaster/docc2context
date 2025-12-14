@@ -1,0 +1,61 @@
+name: Coverage Gate
+
+on:
+  workflow_dispatch:
+  pull_request:
+    paths:
+      - "Sources/**"
+      - "Tests/**"
+      - "Package.swift"
+
+jobs:
+  coverage:
+    runs-on: ubuntu-latest
+    container:
+      image: swift:6.0
+    steps:
+      - uses: actions/checkout@v4
+
+      - name: Build & test with coverage
+        run: swift test --enable-code-coverage
+
+      - name: Locate coverage profile
+        run: |
+          PROFILE=$(find .build -name '*.profdata' | head -n1)
+          echo "PROFILE=$PROFILE" >> "$GITHUB_ENV"
+
+      - name: Generate lcov
+        run: |
+          llvm-cov export \
+            -format=lcov \
+            .build/debug/docc2contextPackageTests.xctest \
+            -instr-profile "$PROFILE" \
+            > coverage.lcov
+
+      - name: Generate HTML report
+        run: |
+          mkdir -p coverage-html
+          llvm-cov show \
+            .build/debug/docc2contextPackageTests.xctest \
+            -instr-profile "$PROFILE" \
+            -format=html \
+            -output-dir coverage-html \
+            -ignore-filename-regex=".build|Tests/.*Snapshot"
+
+      - name: Enforce 90% line coverage for Docc2contextCore
+        run: |
+          llvm-cov report \
+            .build/debug/docc2contextPackageTests.xctest \
+            -instr-profile "$PROFILE" \
+            -ignore-filename-regex=".build|Tests/.*Snapshot" \
+            > coverage.txt
+          awk '/Docc2contextCore/ { if ($4+0 < 90) { print "Coverage", $4"%"; exit 1 } }' coverage.txt
+
+      - name: Upload coverage artifacts
+        uses: actions/upload-artifact@v4
+        with:
+          name: coverage-report
+          path: |
+            coverage.lcov
+            coverage.txt
+            coverage-html
