@@ -1,0 +1,81 @@
+import XCTest
+@testable import Docc2contextCore
+
+final class DoccMetadataParserAdditionalTests: XCTestCase {
+    func testErrorDescriptionsAreHumanReadable() {
+        let sampleURL = URL(fileURLWithPath: "/tmp/sample.json")
+
+        let cases: [DoccMetadataParserError] = [
+            .infoPlistMissing(sampleURL),
+            .invalidInfoPlist(sampleURL),
+            .missingRequiredField("Identifier"),
+            .invalidFieldType(key: "Languages", expected: "[String]"),
+            .renderMetadataMissing(sampleURL),
+            .invalidRenderMetadata(sampleURL),
+            .documentationCatalogMissing(sampleURL),
+            .invalidDocumentationCatalog(sampleURL),
+            .invalidSymbolGraph(sampleURL),
+            .metadataJSONMissing(sampleURL),
+            .invalidMetadataJSON(sampleURL),
+            .tutorialPageMissing(sampleURL),
+            .invalidTutorialPage(sampleURL),
+            .articlePageMissing(sampleURL),
+            .invalidArticlePage(sampleURL)
+        ]
+
+        for error in cases {
+            let description = error.errorDescription ?? ""
+            XCTAssertFalse(description.isEmpty, "\(error) should expose a description")
+        }
+    }
+
+    func testTutorialMissingUsesSluggedURL() throws {
+        try TestTemporaryDirectory.withTemporaryDirectory { temporaryDirectory in
+            let parser = DoccMetadataParser()
+            let identifier = "tutorialcatalog/tutorials/custom-tutorial"
+
+            XCTAssertThrowsError(
+                try parser.loadTutorialPage(withIdentifier: identifier, from: temporaryDirectory.url)
+            ) { error in
+                guard case .tutorialPageMissing(let url) = error as? DoccMetadataParserError else {
+                    XCTFail("Expected tutorialPageMissing, got \(error)")
+                    return
+                }
+                XCTAssertEqual(url.lastPathComponent, "custom-tutorial.json")
+            }
+        }
+    }
+
+    func testArticleMissingUsesSluggedURL() throws {
+        try TestTemporaryDirectory.withTemporaryDirectory { temporaryDirectory in
+            let parser = DoccMetadataParser()
+            let identifier = "articlereference/documentation/articles/custom-article"
+
+            XCTAssertThrowsError(
+                try parser.loadArticlePage(withIdentifier: identifier, from: temporaryDirectory.url)
+            ) { error in
+                guard case .articlePageMissing(let url) = error as? DoccMetadataParserError else {
+                    XCTFail("Expected articlePageMissing, got \(error)")
+                    return
+                }
+                XCTAssertEqual(url.lastPathComponent, "custom-article.json")
+            }
+        }
+    }
+
+    func testArticleCodingRoundTripExercisesNestedTypes() throws {
+        let article = DoccArticle(
+            identifier: "test/article",
+            kind: "article",
+            title: "Title",
+            abstract: [DoccArticle.AbstractItem(type: "paragraph", text: "Summary")],
+            sections: [DoccArticle.Section(title: "Section", content: ["Line 1", "Line 2"])],
+            topics: [DoccArticle.TopicSection(title: "Related", identifiers: ["id-1"])],
+            references: [DoccArticle.Reference(identifier: "id-1", kind: "symbol", title: "Symbol")])
+
+        let data = try JSONEncoder().encode(article)
+        let decoded = try JSONDecoder().decode(DoccArticle.self, from: data)
+
+        XCTAssertEqual(decoded, article)
+    }
+}
