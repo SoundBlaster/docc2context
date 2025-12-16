@@ -9,25 +9,18 @@ final class CloudsmithPublishScriptTests: XCTestCase {
     }
 
     private func runScript(arguments: [String], environment: [String: String] = [:]) throws -> (exitCode: Int32, output: String) {
-        let process = Process()
-        process.currentDirectoryURL = TestSupportPaths.repositoryRootDirectory
-        process.executableURL = URL(fileURLWithPath: "/bin/bash")
-        process.arguments = [scriptURL().path] + arguments
-
         var env = ProcessInfo.processInfo.environment
         environment.forEach { env[$0.key] = $0.value }
-        process.environment = env
 
-        let pipe = Pipe()
-        process.standardOutput = pipe
-        process.standardError = pipe
+        let result = try TestProcessRunner.run(
+            executableURL: URL(fileURLWithPath: "/bin/bash"),
+            arguments: [scriptURL().path] + arguments,
+            currentDirectoryURL: TestSupportPaths.repositoryRootDirectory,
+            environment: env,
+            timeoutSeconds: 10
+        )
 
-        try process.run()
-        process.waitUntilExit()
-
-        let data = pipe.fileHandleForReading.readDataToEndOfFile()
-        let output = String(data: data, encoding: .utf8) ?? "<unreadable>"
-        return (process.terminationStatus, output)
+        return (result.exitCode, result.output)
     }
 
     func test_scriptExists() {

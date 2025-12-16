@@ -201,13 +201,13 @@ final class BenchmarkCommandBaselineTests: XCTestCase {
             let arguments = [
                 "docc2context-benchmark",
                 "--fixture", fixtureURL.path,
-                "--tolerance-average", "-1",
+                "--tolerance-average=-1",
                 "--output", temporaryDirectory.url.path
             ]
 
             let resultCommand = command.run(arguments: arguments)
             XCTAssertEqual(resultCommand.exitCode, 64)
-            XCTAssertFalse(resultCommand.output.isEmpty)
+            XCTAssertTrue(resultCommand.output.contains("Tolerance multipliers must be greater than zero."))
         }
     }
 }

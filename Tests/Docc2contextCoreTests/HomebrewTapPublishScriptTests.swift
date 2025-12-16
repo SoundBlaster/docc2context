@@ -62,22 +62,14 @@ final class HomebrewTapPublishScriptTests: XCTestCase {
 
         args.append(contentsOf: extraArgs)
 
-        let process = Process()
-        process.currentDirectoryURL = TestSupportPaths.repositoryRootDirectory
-        process.executableURL = URL(fileURLWithPath: "/bin/bash")
-        process.arguments = args
+        let result = try TestProcessRunner.run(
+            executableURL: URL(fileURLWithPath: "/bin/bash"),
+            arguments: args,
+            currentDirectoryURL: TestSupportPaths.repositoryRootDirectory,
+            timeoutSeconds: 10
+        )
 
-        let pipe = Pipe()
-        process.standardOutput = pipe
-        process.standardError = pipe
-
-        try process.run()
-        process.waitUntilExit()
-
-        let outputData = pipe.fileHandleForReading.readDataToEndOfFile()
-        let output = String(data: outputData, encoding: .utf8) ?? "<unreadable>"
-
-        return (process.terminationStatus, output)
+        return (result.exitCode, result.output)
     }
 
     // MARK: - Tests
@@ -163,19 +155,14 @@ final class HomebrewTapPublishScriptTests: XCTestCase {
             .appendingPathComponent("Scripts", isDirectory: true)
             .appendingPathComponent("push_homebrew_formula.sh")
 
-        let process = Process()
-        process.currentDirectoryURL = TestSupportPaths.repositoryRootDirectory
-        process.executableURL = URL(fileURLWithPath: "/bin/bash")
-        process.arguments = [scriptURL.path] // No arguments
+        let result = try TestProcessRunner.run(
+            executableURL: URL(fileURLWithPath: "/bin/bash"),
+            arguments: [scriptURL.path], // No arguments
+            currentDirectoryURL: TestSupportPaths.repositoryRootDirectory,
+            timeoutSeconds: 10
+        )
 
-        let pipe = Pipe()
-        process.standardOutput = pipe
-        process.standardError = pipe
-
-        try process.run()
-        process.waitUntilExit()
-
-        XCTAssertNotEqual(process.terminationStatus, 0, "Should fail with missing required arguments")
+        XCTAssertNotEqual(result.exitCode, 0, "Should fail with missing required arguments")
     }
 
     func test_dryRunCreatesNoRealGitOperations() throws {

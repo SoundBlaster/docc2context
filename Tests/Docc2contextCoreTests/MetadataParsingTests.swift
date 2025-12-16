@@ -267,6 +267,24 @@ final class MetadataParsingTests: XCTestCase {
         }
     }
 
+    func test_renderMetadataInvalidJSONThrowsHelpfulError() throws {
+        let temporaryBundle = try makeTemporaryDoccArchiveDirectory(named: "RenderMetadataInvalidJSON")
+        defer { try? FileManager.default.removeItem(at: temporaryBundle) }
+
+        let metadataDirectory = temporaryBundle
+            .appendingPathComponent("data", isDirectory: true)
+            .appendingPathComponent("metadata", isDirectory: true)
+        try FileManager.default.createDirectory(at: metadataDirectory, withIntermediateDirectories: true)
+
+        let metadataURL = metadataDirectory.appendingPathComponent("metadata.json", isDirectory: false)
+        try Data("not-json".utf8).write(to: metadataURL)
+
+        let parser = DoccMetadataParser()
+        XCTAssertThrowsError(try parser.loadRenderMetadata(from: temporaryBundle)) { error in
+            XCTAssertEqual(error as? DoccMetadataParserError, .invalidRenderMetadata(metadataURL))
+        }
+    }
+
     func test_infoPlistRejectsInvalidLanguageContainer() throws {
         let temporaryBundle = try makeTemporaryDoccArchiveDirectory(named: "LanguagesNotArray")
         defer { try? FileManager.default.removeItem(at: temporaryBundle) }
@@ -283,6 +301,49 @@ final class MetadataParsingTests: XCTestCase {
         let parser = DoccMetadataParser()
         XCTAssertThrowsError(try parser.loadInfoPlist(from: temporaryBundle)) { error in
             XCTAssertEqual(error as? DoccMetadataParserError, .invalidFieldType(key: "Languages", expected: "[String]"))
+        }
+    }
+
+    func test_infoPlistMissingThrowsHelpfulError() throws {
+        let temporaryBundle = try makeTemporaryDoccArchiveDirectory(named: "MissingInfoPlist")
+        defer { try? FileManager.default.removeItem(at: temporaryBundle) }
+
+        let parser = DoccMetadataParser()
+        let expectedURL = temporaryBundle.appendingPathComponent("Info.plist", isDirectory: false)
+
+        XCTAssertThrowsError(try parser.loadInfoPlist(from: temporaryBundle)) { error in
+            XCTAssertEqual(error as? DoccMetadataParserError, .infoPlistMissing(expectedURL))
+        }
+    }
+
+    func test_infoPlistInvalidPlistThrowsHelpfulError() throws {
+        let temporaryBundle = try makeTemporaryDoccArchiveDirectory(named: "InvalidInfoPlist")
+        defer { try? FileManager.default.removeItem(at: temporaryBundle) }
+
+        let infoURL = temporaryBundle.appendingPathComponent("Info.plist", isDirectory: false)
+        try Data("not-a-plist".utf8).write(to: infoURL)
+
+        let parser = DoccMetadataParser()
+        XCTAssertThrowsError(try parser.loadInfoPlist(from: temporaryBundle)) { error in
+            XCTAssertEqual(error as? DoccMetadataParserError, .invalidInfoPlist(infoURL))
+        }
+    }
+
+    func test_infoPlistMissingLanguagesThrowsHelpfulError() throws {
+        let temporaryBundle = try makeTemporaryDoccArchiveDirectory(named: "MissingLanguages")
+        defer { try? FileManager.default.removeItem(at: temporaryBundle) }
+
+        let infoPlist: [String: Any] = [
+            "Identifier": "com.docc2context.temp",
+            "CFBundleName": "Temporary Bundle",
+            "TechnologyRoot": "temporary",
+        ]
+
+        try writeInfoPlist(infoPlist, to: temporaryBundle)
+
+        let parser = DoccMetadataParser()
+        XCTAssertThrowsError(try parser.loadInfoPlist(from: temporaryBundle)) { error in
+            XCTAssertEqual(error as? DoccMetadataParserError, .missingRequiredField("Languages"))
         }
     }
 
@@ -304,6 +365,63 @@ final class MetadataParsingTests: XCTestCase {
             XCTAssertEqual(
                 error as? DoccMetadataParserError,
                 .invalidFieldType(key: "Languages", expected: "non-empty strings"))
+        }
+    }
+
+    func test_bundleDataMetadataInvalidJSONThrowsHelpfulError() throws {
+        let temporaryBundle = try makeTemporaryDoccArchiveDirectory(named: "BundleDataMetadataInvalidJSON")
+        defer { try? FileManager.default.removeItem(at: temporaryBundle) }
+
+        let metadataDirectory = temporaryBundle
+            .appendingPathComponent("data", isDirectory: true)
+            .appendingPathComponent("metadata", isDirectory: true)
+        try FileManager.default.createDirectory(at: metadataDirectory, withIntermediateDirectories: true)
+
+        let metadataURL = metadataDirectory.appendingPathComponent("metadata.json", isDirectory: false)
+        try Data("not-json".utf8).write(to: metadataURL)
+
+        let parser = DoccMetadataParser()
+        XCTAssertThrowsError(try parser.loadBundleDataMetadata(from: temporaryBundle)) { error in
+            XCTAssertEqual(error as? DoccMetadataParserError, .invalidMetadataJSON(metadataURL))
+        }
+    }
+
+    func test_tutorialInvalidJSONThrowsHelpfulError() throws {
+        try TestTemporaryDirectory.withTemporaryDirectory { temporaryDirectory in
+            let tutorialDirectory = temporaryDirectory.url
+                .appendingPathComponent("data", isDirectory: true)
+                .appendingPathComponent("tutorials", isDirectory: true)
+            try FileManager.default.createDirectory(at: tutorialDirectory, withIntermediateDirectories: true)
+
+            let tutorialURL = tutorialDirectory.appendingPathComponent("custom-tutorial.json", isDirectory: false)
+            try Data("not-json".utf8).write(to: tutorialURL)
+
+            let parser = DoccMetadataParser()
+            XCTAssertThrowsError(
+                try parser.loadTutorialPage(withIdentifier: "tutorialcatalog/tutorials/custom-tutorial", from: temporaryDirectory.url)
+            ) { error in
+                XCTAssertEqual(error as? DoccMetadataParserError, .invalidTutorialPage(tutorialURL))
+            }
+        }
+    }
+
+    func test_articleInvalidJSONThrowsHelpfulError() throws {
+        try TestTemporaryDirectory.withTemporaryDirectory { temporaryDirectory in
+            let articlesDirectory = temporaryDirectory.url
+                .appendingPathComponent("data", isDirectory: true)
+                .appendingPathComponent("documentation", isDirectory: true)
+                .appendingPathComponent("articles", isDirectory: true)
+            try FileManager.default.createDirectory(at: articlesDirectory, withIntermediateDirectories: true)
+
+            let articleURL = articlesDirectory.appendingPathComponent("custom-article.json", isDirectory: false)
+            try Data("not-json".utf8).write(to: articleURL)
+
+            let parser = DoccMetadataParser()
+            XCTAssertThrowsError(
+                try parser.loadArticlePage(withIdentifier: "articlereference/documentation/articles/custom-article", from: temporaryDirectory.url)
+            ) { error in
+                XCTAssertEqual(error as? DoccMetadataParserError, .invalidArticlePage(articleURL))
+            }
         }
     }
 }
