@@ -55,7 +55,7 @@ jobs:
             -instr-profile "$PROFILE" \
             -ignore-filename-regex=".build|Tests/.*Snapshot" \
             > coverage.txt
-          awk -v min="$MIN_CORE_COVERAGE" '/Docc2contextCore/ { if ($4+0 < min) { print "Coverage", $4"% (min:", min"%)"; exit 1 } }' coverage.txt
+          awk -v min="$MIN_CORE_COVERAGE" '/Sources\/Docc2contextCore\// { if ($10+0 < min) { print "Coverage", $10"% (min:", min"%)"; exit 1 } }' coverage.txt
 
       - name: Upload coverage artifacts
         uses: actions/upload-artifact@v4
