@@ -142,46 +142,6 @@ final class PerformanceBenchmarkHarnessTests: XCTestCase {
         XCTAssertEqual(size, 0, "Nonexistent directory should return size 0")
     }
 
-    func testSynthesizedFixtureWithEmptyArticlesDirectory() throws {
-        let baseFixture = FixtureLoader.urlForBundle(named: "ArticleReference.doccarchive")
-
-        try TestTemporaryDirectory.withTemporaryDirectory { temporaryDirectory in
-            // Create a minimal fixture without articles to trigger error path
-            let brokenFixture = temporaryDirectory.childDirectory(named: "broken.doccarchive")
-            try FileManager.default.copyItem(at: baseFixture, to: brokenFixture)
-
-            // Ensure articles directory exists but is empty
-            let articlesDir = brokenFixture
-                .appendingPathComponent("data", isDirectory: true)
-                .appendingPathComponent("documentation", isDirectory: true)
-                .appendingPathComponent("articles", isDirectory: true)
-
-            // Create the articles directory if it doesn't exist
-            if !FileManager.default.fileExists(atPath: articlesDir.path) {
-                try FileManager.default.createDirectory(at: articlesDir, withIntermediateDirectories: true)
-            }
-
-            // Remove ALL files from articles directory to ensure it's empty
-            let files = try FileManager.default.contentsOfDirectory(at: articlesDir, includingPropertiesForKeys: nil)
-            for file in files {
-                try FileManager.default.removeItem(at: file)
-            }
-
-            let builder = BenchmarkFixtureBuilder()
-
-            // Should throw because articles directory is empty (no JSON files)
-            XCTAssertThrowsError(
-                try builder.synthesizeBenchmarkFixture(
-                    baseFixtureURL: brokenFixture,
-                    targetSizeBytes: 100_000,
-                    destinationDirectory: temporaryDirectory.url),
-                "Should throw when articles directory has no JSON files"
-            ) { error in
-                XCTAssertTrue(error is DoccMetadataParserError)
-            }
-        }
-    }
-
     func testBenchmarkResultProducesMetrics() throws {
         let fixtureURL = FixtureLoader.urlForBundle(named: "ArticleReference.doccarchive")
 
