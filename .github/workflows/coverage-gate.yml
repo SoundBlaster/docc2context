@@ -54,7 +54,7 @@ jobs:
             -instr-profile "$PROFILE" \
             -ignore-filename-regex=".build|Tests/.*Snapshot" \
             > coverage.txt
-          awk '/Docc2contextCore/ { if ($4+0 < 88) { print "Coverage", $4"%"; exit 1 } }' coverage.txt
+          awk '/^Sources\/Docc2contextCore\// { if ($4+0 < 88) { print "Coverage", $4"%"; exit 1 } }' coverage.txt
 
       - name: Upload coverage artifacts
         uses: actions/upload-artifact@v4
