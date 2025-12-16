@@ -150,22 +150,26 @@ final class PerformanceBenchmarkHarnessTests: XCTestCase {
             let brokenFixture = temporaryDirectory.childDirectory(named: "broken.doccarchive")
             try FileManager.default.copyItem(at: baseFixture, to: brokenFixture)
 
-            // Remove articles directory to trigger the empty articles error path
+            // Ensure articles directory exists but is empty
             let articlesDir = brokenFixture
                 .appendingPathComponent("data", isDirectory: true)
                 .appendingPathComponent("documentation", isDirectory: true)
                 .appendingPathComponent("articles", isDirectory: true)
 
-            if FileManager.default.fileExists(atPath: articlesDir.path) {
-                // Remove all JSON files from articles to trigger the error
-                let files = try FileManager.default.contentsOfDirectory(at: articlesDir, includingPropertiesForKeys: nil)
-                for file in files where file.pathExtension == "json" {
-                    try FileManager.default.removeItem(at: file)
-                }
+            // Create the articles directory if it doesn't exist
+            if !FileManager.default.fileExists(atPath: articlesDir.path) {
+                try FileManager.default.createDirectory(at: articlesDir, withIntermediateDirectories: true)
+            }
+
+            // Remove ALL files from articles directory to ensure it's empty
+            let files = try FileManager.default.contentsOfDirectory(at: articlesDir, includingPropertiesForKeys: nil)
+            for file in files {
+                try FileManager.default.removeItem(at: file)
             }
 
             let builder = BenchmarkFixtureBuilder()
 
+            // Should throw because articles directory is empty (no JSON files)
             XCTAssertThrowsError(
                 try builder.synthesizeBenchmarkFixture(
                     baseFixtureURL: brokenFixture,
