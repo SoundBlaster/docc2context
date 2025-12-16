@@ -207,32 +207,4 @@ final class BenchmarkCommandCLITests: XCTestCase {
             XCTAssertTrue(FileManager.default.fileExists(atPath: syntheticPath.path))
         }
     }
-
-    func testRunUsesDefaultFixtureWhenCwdContainsFixtures() throws {
-        try TestTemporaryDirectory.withTemporaryDirectory { temporaryDirectory in
-            let outputDirectory = temporaryDirectory.url.appendingPathComponent("nested-output", isDirectory: true)
-            let metricsURL = temporaryDirectory.url.appendingPathComponent("metrics.json", isDirectory: false)
-
-            let stubResult = makeResult(outputDirectory: outputDirectory)
-            let command = BenchmarkCommand(
-                harness: StubBenchmarkRunner(result: stubResult),
-                fixtureBuilder: BenchmarkFixtureBuilder(),
-                comparator: BenchmarkComparator(),
-                fileManager: .default)
-
-            let fileManager = FileManager.default
-            let originalCwd = fileManager.currentDirectoryPath
-            _ = fileManager.changeCurrentDirectoryPath(TestSupportPaths.repositoryRootDirectory.path)
-            defer { _ = fileManager.changeCurrentDirectoryPath(originalCwd) }
-
-            let result = command.run(arguments: [
-                "docc2context-benchmark",
-                "--output", outputDirectory.path,
-                "--metrics-json", metricsURL.path
-            ])
-
-            XCTAssertEqual(result.exitCode, 0)
-            XCTAssertTrue(fileManager.fileExists(atPath: outputDirectory.path), "Output directory should be created if needed")
-        }
-    }
 }

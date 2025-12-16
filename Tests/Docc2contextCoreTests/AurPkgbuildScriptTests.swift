@@ -10,27 +10,38 @@ final class AurPkgbuildScriptTests: XCTestCase {
     }
 
     private func python3Available() -> Bool {
+        let process = Process()
+        process.executableURL = URL(fileURLWithPath: "/usr/bin/env")
+        process.arguments = ["python3", "--version"]
+        let pipe = Pipe()
+        process.standardOutput = pipe
+        process.standardError = pipe
         do {
-            let result = try TestProcessRunner.run(
-                executableURL: URL(fileURLWithPath: "/usr/bin/env"),
-                arguments: ["python3", "--version"],
-                timeoutSeconds: 5
-            )
-            return result.exitCode == 0
+            try process.run()
+            process.waitUntilExit()
+            return process.terminationStatus == 0
         } catch {
             return false
         }
     }
 
     private func runScript(arguments: [String]) throws -> (exitCode: Int32, output: String) {
-        let result = try TestProcessRunner.run(
-            executableURL: URL(fileURLWithPath: "/usr/bin/env"),
-            arguments: ["python3", scriptURL().path] + arguments,
-            currentDirectoryURL: TestSupportPaths.repositoryRootDirectory,
-            timeoutSeconds: 10
-        )
+        let process = Process()
+        process.currentDirectoryURL = TestSupportPaths.repositoryRootDirectory
+        process.executableURL = URL(fileURLWithPath: "/usr/bin/env")
+        process.arguments = ["python3", scriptURL().path] + arguments
 
-        return (result.exitCode, result.output)
+        let pipe = Pipe()
+        process.standardOutput = pipe
+        process.standardError = pipe
+
+        try process.run()
+        process.waitUntilExit()
+
+        let outputData = pipe.fileHandleForReading.readDataToEndOfFile()
+        let output = String(data: outputData, encoding: .utf8) ?? "<unreadable>"
+
+        return (process.terminationStatus, output)
     }
 
     func test_scriptExists() throws {

@@ -47,15 +47,14 @@ jobs:
             -output-dir coverage-html \
             -ignore-filename-regex=".build|Tests/.*Snapshot"
 
-      - name: Enforce minimum line coverage for Docc2contextCore
+      - name: Enforce 90% line coverage for Docc2contextCore
         run: |
-          MIN_CORE_COVERAGE="${MIN_CORE_COVERAGE:-88.5}"
           llvm-cov report \
             .build/debug/docc2contextPackageTests.xctest \
             -instr-profile "$PROFILE" \
             -ignore-filename-regex=".build|Tests/.*Snapshot" \
             > coverage.txt
-          awk -v min="$MIN_CORE_COVERAGE" '/Sources\/Docc2contextCore\// { if ($10+0 < min) { print "Coverage", $10"% (min:", min"%)"; exit 1 } }' coverage.txt
+          awk '/Docc2contextCore/ { if ($4+0 < 90) { print "Coverage", $4"%"; exit 1 } }' coverage.txt
 
       - name: Upload coverage artifacts
         uses: actions/upload-artifact@v4

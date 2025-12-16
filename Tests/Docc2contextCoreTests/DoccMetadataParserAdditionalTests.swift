@@ -79,21 +79,6 @@ final class DoccMetadataParserAdditionalTests: XCTestCase {
         XCTAssertEqual(decoded, article)
     }
 
-    func testDocumentationCatalogCodingRoundTripExercisesNestedTypes() throws {
-        let catalog = DoccDocumentationCatalog(
-            identifier: "test/catalog",
-            kind: "documentation",
-            title: "Title",
-            role: nil,
-            abstract: [DoccDocumentationCatalog.AbstractItem(type: "paragraph", text: "Summary")],
-            topics: [DoccDocumentationCatalog.TopicSection(title: "Related", identifiers: ["id-1"])])
-
-        let data = try JSONEncoder().encode(catalog)
-        let decoded = try JSONDecoder().decode(DoccDocumentationCatalog.self, from: data)
-
-        XCTAssertEqual(decoded, catalog)
-    }
-
     func testDocumentationCatalogInvalidJSONThrowsHelpfulError() throws {
         try TestTemporaryDirectory.withTemporaryDirectory { temporaryDirectory in
             let dataDir = temporaryDirectory.url

@@ -3,28 +3,39 @@ import Foundation
 
 final class PackageReleaseScriptTests: XCTestCase {
     private func commandExists(_ name: String) -> Bool {
+        let process = Process()
+        process.executableURL = URL(fileURLWithPath: "/usr/bin/env")
+        process.arguments = ["which", name]
+        let pipe = Pipe()
+        process.standardOutput = pipe
+        process.standardError = pipe
         do {
-            let result = try TestProcessRunner.run(
-                executableURL: URL(fileURLWithPath: "/usr/bin/env"),
-                arguments: ["which", name],
-                timeoutSeconds: 5
-            )
-            return result.exitCode == 0
+            try process.run()
+            process.waitUntilExit()
         } catch {
             return false
         }
+        return process.terminationStatus == 0
     }
 
     private func hostArchitecture() throws -> String {
-        let result = try TestProcessRunner.run(
-            executableURL: URL(fileURLWithPath: "/usr/bin/env"),
-            arguments: ["uname", "-m"],
-            timeoutSeconds: 5
-        )
-        if result.exitCode != 0 {
-            throw XCTSkip("Unable to determine host architecture: \(result.output)")
+        let process = Process()
+        process.executableURL = URL(fileURLWithPath: "/usr/bin/env")
+        process.arguments = ["uname", "-m"]
+        let pipe = Pipe()
+        process.standardOutput = pipe
+        process.standardError = pipe
+        try process.run()
+        process.waitUntilExit()
+        let data = pipe.fileHandleForReading.readDataToEndOfFile()
+        if process.terminationStatus != 0 {
+            let output = String(data: data, encoding: .utf8) ?? "<unreadable>"
+            throw XCTSkip("Unable to determine host architecture: \(output)")
         }
-        return result.output.trimmingCharacters(in: .whitespacesAndNewlines)
+        guard let raw = String(data: data, encoding: .utf8) else {
+            throw XCTSkip("Host architecture output unreadable")
+        }
+        return raw.trimmingCharacters(in: .whitespacesAndNewlines)
     }
 
     /// Mirrors the architecture suffixes used by build_linux_packages.sh.
@@ -79,14 +90,18 @@ final class PackageReleaseScriptTests: XCTestCase {
             return binaryURL
         }
 
-        let buildResult = try TestProcessRunner.run(
-            executableURL: URL(fileURLWithPath: "/usr/bin/env"),
-            arguments: ["swift", "build", "--product", "docc2context"],
-            currentDirectoryURL: TestSupportPaths.repositoryRootDirectory,
-            timeoutSeconds: 300
-        )
-        if buildResult.exitCode != 0 {
-            XCTFail("swift build --product docc2context failed: \(buildResult.output)")
+        let buildProcess = Process()
+        buildProcess.currentDirectoryURL = TestSupportPaths.repositoryRootDirectory
+        buildProcess.executableURL = URL(fileURLWithPath: "/usr/bin/env")
+        buildProcess.arguments = ["swift", "build", "--product", "docc2context"]
+        let pipe = Pipe()
+        buildProcess.standardOutput = pipe
+        buildProcess.standardError = pipe
+        try buildProcess.run()
+        buildProcess.waitUntilExit()
+        if buildProcess.terminationStatus != 0 {
+            let output = String(data: pipe.fileHandleForReading.readDataToEndOfFile(), encoding: .utf8) ?? "<unreadable>"
+            XCTFail("swift build --product docc2context failed: \(output)")
             return binaryURL
         }
         guard fileManager.fileExists(atPath: binaryURL.path) else {
@@ -137,26 +152,31 @@ final class PackageReleaseScriptTests: XCTestCase {
         let expectedTarball = "docc2context-0.0.0-test-linux-\(tarballArch)-dryrun.tar.gz"
         let expectedDeb = "docc2context_0.0.0-test_linux_\(debArchName)-dryrun.deb"
         let expectedRpm = "docc2context-0.0.0-test-linux-\(rpmArchName)-dryrun.rpm"
+        let process = Process()
+        process.currentDirectoryURL = TestSupportPaths.repositoryRootDirectory
+        process.executableURL = script
+        process.arguments = [
+            "--version", version,
+            "--platform", "linux",
+            "--output", outputDirectory.path,
+            "--dry-run"
+        ]
         var environment = ProcessInfo.processInfo.environment
         environment["PACKAGE_RELEASE_SKIP_GATES"] = "1"
         environment["PACKAGE_RELEASE_BINARY_OVERRIDE"] = debugBinary.path
         environment["PACKAGE_RELEASE_BUILD_CONFIGURATION"] = "debug"
+        process.environment = environment
 
-        let result = try TestProcessRunner.run(
-            executableURL: script,
-            arguments: [
-                "--version", version,
-                "--platform", "linux",
-                "--output", outputDirectory.path,
-                "--dry-run"
-            ],
-            currentDirectoryURL: TestSupportPaths.repositoryRootDirectory,
-            environment: environment,
-            timeoutSeconds: 120
-        )
+        let pipe = Pipe()
+        process.standardOutput = pipe
+        process.standardError = pipe
+        try process.run()
+        process.waitUntilExit()
 
-        if result.exitCode != 0 {
-            XCTFail("package_release.sh failed: \(result.output)")
+        let outputData = pipe.fileHandleForReading.readDataToEndOfFile()
+        if process.terminationStatus != 0 {
+            let output = String(data: outputData, encoding: .utf8) ?? "<unreadable>"
+            XCTFail("package_release.sh failed: \(output)")
             return
         }
 
@@ -205,27 +225,32 @@ final class PackageReleaseScriptTests: XCTestCase {
         let debugBinary = try ensureDebugBinaryExists()
         let hostArch = try hostArchitecture()
         let expectedZip = "docc2context-v0.0.0-test-macos-\(hostArch)-dryrun.zip"
+        let process = Process()
+        process.currentDirectoryURL = TestSupportPaths.repositoryRootDirectory
+        process.executableURL = script
+        process.arguments = [
+            "--version", version,
+            "--platform", "macos",
+            "--arch", hostArch,
+            "--output", outputDirectory.path,
+            "--dry-run"
+        ]
         var environment = ProcessInfo.processInfo.environment
         environment["PACKAGE_RELEASE_SKIP_GATES"] = "1"
         environment["PACKAGE_RELEASE_BINARY_OVERRIDE"] = debugBinary.path
         environment["PACKAGE_RELEASE_BUILD_CONFIGURATION"] = "debug"
+        process.environment = environment
 
-        let result = try TestProcessRunner.run(
-            executableURL: script,
-            arguments: [
-                "--version", version,
-                "--platform", "macos",
-                "--arch", hostArch,
-                "--output", outputDirectory.path,
-                "--dry-run"
-            ],
-            currentDirectoryURL: TestSupportPaths.repositoryRootDirectory,
-            environment: environment,
-            timeoutSeconds: 120
-        )
+        let pipe = Pipe()
+        process.standardOutput = pipe
+        process.standardError = pipe
+        try process.run()
+        process.waitUntilExit()
 
-        if result.exitCode != 0 {
-            XCTFail("package_release.sh failed: \(result.output)")
+        let outputData = pipe.fileHandleForReading.readDataToEndOfFile()
+        if process.terminationStatus != 0 {
+            let output = String(data: outputData, encoding: .utf8) ?? "<unreadable>"
+            XCTFail("package_release.sh failed: \(output)")
             return
         }
 

@@ -16,24 +16,30 @@ final class HomebrewFormulaBuilderTests: XCTestCase {
         defer { try? fileManager.removeItem(at: outputDirectory) }
         let outputPath = outputDirectory.appendingPathComponent("docc2context.rb")
 
-        let result = try TestProcessRunner.run(
-            executableURL: URL(fileURLWithPath: "/usr/bin/env"),
-            arguments: [
-                "python3",
-                scriptURL.path,
-                "--version", "v1.2.3",
-                "--arm64-url", "https://example.invalid/docc2context-v1.2.3-macos-arm64.zip",
-                "--arm64-sha256", "deadbeefcafebabe",
-                "--x86_64-url", "https://example.invalid/docc2context-v1.2.3-macos-x86_64.zip",
-                "--x86_64-sha256", "0123456789abcdef",
-                "--output", outputPath.path
-            ],
-            currentDirectoryURL: TestSupportPaths.repositoryRootDirectory,
-            timeoutSeconds: 10
-        )
+        let process = Process()
+        process.currentDirectoryURL = TestSupportPaths.repositoryRootDirectory
+        process.executableURL = URL(fileURLWithPath: "/usr/bin/env")
+        process.arguments = [
+            "python3",
+            scriptURL.path,
+            "--version", "v1.2.3",
+            "--arm64-url", "https://example.invalid/docc2context-v1.2.3-macos-arm64.zip",
+            "--arm64-sha256", "deadbeefcafebabe",
+            "--x86_64-url", "https://example.invalid/docc2context-v1.2.3-macos-x86_64.zip",
+            "--x86_64-sha256", "0123456789abcdef",
+            "--output", outputPath.path
+        ]
 
-        guard result.exitCode == 0 else {
-            XCTFail("build_homebrew_formula.py failed: \(result.output)")
+        let pipe = Pipe()
+        process.standardOutput = pipe
+        process.standardError = pipe
+        try process.run()
+        process.waitUntilExit()
+
+        let outputData = pipe.fileHandleForReading.readDataToEndOfFile()
+        guard process.terminationStatus == 0 else {
+            let output = String(data: outputData, encoding: .utf8) ?? "<unreadable>"
+            XCTFail("build_homebrew_formula.py failed: \(output)")
             return
         }
 

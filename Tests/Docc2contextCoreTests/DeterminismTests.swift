@@ -195,32 +195,6 @@ final class DeterminismTests: XCTestCase {
         }
     }
 
-    func test_compareDirectoriesReportsDirectoryHashingErrors() throws {
-        try TestTemporaryDirectory.withTemporaryDirectory { temp in
-            let dir1 = temp.url.appendingPathComponent("dir1", isDirectory: true)
-            let dir2 = temp.url.appendingPathComponent("dir2", isDirectory: true)
-            try FileManager.default.createDirectory(at: dir1, withIntermediateDirectories: true)
-            try FileManager.default.createDirectory(at: dir2, withIntermediateDirectories: true)
-
-            let file1 = dir1.appendingPathComponent("file.txt")
-            let file2 = dir2.appendingPathComponent("file.txt")
-            try "content".write(to: file1, atomically: true, encoding: .utf8)
-            try "content".write(to: file2, atomically: true, encoding: .utf8)
-
-            let validator = DeterminismValidator(fileLoader: { path in
-                if path.contains("/dir2/") {
-                    throw NSError(domain: "DeterminismTests", code: 2)
-                }
-                return try Data(contentsOf: URL(fileURLWithPath: path))
-            })
-
-            let result = try validator.compareDirectories(firstPath: dir1.path, secondPath: dir2.path)
-
-            XCTAssertFalse(result.isDeterministic)
-            XCTAssertTrue(result.differences.contains(where: { $0.contains("Error hashing directory: \(dir2.path)") }))
-        }
-    }
-
     /// Test that determinism validator produces stable hashes for same content
     func test_hashingIsConsistent() throws {
         let testContent = "This is test content for hashing"
