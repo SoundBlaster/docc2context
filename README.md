@@ -79,8 +79,8 @@ Parsing errors exit with `EX_USAGE`/64 and human-readable guidance so scripts ca
 The repository ships two curated DocC bundles in `Fixtures/` (`TutorialCatalog.doccarchive` and `ArticleReference.doccarchive`). Each fixture entry is tracked inside `Fixtures/manifest.json` with its SHA-256 checksum and byte size so determinism tests can verify provenance. Offline repository metadata fixtures for apt/dnf live under `Fixtures/RepositoryMetadata` with their own manifest (`manifest.json`) validated by the Swift harness.
 
 - **Inspecting fixtures** – Run `python3 Scripts/validate_fixtures_manifest.py Fixtures/manifest.json` to confirm hashes before recording new data. `swift test` depends on these bundles, so a mismatch indicates accidental edits.
-- **Adding fixtures** – Compress the `.doccarchive`, calculate its SHA-256 hash (`shasum -a 256`), and append the metadata to the manifest. Update `Fixtures/README.md` with provenance notes so future contributors know the origin of each bundle.
-- **Using fixtures in tests** – Leverage the harness utilities under `Tests/Shared/` to load fixture paths without duplicating boilerplate. `HarnessTemporaryDirectory` exposes scratch space for deterministic copy tests.
+- **Adding fixtures** – Add the `.doccarchive` directory, then record its SHA-256 hash and byte size in `Fixtures/manifest.json` (use `python3 Scripts/validate_fixtures_manifest.py Fixtures/manifest.json` to verify). Update `Fixtures/README.md` with provenance notes so future contributors know the origin of each bundle.
+- **Using fixtures in tests** – Use `Tests/Docc2contextCoreTests/Support/FixtureLoader.swift` and `Tests/Docc2contextCoreTests/Support/TestTemporaryDirectory.swift` to avoid duplicating boilerplate.
 
 ## Repository validation harness
 

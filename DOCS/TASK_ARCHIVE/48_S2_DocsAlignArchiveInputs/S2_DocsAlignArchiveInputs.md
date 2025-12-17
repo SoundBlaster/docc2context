@@ -1,6 +1,6 @@
 # S2 – Align Docs/PRD with Archive Input Behavior
 
-**Status:** Planning (SELECT_NEXT)
+**Status:** Complete (START)
 **Date:** 2025-12-18
 **Owner:** docc2context agent
 **Depends On:** None (documentation-only)
@@ -47,6 +47,21 @@ Several docs currently claim `ArchiveExtractor` exists and that `.doccarchive` f
 
 ---
 
+## ✅ Completed
+
+- Updated docs to match the current, tested contract:
+  - `DOCS/PRD/docc2context_prd.md`
+  - `DOCS/PRD/phase_b.md`
+  - `DOCS/workplan.md`
+  - `DOCS/todo.md`
+- Annotated historical B4 archive note without rewriting history:
+  - `DOCS/TASK_ARCHIVE/10_B4_ArchiveExtraction/B4_ArchiveExtraction.md`
+- Removed stale skipped placeholder tests:
+  - Deleted `Tests/Docc2contextCoreTests/ArchiveExtractionTests.swift` (B4 placeholders)
+- Validation:
+  - `python3 Scripts/lint_markdown.py`
+  - `swift test`
+
 ## 📎 References
 
 - `Tests/Docc2contextCoreTests/Docc2contextCLITests.swift` (archive file guidance test)
@@ -55,4 +70,3 @@ Several docs currently claim `ArchiveExtractor` exists and that `.doccarchive` f
 - `DOCS/PRD/docc2context_prd.md` (Phase B table row for B4)
 - `DOCS/PRD/phase_b.md`
 - `DOCS/workplan.md`
-

@@ -8,7 +8,7 @@
 | Success Criteria | Given a valid DocC bundle/archive, the tool emits Markdown files whose content, metadata, and navigational links mirror the original DocC documentation; CLI offers discoverable help; quality gates (tests, determinism checks, release scripts) exist before feature code merges and pass on Linux and macOS Swift toolchains. |
 | Constraints | Swift 5.9+; no proprietary dependencies; must operate offline; output Markdown must be deterministic; adhere to POSIX shell execution for automation. |
 | Assumptions | DocC bundle structure follows Apple DocC specification; Swift DocC symbol graphs are available within bundles; filesystem access is unrestricted; LLM agents consume plain Markdown and JSON metadata. |
-| External Dependencies | SwiftDocC parsing libraries (DocCKit / SymbolKit), Foundation file APIs, optional compression libraries for .doccarchive extraction. |
+| External Dependencies | SwiftDocC parsing libraries (DocCKit / SymbolKit), Foundation file APIs. `.doccarchive` inputs are treated as directories produced by DocC; if a user provides a `.doccarchive` file, the CLI emits extraction guidance. |
 
 ## 2. Structured TODO Plan
 ### Phase A – Quality & Deployment Foundations
@@ -24,8 +24,8 @@
 | --- | --- | --- | --- | --- |
 | B1 | Specify CLI Interface via Failing Tests | Capture expected CLI arguments, flags, and error outputs through XCTest cases before implementation. | A2 | No |
 | B2 | Implement Argument Parsing to Satisfy Tests | Use swift-argument-parser to meet behaviors defined in B1 tests. | B1 | No |
-| B3 | Detect Input Type | Implement logic to detect directories vs `.doccarchive` zip and normalize to bundle path, with unit tests covering all cases. | B2 | Limited |
-| B4 | Extract Archive Inputs | If archive provided, extract to temp directory with deterministic paths validated by tests seeded with fixture archives. | B3 | Yes |
+| B3 | Detect Input Type | Detect DocC bundle directories (including `.doccarchive` directories) and reject `.doccarchive` *files* with actionable extraction guidance. | B2 | Limited |
+| B4 | Archive Inputs (No Auto-Extraction) | `.doccarchive` directories are treated as DocC bundles. If a `.doccarchive` file is provided, fail with explicit guidance to extract it before converting. | B3 | Yes |
 | B5 | Parse DocC Metadata | Load `Info.plist`, documentation data, and symbol graph references guided by fixture-based tests. | B3 | Limited |
 | B6 | Build Internal Model | Define structs/classes representing articles, tutorials, and references, red-green-refactor style using model-focused tests. | B5 | No |
 
@@ -80,7 +80,8 @@ DocC2Context converts DocC documentation bundles into Markdown corpora so that L
 ### 4.2 Functional Requirements
 1. **Input Handling**
    - Accept command `docc2context <input> --output <dir> [--format markdown]`.
-   - Detect `.doccarchive` vs directory and normalize to bundle structure.
+   - Accept DocC bundle directories, including `.doccarchive` directories produced by DocC.
+   - If a `.doccarchive` file is provided, fail with explicit extraction guidance.
    - Fail with explicit error if DocC manifest missing.
 2. **DocC Parsing**
    - Read metadata (`Info.plist`), documentation articles, tutorials, technology catalog, and symbol graphs.
