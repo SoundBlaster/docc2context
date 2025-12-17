@@ -1,0 +1,82 @@
+name: Coverage Gate
+
+on:
+  workflow_dispatch:
+  pull_request:
+    paths:
+      - "Sources/**"
+      - "Tests/**"
+      - "Package.swift"
+
+jobs:
+  coverage:
+    runs-on: ubuntu-latest
+    container:
+      image: swift:6.0
+    steps:
+      - uses: actions/checkout@v4
+
+      - name: Set up Python 3
+        uses: actions/setup-python@v5
+        with:
+          python-version: '3.x'
+
+      - name: Build & test with coverage
+        run: swift test --enable-code-coverage
+
+      - name: Locate coverage artifacts
+        run: |
+          PROFILE=$(find .build -path '*/codecov/default.profdata' | head -n1)
+          if [ -z "$PROFILE" ]; then
+            echo "Unable to locate default.profdata under .build"
+            find .build -maxdepth 6 -type f -name '*.profdata' | head -n 50 || true
+            exit 1
+          fi
+          TEST_BINARY=$(find .build -name 'docc2contextPackageTests.xctest' | head -n1)
+          if [ -z "$TEST_BINARY" ]; then
+            echo "Unable to locate docc2contextPackageTests.xctest under .build"
+            find .build -maxdepth 6 -type f -name '*.xctest' | head -n 50 || true
+            exit 1
+          fi
+          echo "PROFILE=$PROFILE" >> "$GITHUB_ENV"
+          echo "TEST_BINARY=$TEST_BINARY" >> "$GITHUB_ENV"
+
+      - name: Generate lcov
+        run: |
+          llvm-cov export \
+            -format=lcov \
+            "$TEST_BINARY" \
+            -instr-profile "$PROFILE" \
+            > coverage.lcov
+
+      - name: Generate HTML report
+        run: |
+          mkdir -p coverage-html
+          llvm-cov show \
+            "$TEST_BINARY" \
+            -instr-profile "$PROFILE" \
+            -format=html \
+            -output-dir coverage-html \
+            -ignore-filename-regex=".build|Tests/.*Snapshot"
+
+      - name: Enforce 90% line coverage for Docc2contextCore
+        run: |
+          llvm-cov report \
+            "$TEST_BINARY" \
+            -instr-profile "$PROFILE" \
+            -ignore-filename-regex=".build|Tests/.*Snapshot" \
+            > coverage.txt
+          python3 Scripts/enforce_coverage.py \
+            --profdata "$PROFILE" \
+            --binary "$TEST_BINARY" \
+            --threshold 90 \
+            --target Docc2contextCore=Sources/Docc2contextCore
+
+      - name: Upload coverage artifacts
+        uses: actions/upload-artifact@v4
+        with:
+          name: coverage-report
+          path: |
+            coverage.lcov
+            coverage.txt
+            coverage-html

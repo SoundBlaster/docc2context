@@ -73,3 +73,11 @@ repository metadata to support the H4 validation harness.
   executable extends this to validate apt/dnf metadata structures end-to-end
   (Release/InRelease/Packages + repomd.xml/primary.xml) using these fixtures by
   default.
+
+## Benchmark fixture synthesis
+
+The performance benchmarking harness (`swift run docc2context-benchmark`) inflates
+the `ArticleReference.doccarchive` fixture into a larger synthetic bundle on the
+fly when `--synthesize-megabytes` is provided. The generated bundle is written to
+a temporary directory (not tracked in git or `manifest.json`) and expands article
+payloads only, keeping the process deterministic and offline-friendly.

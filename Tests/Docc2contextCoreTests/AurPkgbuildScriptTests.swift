@@ -9,6 +9,22 @@ final class AurPkgbuildScriptTests: XCTestCase {
             .appendingPathComponent("build_aur_pkgbuild.py")
     }
 
+    private func python3Available() -> Bool {
+        let process = Process()
+        process.executableURL = URL(fileURLWithPath: "/usr/bin/env")
+        process.arguments = ["python3", "--version"]
+        let pipe = Pipe()
+        process.standardOutput = pipe
+        process.standardError = pipe
+        do {
+            try process.run()
+            process.waitUntilExit()
+            return process.terminationStatus == 0
+        } catch {
+            return false
+        }
+    }
+
     private func runScript(arguments: [String]) throws -> (exitCode: Int32, output: String) {
         let process = Process()
         process.currentDirectoryURL = TestSupportPaths.repositoryRootDirectory
@@ -37,6 +53,9 @@ final class AurPkgbuildScriptTests: XCTestCase {
     }
 
     func test_generatesPkgbuildWithProvidedSources() throws {
+        guard python3Available() else {
+            throw XCTSkip("python3 is required for AUR PKGBUILD tests")
+        }
         let tempDir = FileManager.default.temporaryDirectory
             .appendingPathComponent(UUID().uuidString, isDirectory: true)
         try FileManager.default.createDirectory(at: tempDir, withIntermediateDirectories: true)
@@ -78,12 +97,18 @@ final class AurPkgbuildScriptTests: XCTestCase {
     }
 
     func test_missingRequiredArgumentsFails() throws {
+        guard python3Available() else {
+            throw XCTSkip("python3 is required for AUR PKGBUILD tests")
+        }
         let (exitCode, output) = try runScript(arguments: ["--version", "0.0.1"])
         XCTAssertNotEqual(exitCode, 0, "Script should fail when required args are missing")
         XCTAssertTrue(output.lowercased().contains("required"), "Output should mention missing required arguments")
     }
 
     func test_versionWithoutNumericComponentFails() throws {
+        guard python3Available() else {
+            throw XCTSkip("python3 is required for AUR PKGBUILD tests")
+        }
         let (exitCode, output) = try runScript(arguments: [
             "--version", "v",
             "--pkgrel", "1",

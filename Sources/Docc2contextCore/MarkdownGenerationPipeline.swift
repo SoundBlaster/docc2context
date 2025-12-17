@@ -1,7 +1,7 @@
 import Foundation
 
 public struct MarkdownGenerationPipeline {
-    public struct Summary: Equatable {
+    public struct Summary: Equatable, Codable {
         public let outputDirectory: URL
         public let tutorialVolumeCount: Int
         public let chapterCount: Int

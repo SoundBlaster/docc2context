@@ -4,7 +4,8 @@ import PackageDescription
 let package = Package(
     name: "docc2context",
     platforms: [
-        .macOS(.v13)
+        .macOS(.v13),
+        .iOS(.v13)
     ],
     products: [
         .library(
@@ -18,6 +19,10 @@ let package = Package(
         .executable(
             name: "repository-validation",
             targets: ["repository-validation"]
+        ),
+        .executable(
+            name: "docc2context-benchmark",
+            targets: ["docc2context-benchmark"]
         )
     ],
     dependencies: [
@@ -44,6 +49,12 @@ let package = Package(
             dependencies: [
                 "Docc2contextCore",
                 .product(name: "ArgumentParser", package: "swift-argument-parser")
+            ]
+        ),
+        .executableTarget(
+            name: "docc2context-benchmark",
+            dependencies: [
+                "Docc2contextCore"
             ]
         ),
         .testTarget(

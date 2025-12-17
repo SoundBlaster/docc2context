@@ -1,7 +1,7 @@
 ## Summary
-- add a helper script to compress the Swift build directory into a reusable cache archive stored via Git LFS
-- improve input detection errors to cover invalid DocC bundles or archives, including restoring directory-specific guidance for file inputs and providing clear archive extraction guidance
-- extend CLI and detector tests to validate archive messaging, rejection of non-DocC files, and directory validation messaging
+- add performance regression comparator + baseline support to `docc2context-benchmark` (baseline file, tolerance flags, fail-on-regression)
+- add opt-in Performance Benchmark CI workflow (manual or `perf-check` label) using synthetic 10 MB fixture and uploading metrics
+- document baseline usage in README and include deterministic baseline JSON under `Benchmarks/`
 
 ## Testing
 - swift test

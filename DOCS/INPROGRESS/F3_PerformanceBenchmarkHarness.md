@@ -1,9 +1,27 @@
 # F3 – Performance Benchmark Harness (Planning)
 
-**Status:** Selected for START (planning complete)
+**Status:** Completed (implementation + tests landed; ready for ARCHIVE)
 **Date:** 2026-01-05
 **Owner:** docc2context agent
 **Depends On:** C5 determinism validator (complete), D2 coverage gate (complete), F1 streaming optimizations (complete)
+
+---
+
+## 🔄 SELECT_NEXT Update
+
+- Reconfirmed via the SELECT_NEXT runbook as the next executable task within Phase F now that H1/H4/H5 remain planning/blocked and all prerequisite PRD milestones (A–E, F1/F2) are archived.
+- `DOCS/todo.md` updated to move F3 into the In Progress section; READY queue now empty.
+- No code or fixtures changed; scope remains planning-only until START is invoked.
+
+---
+
+## ✅ Completion Notes
+
+- Added `PerformanceBenchmarkHarness` + `BenchmarkFixtureBuilder` (synthetic bundle inflator) to measure end-to-end pipeline runtime with deterministic per-iteration metrics.
+- Introduced CLI executable `docc2context-benchmark` with options for fixture selection, `--synthesize-megabytes` (~10 MB target), metrics JSON, and output retention.
+- Documented harness usage in `README.md` and fixture synthesis behavior in `Fixtures/README.md`.
+- Tests: `swift test --disable-sandbox` (local) with environment overrides `SWIFTPM_DISABLE_PLUGINS=1 SWIFTPM_CACHE_PATH=$(pwd)/.build/swiftpm-cache CLANG_MODULE_CACHE_PATH=$(pwd)/.build/ModuleCache TMPDIR=$(pwd)/.build/tmp` (126 tests run, 9 skipped, 0 failures).
+- Next: archive to `DOCS/TASK_ARCHIVE/43_F3_PerformanceBenchmarkHarness/` and keep `DOCS/todo.md` in sync (moved to Completed).
 
 ---
 
@@ -59,4 +77,3 @@ When START is invoked, implement the following:
 - Draft benchmark fixture options and size estimates; propose whether to expand existing fixtures or add a new synthetic bundle.
 - Sketch the CLI interface and output format for the benchmark runner so implementation can begin immediately after START.
 - Identify whether benchmark execution should live as a standalone script, an XCTest suite, or both, and list expected metrics to capture (wall-clock, RSS, CPU%).
-

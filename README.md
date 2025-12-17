@@ -113,6 +113,37 @@ Most contributions touch multiple automation layers. Keep the following workflow
 4. `python3 Scripts/lint_markdown.py README.md DOCS/PRD/phase_d.md` – Validates Markdown formatting and asserts that required README sections exist. The script exits non-zero when a rule fails, matching the CI `docs` job.
 5. `bash Scripts/release_gates.sh` – Runs tests with coverage, determinism smoke + full conversions, fixture validation, repository metadata checks, and coverage enforcement before you tag a release or push a significant change.
 
+### Performance benchmarking
+
+- **Default run:** Measure end-to-end conversion time against the ArticleReference fixture with a configurable threshold (defaults: 3 iterations, 10s threshold).
+
+  ```bash
+  swift run docc2context-benchmark --iterations 3 --threshold-seconds 10 --output .build/benchmark
+  ```
+
+- **Synthesize ~10 MB bundle:** Generate a deterministic benchmark bundle from the ArticleReference fixture, then run the harness and emit JSON metrics.
+
+  ```bash
+  swift run docc2context-benchmark --synthesize-megabytes 10 \
+    --iterations 2 --threshold-seconds 10 \
+    --metrics-json /tmp/docc2context-benchmark.json
+  ```
+
+Options: `--fixture <path>` to benchmark a specific DocC bundle, `--keep-output` to retain iteration outputs, and `--metrics-json` to persist per-iteration durations, output sizes, and summary counts. The synthetic bundle builder inflates article content only (no new external assets) to remain deterministic and offline-friendly.
+
+- **Baseline comparison (for CI/manual checks):** Use the checked-in baseline at `Benchmarks/performance-baseline.json` with configurable tolerances (default x2 on average/max). Enable failure on regression with `--fail-on-regression`.
+
+  ```bash
+  swift run docc2context-benchmark --synthesize-megabytes 10 \
+    --iterations 3 --threshold-seconds 10 \
+    --baseline Benchmarks/performance-baseline.json \
+    --tolerance-average 2.0 --tolerance-max 2.0 \
+    --fail-on-regression \
+    --metrics-json /tmp/docc2context-benchmark.json
+  ```
+
+- **Optional CI job:** Add the `perf-check` label to a PR (or run the `Performance Benchmark` workflow manually) to execute the harness in CI, compare against the baseline, upload metrics as an artifact, and flag regressions without blocking merges by default.
+
 ## Metadata parsing pipeline
 
 `DoccMetadataParser` in the core library currently covers every metadata artifact that ships with DocC bundles so downstream Markdown rendering has strongly typed inputs without needing additional CLI flags. The parser expects the B3 input detection stage (and eventually the B4 archive extractor) to hand it a normalized bundle directory; within that directory it loads:

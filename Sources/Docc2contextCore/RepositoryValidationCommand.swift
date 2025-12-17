@@ -1,15 +1,21 @@
 import ArgumentParser
 import Foundation
 
+public protocol RepositoryValidationHarnessing {
+    func validate(configuration: RepositoryValidationHarness.Configuration) throws -> RepositoryValidationHarness.Result
+}
+
+extension RepositoryValidationHarness: RepositoryValidationHarnessing {}
+
 public struct RepositoryValidationCommand {
     enum ExitCode {
         static let usageError = 64
         static let validationFailed = 1
     }
 
-    private let harness: RepositoryValidationHarness
+    private let harness: RepositoryValidationHarnessing
 
-    public init(harness: RepositoryValidationHarness = RepositoryValidationHarness()) {
+    public init(harness: RepositoryValidationHarnessing = RepositoryValidationHarness()) {
         self.harness = harness
     }
 
