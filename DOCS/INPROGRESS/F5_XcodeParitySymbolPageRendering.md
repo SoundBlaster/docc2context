@@ -1,6 +1,6 @@
 # F5 Xcode-Parity Symbol Page Rendering (Swift-DocC Render Archives)
 
-**Status:** Selected (planning)  
+**Status:** Implementation complete (ready to archive)  
 **Owner:** docc2context agent  
 **Selected on:** 2025-12-18  
 **PRD reference:** `DOCS/PRD/docc2context_prd.md` §5 (F5)  
@@ -53,3 +53,11 @@ When converting a Swift-DocC render archive (e.g. `Fixtures/Docc2contextCore.doc
   - Any discovered `collectionGroup` sections listed in Topics (e.g. “Equatable Implementations”) with entries resolved by title
 - Determinism tests prove two runs are byte-identical.
 
+## Implemented (START)
+- Added Swift-DocC render-archive symbol page support by decoding `kind: "symbol"` render nodes into `DoccSymbolPage` and emitting Xcode-like Markdown pages under `markdown/documentation/.../index.md`.
+- Added a snapshot-backed test for `MarkdownGenerationPipeline` symbol page output (summary + topics) using the `Docc2contextCore.doccarchive` fixture.
+
+## Validation evidence
+- `swift test` (full suite; includes new snapshot coverage)
+- `python3 Scripts/validate_fixtures_manifest.py Fixtures/manifest.json`
+- `python3 Scripts/lint_markdown.py`
