@@ -51,6 +51,23 @@
       },
       "size_bytes": 2894,
       "notes": "Article + symbol graph bundle covering API walkthrough flows."
+    },
+    {
+      "id": "docc2contextcore-generated",
+      "name": "Docc2contextCore (Generated from Sources)",
+      "relative_path": "Docc2contextCore.doccarchive",
+      "type": "api",
+      "source": {
+        "url": "docc2context://self/generated",
+        "reference": "Generated via swift-docc-plugin (swift package generate-documentation --target Docc2contextCore); fixture is pruned to metadata.json + data/documentation for offline converter tests",
+        "license": "MIT"
+      },
+      "checksum": {
+        "algorithm": "sha256",
+        "value": "229b7b38190c26a05a1b8354256ad01bcd6331a1187db4427ed35a44e4a61096"
+      },
+      "size_bytes": 1971284,
+      "notes": "First-party DocC output generated from this repository's Sources/ as a dogfooding fixture (F4)."
     }
   ]
 }

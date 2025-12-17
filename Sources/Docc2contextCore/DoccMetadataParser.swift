@@ -53,6 +53,35 @@ public struct DoccDocumentationCatalog: Equatable, Codable {
             self.type = type
             self.text = text
         }
+
+        private enum CodingKeys: String, CodingKey {
+            case type
+            case text
+            case code
+        }
+
+        public init(from decoder: Decoder) throws {
+            let container = try decoder.container(keyedBy: CodingKeys.self)
+            type = try container.decode(String.self, forKey: .type)
+
+            if let textValue = try container.decodeIfPresent(String.self, forKey: .text) {
+                text = textValue
+                return
+            }
+
+            if let codeValue = try container.decodeIfPresent(String.self, forKey: .code) {
+                text = "`\(codeValue)`"
+                return
+            }
+
+            text = ""
+        }
+
+        public func encode(to encoder: Encoder) throws {
+            var container = encoder.container(keyedBy: CodingKeys.self)
+            try container.encode(type, forKey: .type)
+            try container.encode(text, forKey: .text)
+        }
     }
 
     public struct TopicSection: Equatable, Codable {
@@ -71,6 +100,70 @@ public struct DoccDocumentationCatalog: Equatable, Codable {
     public let role: String?
     public let abstract: [AbstractItem]
     public let topics: [TopicSection]
+
+    private enum CodingKeys: String, CodingKey {
+        case identifier
+        case kind
+        case title
+        case role
+        case abstract
+        case topics
+    }
+
+    // Swift-DocC render node keys.
+    private enum RenderCodingKeys: String, CodingKey {
+        case identifier
+        case kind
+        case abstract
+        case topicSections
+        case metadata
+    }
+
+    private struct RenderIdentifier: Decodable {
+        let url: String
+    }
+
+    private struct RenderMetadata: Decodable {
+        let title: String?
+        let role: String?
+    }
+
+    private struct RenderTopicSection: Decodable {
+        let title: String
+        let identifiers: [String]
+    }
+
+    public init(from decoder: Decoder) throws {
+        let container = try decoder.container(keyedBy: CodingKeys.self)
+
+        // Legacy format used by synthetic fixtures.
+        if let decodedIdentifier = try? container.decode(String.self, forKey: .identifier),
+           let decodedKind = try? container.decode(String.self, forKey: .kind),
+           let decodedTitle = try? container.decode(String.self, forKey: .title)
+        {
+            identifier = decodedIdentifier
+            kind = decodedKind
+            title = decodedTitle
+            role = try? container.decode(String.self, forKey: .role)
+            abstract = (try? container.decode([AbstractItem].self, forKey: .abstract)) ?? []
+            topics = (try? container.decode([TopicSection].self, forKey: .topics)) ?? []
+            return
+        }
+
+        // Swift-DocC render archive module page.
+        let renderContainer = try decoder.container(keyedBy: RenderCodingKeys.self)
+        let renderIdentifier = try renderContainer.decode(RenderIdentifier.self, forKey: .identifier)
+        let renderKind = try renderContainer.decode(String.self, forKey: .kind)
+        let renderMetadata = try renderContainer.decode(RenderMetadata.self, forKey: .metadata)
+        let renderTopics = (try? renderContainer.decode([RenderTopicSection].self, forKey: .topicSections)) ?? []
+
+        identifier = renderIdentifier.url
+        kind = renderKind
+        title = renderMetadata.title ?? "Documentation Catalog"
+        role = renderMetadata.role
+        abstract = (try? renderContainer.decode([AbstractItem].self, forKey: .abstract)) ?? []
+        topics = renderTopics.map { TopicSection(title: $0.title, identifiers: $0.identifiers) }
+    }
 }
 
 public struct DoccArticle: Equatable, Codable {
@@ -81,6 +174,35 @@ public struct DoccArticle: Equatable, Codable {
         public init(type: String, text: String) {
             self.type = type
             self.text = text
+        }
+
+        private enum CodingKeys: String, CodingKey {
+            case type
+            case text
+            case code
+        }
+
+        public init(from decoder: Decoder) throws {
+            let container = try decoder.container(keyedBy: CodingKeys.self)
+            type = try container.decode(String.self, forKey: .type)
+
+            if let textValue = try container.decodeIfPresent(String.self, forKey: .text) {
+                text = textValue
+                return
+            }
+
+            if let codeValue = try container.decodeIfPresent(String.self, forKey: .code) {
+                text = "`\(codeValue)`"
+                return
+            }
+
+            text = ""
+        }
+
+        public func encode(to encoder: Encoder) throws {
+            var container = encoder.container(keyedBy: CodingKeys.self)
+            try container.encode(type, forKey: .type)
+            try container.encode(text, forKey: .text)
         }
     }
 
@@ -152,15 +274,56 @@ public struct DoccArticle: Equatable, Codable {
         case references
     }
 
+    // Swift-DocC render node keys.
+    private enum RenderCodingKeys: String, CodingKey {
+        case identifier
+        case kind
+        case abstract
+        case metadata
+        case references
+    }
+
+    private struct RenderIdentifier: Decodable {
+        let url: String
+    }
+
+    private struct RenderMetadata: Decodable {
+        let title: String?
+    }
+
     public init(from decoder: Decoder) throws {
         let container = try decoder.container(keyedBy: CodingKeys.self)
-        identifier = try container.decode(String.self, forKey: .identifier)
-        kind = try container.decode(String.self, forKey: .kind)
-        title = try container.decode(String.self, forKey: .title)
-        abstract = try container.decodeIfPresent([AbstractItem].self, forKey: .abstract) ?? []
-        sections = try container.decodeIfPresent([Section].self, forKey: .sections) ?? []
-        topics = try container.decodeIfPresent([TopicSection].self, forKey: .topics) ?? []
-        references = try container.decodeIfPresent([Reference].self, forKey: .references) ?? []
+
+        // Legacy format used by synthetic fixtures.
+        if let decodedIdentifier = try? container.decode(String.self, forKey: .identifier),
+           let decodedKind = try? container.decode(String.self, forKey: .kind),
+           let decodedTitle = try? container.decode(String.self, forKey: .title)
+        {
+            identifier = decodedIdentifier
+            kind = decodedKind
+            title = decodedTitle
+            abstract = (try? container.decode([AbstractItem].self, forKey: .abstract)) ?? []
+            sections = (try? container.decode([Section].self, forKey: .sections)) ?? []
+            topics = (try? container.decode([TopicSection].self, forKey: .topics)) ?? []
+            references = (try? container.decode([Reference].self, forKey: .references)) ?? []
+            return
+        }
+
+        // Swift-DocC render archive article page.
+        let renderContainer = try decoder.container(keyedBy: RenderCodingKeys.self)
+        let renderIdentifier = try renderContainer.decode(RenderIdentifier.self, forKey: .identifier)
+        kind = try renderContainer.decode(String.self, forKey: .kind)
+        let metadata = try renderContainer.decode(RenderMetadata.self, forKey: .metadata)
+
+        identifier = renderIdentifier.url
+        title = metadata.title ?? "Article"
+        abstract = (try? renderContainer.decode([AbstractItem].self, forKey: .abstract)) ?? []
+
+        // The render archive schema uses a richer representation for sections/topics.
+        // The current Markdown renderer focuses on title + abstract + stable metadata.
+        sections = []
+        topics = []
+        references = []
     }
 }
 
@@ -281,6 +444,9 @@ public struct DoccMetadataParser {
         do {
             plistData = try Data(contentsOf: infoPlistURL)
         } catch {
+            if let metadata = try? loadSwiftDocCRenderArchiveMetadata(from: bundleURL) {
+                return metadata
+            }
             throw DoccMetadataParserError.infoPlistMissing(infoPlistURL)
         }
 
@@ -321,19 +487,28 @@ public struct DoccMetadataParser {
             .appendingPathComponent("metadata", isDirectory: true)
             .appendingPathComponent("metadata.json", isDirectory: false)
 
-        let data: Data
-        do {
-            data = try Data(contentsOf: metadataURL)
-        } catch {
-            throw DoccMetadataParserError.renderMetadataMissing(metadataURL)
+        if FileManager.default.fileExists(atPath: metadataURL.path) {
+            let data: Data
+            do {
+                data = try Data(contentsOf: metadataURL)
+            } catch {
+                throw DoccMetadataParserError.renderMetadataMissing(metadataURL)
+            }
+
+            do {
+                let decoder = JSONDecoder()
+                return try decoder.decode(DoccRenderMetadata.self, from: data)
+            } catch {
+                throw DoccMetadataParserError.invalidRenderMetadata(metadataURL)
+            }
         }
 
-        do {
-            let decoder = JSONDecoder()
-            return try decoder.decode(DoccRenderMetadata.self, from: data)
-        } catch {
-            throw DoccMetadataParserError.invalidRenderMetadata(metadataURL)
+        // Swift-DocC render archive fallback: synthesize a minimal metadata payload.
+        if let renderMetadata = try? synthesizeRenderMetadata(from: bundleURL) {
+            return renderMetadata
         }
+
+        throw DoccMetadataParserError.renderMetadataMissing(metadataURL)
     }
 
     public func loadDocumentationCatalog(
@@ -368,6 +543,9 @@ public struct DoccMetadataParser {
             .appendingPathComponent("symbol-graphs", isDirectory: true)
 
         guard FileManager.default.fileExists(atPath: symbolGraphsDirectory.path) else {
+            if let references = try? loadSwiftDocCRenderArchiveSymbolReferences(from: bundleURL) {
+                return references
+            }
             return []
         }
 
@@ -430,6 +608,9 @@ public struct DoccMetadataParser {
         do {
             metadataData = try Data(contentsOf: metadataURL)
         } catch {
+            if let synthesized = try? synthesizeBundleDataMetadata(from: bundleURL) {
+                return synthesized
+            }
             throw DoccMetadataParserError.metadataJSONMissing(metadataURL)
         }
 
@@ -542,6 +723,150 @@ public struct DoccMetadataParser {
 // MARK: - Private helpers
 
 extension DoccMetadataParser {
+    private struct SwiftDocCRenderArchiveRootMetadata: Decodable {
+        struct SchemaVersion: Decodable {
+            let major: Int
+            let minor: Int
+            let patch: Int
+        }
+
+        let bundleDisplayName: String
+        let bundleID: String
+        let schemaVersion: SchemaVersion?
+    }
+
+    private struct SwiftDocCRenderNodeHeader: Decodable {
+        struct Identifier: Decodable {
+            let url: String
+        }
+
+        struct Module: Decodable {
+            let name: String
+        }
+
+        struct Metadata: Decodable {
+            let title: String?
+            let role: String?
+            let modules: [Module]?
+        }
+
+        let kind: String
+        let identifier: Identifier
+        let metadata: Metadata?
+    }
+
+    private func isSwiftDocCRenderArchive(_ bundleURL: URL) -> Bool {
+        let rootMetadataURL = bundleURL.appendingPathComponent("metadata.json", isDirectory: false)
+        let indexURL = bundleURL.appendingPathComponent("index/index.json", isDirectory: false)
+        return FileManager.default.fileExists(atPath: rootMetadataURL.path) ||
+            FileManager.default.fileExists(atPath: indexURL.path)
+    }
+
+    private func loadSwiftDocCRenderArchiveMetadata(from bundleURL: URL) throws -> DoccBundleMetadata? {
+        guard isSwiftDocCRenderArchive(bundleURL) else { return nil }
+
+        let rootMetadataURL = bundleURL.appendingPathComponent("metadata.json", isDirectory: false)
+        guard FileManager.default.fileExists(atPath: rootMetadataURL.path) else { return nil }
+
+        let data = try Data(contentsOf: rootMetadataURL)
+        let decoded = try JSONDecoder().decode(SwiftDocCRenderArchiveRootMetadata.self, from: data)
+
+        let technologyRoot = decoded.bundleDisplayName.trimmingCharacters(in: .whitespacesAndNewlines).lowercased()
+        return DoccBundleMetadata(
+            identifier: decoded.bundleID,
+            displayName: decoded.bundleDisplayName,
+            technologyRoot: technologyRoot,
+            locales: ["en"],
+            doccVersion: nil,
+            projectVersion: nil)
+    }
+
+    private func synthesizeRenderMetadata(from bundleURL: URL) throws -> DoccRenderMetadata? {
+        guard isSwiftDocCRenderArchive(bundleURL) else { return nil }
+
+        let rootMetadataURL = bundleURL.appendingPathComponent("metadata.json", isDirectory: false)
+        guard FileManager.default.fileExists(atPath: rootMetadataURL.path) else { return nil }
+
+        let data = try Data(contentsOf: rootMetadataURL)
+        let decoded = try JSONDecoder().decode(SwiftDocCRenderArchiveRootMetadata.self, from: data)
+        let schema = decoded.schemaVersion
+        let versionString = schema.map { "\($0.major).\($0.minor).\($0.patch)" } ?? "0.0.0"
+
+        return DoccRenderMetadata(
+            formatVersion: versionString,
+            generatedAt: "",
+            generator: "swift-docc-plugin",
+            kind: "render-archive")
+    }
+
+    private func synthesizeBundleDataMetadata(from bundleURL: URL) throws -> DoccBundleDataMetadata? {
+        guard isSwiftDocCRenderArchive(bundleURL) else { return nil }
+        return DoccBundleDataMetadata(
+            formatVersion: "0.0.0",
+            generatedAt: Date(timeIntervalSince1970: 0),
+            generator: "swift-docc-plugin",
+            kind: "render-archive")
+    }
+
+    private func documentationDataRoot(in bundleURL: URL) -> URL {
+        bundleURL
+            .appendingPathComponent("data", isDirectory: true)
+            .appendingPathComponent("documentation", isDirectory: true)
+    }
+
+    private func documentationJSONFiles(in bundleURL: URL) -> [URL] {
+        let root = documentationDataRoot(in: bundleURL)
+        guard FileManager.default.fileExists(atPath: root.path) else { return [] }
+
+        let enumerator = FileManager.default.enumerator(
+            at: root,
+            includingPropertiesForKeys: nil,
+            options: [.skipsHiddenFiles]
+        )
+
+        let urls = (enumerator?.allObjects as? [URL] ?? [])
+            .filter { $0.pathExtension.lowercased() == "json" }
+            .sorted { $0.path < $1.path }
+        return urls
+    }
+
+    private func loadSwiftDocCRenderArchiveSymbolReferences(from bundleURL: URL) throws -> [DoccSymbolReference]? {
+        guard isSwiftDocCRenderArchive(bundleURL) else { return nil }
+
+        var references: [DoccSymbolReference] = []
+        references.reserveCapacity(128)
+
+        for fileURL in documentationJSONFiles(in: bundleURL) {
+            let data = try Data(contentsOf: fileURL)
+            guard let header = try? JSONDecoder().decode(SwiftDocCRenderNodeHeader.self, from: data) else {
+                continue
+            }
+
+            guard header.kind == "symbol",
+                  header.metadata?.role == "symbol",
+                  let title = header.metadata?.title,
+                  !title.isEmpty
+            else {
+                continue
+            }
+
+            let moduleName = header.metadata?.modules?.first?.name ?? "UnknownModule"
+            references.append(
+                DoccSymbolReference(
+                    identifier: header.identifier.url,
+                    title: title,
+                    moduleName: moduleName)
+            )
+        }
+
+        return references.sorted { lhs, rhs in
+            if lhs.identifier == rhs.identifier {
+                return lhs.moduleName < rhs.moduleName
+            }
+            return lhs.identifier < rhs.identifier
+        }
+    }
+
     private func makeTutorialFileURL(for identifier: String, bundleURL: URL) -> URL {
         let slug = identifier.split(separator: "/").last.map(String.init) ?? identifier
         return bundleURL

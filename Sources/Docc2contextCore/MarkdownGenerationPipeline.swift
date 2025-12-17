@@ -1,5 +1,6 @@
 import Foundation
 
+/// Converts a DocC bundle into deterministic Markdown and a link graph.
 public struct MarkdownGenerationPipeline {
     public struct Summary: Equatable, Codable {
         public let outputDirectory: URL
@@ -187,10 +188,11 @@ public struct MarkdownGenerationPipeline {
 
         let articlesRoot = markdownRoot.appendingPathComponent("articles", isDirectory: true)
         var referenceArticleCount = 0
-        let articleIdentifiers = orderedArticleIdentifiers(from: bundleModel.documentationCatalog)
-
-        // Streaming optimization: Load articles as dictionary to avoid intermediate array
+        // Streaming optimization: Load articles as dictionary to avoid intermediate array.
         let articlesByIdentifier = try loadAvailableArticlesDictionary(from: inputURL)
+        let articleIdentifiers = orderedArticleIdentifiers(
+            from: bundleModel.documentationCatalog,
+            availableArticles: Set(articlesByIdentifier.keys))
 
         if !articleIdentifiers.isEmpty && !articlesByIdentifier.isEmpty {
             try ensureDirectoryExists(articlesRoot)
@@ -314,16 +316,28 @@ public struct MarkdownGenerationPipeline {
         identifier.contains("/tutorials/")
     }
 
-    private func orderedArticleIdentifiers(from catalog: DoccDocumentationCatalog) -> [String] {
+    private func orderedArticleIdentifiers(
+        from catalog: DoccDocumentationCatalog,
+        availableArticles: Set<String>
+    ) -> [String] {
         var seen: Set<String> = []
         var identifiers: [String] = []
         for topic in catalog.topics {
-            for identifier in topic.identifiers where identifier.contains("/articles/") {
+            for identifier in topic.identifiers {
+                guard availableArticles.contains(identifier) else { continue }
                 if seen.insert(identifier).inserted {
                     identifiers.append(identifier)
                 }
             }
         }
+
+        if seen.count != availableArticles.count {
+            let remaining = availableArticles
+                .subtracting(seen)
+                .sorted()
+            identifiers.append(contentsOf: remaining)
+        }
+
         return identifiers
     }
 
@@ -354,31 +368,40 @@ public struct MarkdownGenerationPipeline {
     /// - Parameter bundleURL: URL to the DocC bundle
     /// - Returns: Dictionary mapping article identifiers to DoccArticle instances
     private func loadAvailableArticlesDictionary(from bundleURL: URL) throws -> [String: DoccArticle] {
-        let articlesDirectory = bundleURL
+        let documentationRoot = bundleURL
             .appendingPathComponent("data", isDirectory: true)
             .appendingPathComponent("documentation", isDirectory: true)
-            .appendingPathComponent("articles", isDirectory: true)
 
-        guard fileManager.fileExists(atPath: articlesDirectory.path) else {
+        guard fileManager.fileExists(atPath: documentationRoot.path) else {
             return [:]
         }
 
-        let fileURLs = try fileManager.contentsOfDirectory(
-            at: articlesDirectory,
+        let enumerator = fileManager.enumerator(
+            at: documentationRoot,
             includingPropertiesForKeys: nil,
             options: [.skipsHiddenFiles])
+
+        let fileURLs = (enumerator?.allObjects as? [URL] ?? [])
             .filter { $0.pathExtension.lowercased() == "json" }
-            .sorted { $0.lastPathComponent < $1.lastPathComponent }
+            .sorted { $0.path < $1.path }
+
+        struct KindProbe: Decodable { let kind: String }
 
         var articlesByIdentifier: [String: DoccArticle] = [:]
-        articlesByIdentifier.reserveCapacity(fileURLs.count)
+        articlesByIdentifier.reserveCapacity(16)
 
         let decoder = JSONDecoder()
         for fileURL in fileURLs {
             let data = try Data(contentsOf: fileURL)
+
+            guard let probe = try? decoder.decode(KindProbe.self, from: data),
+                  probe.kind == "article"
+            else {
+                continue
+            }
+
             do {
                 let article = try decoder.decode(DoccArticle.self, from: data)
-                // Directly insert into dictionary, avoiding intermediate array allocation
                 articlesByIdentifier[article.identifier] = article
             } catch {
                 throw DoccMetadataParserError.invalidArticlePage(fileURL)
