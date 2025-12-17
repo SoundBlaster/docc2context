@@ -4,6 +4,7 @@ Use this list for near-term execution. Each entry maps back to the PRD and [work
 
 ## In Progress
 - [ ] **H1 APT/DNF Repository Hosting (Blocked)** — ⛔ BLOCKED pending external repository provisioning + credentials (Cloudsmith/Packagecloud owner/repo, API tokens) and signing key decisions; prep work is complete and documented, but end-to-end validation cannot proceed. _Doc:_ `DOCS/INPROGRESS/BLOCKED_H1_APTDNFRepositoryHosting.md`. _Owner:_ maintainer. _Status:_ Blocked — 2025-12-18.
+- [ ] **F4 Dogfood DocC Fixture from Sources** — Add real DocC documentation in `Sources/`, generate a `.doccarchive` for the package, and commit it under `Fixtures/` as a deterministic, provenance-documented fixture used by new converter snapshot tests. _Doc:_ `DOCS/INPROGRESS/F4_DogfoodDocCFixtureFromSources.md`. _Owner:_ docc2context agent. _Status:_ Selected — 2025-12-18.
 
 ## Completed
 - [x] **S3 Clarify `.doccarchive` Inputs in Public Docs** — Made README/PRD examples unambiguous about `.doccarchive` directory vs file inputs (directory supported; file requires manual extraction). _Doc:_ `DOCS/TASK_ARCHIVE/49_S3_ClarifyDoccarchiveInputs/S3_ClarifyDoccarchiveInputs.md`. _Owner:_ docc2context agent. _Status:_ Complete — 2025-12-18; validated via `python3 Scripts/lint_markdown.py` and `swift test --filter DocumentationGuidanceTests`.
@@ -61,7 +62,7 @@ Use this list for near-term execution. Each entry maps back to the PRD and [work
 - [x] **C1 Tutorial Chapter Snapshot Spec** Capture the deterministic Markdown contract for the first tutorial chapter page (`tutorialcatalog/tutorials/getting-started`) and lock it via `MarkdownSnapshotSpecsTests.test_tutorialChapterPageMatchesSnapshot`. _Depends on:_ C1 outline + tutorial overview snapshot harness. _Doc:_ PRD §Phase C (snapshot specs). _Owner:_ docc2context agent. _Status:_ Complete – archived under `DOCS/TASK_ARCHIVE/15_C1_TutorialChapterSnapshot/`; validated with `swift test --filter MarkdownSnapshotSpecsTests.test_tutorialChapterPageMatchesSnapshot` and the full `swift test` suite, with follow-on tutorial + article specs tracked in `DOCS/TASK_ARCHIVE/16_C1_MarkdownSnapshotSpecs/` and `17_C1_ReferenceArticleSnapshot/`.
 
 ## Ready to Start
-- [ ] **F4 Dogfood DocC Fixture from Sources** — Add real DocC documentation in `Sources/`, generate a `.doccarchive` for the package, and commit it under `Fixtures/` as a deterministic, provenance-documented fixture used by new converter snapshot tests. _Doc:_ PRD §5 (F4) + `DOCS/TASK_ARCHIVE/42_S0_DocCGenerationNotes/DocCGenerationNotes.md`. _Owner:_ docc2context agent. _Status:_ Ready — 2025-12-18.
+- [ ] _(none — all ready items are now tracked in progress.)_
 
 ## Blocked
 Tasks prevented from proceeding by external dependencies, missing resources, or pending decisions.
