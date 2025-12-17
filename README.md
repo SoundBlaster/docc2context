@@ -66,7 +66,7 @@ Pass additional Markdown paths as arguments (for example, `DOCS/PRD/phase_d.md`)
 docc2context <input-path> --output <directory> [--format markdown] [--force] [--technology <name>]
 ```
 
-- `<input-path>` – Required positional argument that points to a DocC bundle or `.doccarchive` to convert.
+- `<input-path>` – Required positional argument that points to a DocC bundle directory (for example, `MyDocs.docc` or a `.doccarchive` directory). If you have a `.doccarchive` file, extract it first.
 - `--output <directory>` – Required option describing where Markdown/link graph artifacts should be written. The directory is created if it does not already exist.
 - `--format <value>` – Optional output format selector. For now only `markdown` is accepted; other values exit with code 64 and  include the supported list in the error text.
 - `--force` – Optional boolean flag that allows the CLI to delete an existing output directory before writing fresh Markdown files.

@@ -1,6 +1,6 @@
 # S3 – Clarify `.doccarchive` Inputs in Public Docs
 
-**Status:** Planning (SELECT_NEXT)
+**Status:** Complete (START)
 **Date:** 2025-12-18
 **Owner:** docc2context agent
 **Depends On:** None (documentation-only)
@@ -43,10 +43,14 @@ S2 aligned PRD/workplan checklists, but `README.md` and a PRD example still use 
 
 ---
 
+## ✅ Completed
+
+- Updated `README.md` CLI usage to explicitly describe `.doccarchive` directory inputs vs `.doccarchive` file extraction requirement.
+- Updated `DOCS/PRD/docc2context_prd.md` user-flow example to clarify that `MyDocs.doccarchive` is a directory.
+
 ## 📎 References
 
 - `README.md` (CLI usage)
 - `DOCS/PRD/docc2context_prd.md` (user-flow example)
 - `Sources/Docc2contextCore/InputLocationDetector.swift` (error text: “archive file; extract it before converting”)
 - `Tests/Docc2contextCoreTests/Docc2contextCLITests.swift` (contract test for archive file guidance)
-

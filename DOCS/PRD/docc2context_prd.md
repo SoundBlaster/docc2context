@@ -109,7 +109,7 @@ DocC2Context converts DocC documentation bundles into Markdown corpora so that L
 
 ### 4.4 User Interaction Flow
 1. User installs tool via SwiftPM build or binary download.
-2. User runs `docc2context /path/MyDocs.doccarchive --output ./docs-md`.
+2. User runs `docc2context /path/MyDocs.doccarchive --output ./docs-md` (where `MyDocs.doccarchive` is a DocC archive directory, not a file).
 3. Tool logs detection, extraction, parsing, generation phases with progress.
 4. On completion, CLI prints summary with counts of pages, links, and output location.
 5. User navigates Markdown output (TOC/index) for downstream ingestion.
