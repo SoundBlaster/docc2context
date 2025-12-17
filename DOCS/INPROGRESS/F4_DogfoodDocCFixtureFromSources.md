@@ -1,6 +1,6 @@
 # F4 Dogfood DocC Fixture from Sources
 
-**Status:** Selected (planning)  
+**Status:** Implementation complete (ready to archive)  
 **Owner:** docc2context agent  
 **Selected on:** 2025-12-18  
 **PRD reference:** `DOCS/PRD/docc2context_prd.md` (Post-MVP Enhancements, F4)  
@@ -50,3 +50,17 @@ Add real DocC documentation in `Sources/` for this package and use the generated
 ## Follow-ups (only if START reveals scope creep)
 - If the “docs in Sources” and “fixture + tests” work is too large for one session, split into `F4.1` (Docs + generation plumbing) and `F4.2` (Fixture commit + tests) in `DOCS/todo.md` before implementation starts.
 
+## Implemented (START)
+- Added a real DocC catalog for the `Docc2contextCore` module under `Sources/Docc2contextCore/Docc2contextCore.docc/` including the `Fixture dogfooding` article.
+- Added `Fixtures/Docc2contextCore.doccarchive` generated from the package sources via `swift package generate-documentation` and then pruned to `metadata.json` + `data/documentation/` for offline converter tests.
+- Updated `DoccMetadataParser` + `MarkdownGenerationPipeline` to support Swift-DocC render archives (DocC “render node” JSON) alongside the existing synthetic fixture schema.
+- Added `Docc2contextCoreDoccFixtureTests` to validate conversion + determinism on the generated fixture.
+
+## Validation evidence
+- `python3 Scripts/lint_markdown.py`
+- `python3 Scripts/validate_fixtures_manifest.py Fixtures/manifest.json`
+- `swift test` (163 tests, 6 skipped, 0 failures)
+
+## Notes
+- The fixture is pinned to the committed `Fixtures/Docc2contextCore.doccarchive` contents and does not regenerate during tests.
+- Regeneration requires the Swift-DocC plugin (`swift-docc-plugin`) dependency and should update `Fixtures/manifest.json` accordingly.
