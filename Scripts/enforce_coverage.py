@@ -70,7 +70,17 @@ def resolve_llvm_cov() -> str:
 
 
 def default_profdata_path(root: Path) -> Path:
-    return root / ".build" / "debug" / "codecov" / "default.profdata"
+    preferred = root / ".build" / "debug" / "codecov" / "default.profdata"
+    if preferred.exists():
+        return preferred
+
+    # Linux toolchains often place coverage under a target-triple directory, with or without a
+    # `.build/debug` symlink depending on SwiftPM version/toolchain.
+    for candidate in sorted(root.glob(".build/**/codecov/default.profdata")):
+        if candidate.exists():
+            return candidate
+
+    return preferred
 
 
 def find_test_binary(root: Path) -> Path:

@@ -24,16 +24,28 @@ jobs:
       - name: Build & test with coverage
         run: swift test --enable-code-coverage
 
-      - name: Locate coverage profile
+      - name: Locate coverage artifacts
         run: |
-          PROFILE=$(find .build -name '*.profdata' | head -n1)
+          PROFILE=$(find .build -path '*/codecov/default.profdata' | head -n1)
+          if [ -z "$PROFILE" ]; then
+            echo "Unable to locate default.profdata under .build"
+            find .build -maxdepth 6 -type f -name '*.profdata' | head -n 50 || true
+            exit 1
+          fi
+          TEST_BINARY=$(find .build -name 'docc2contextPackageTests.xctest' | head -n1)
+          if [ -z "$TEST_BINARY" ]; then
+            echo "Unable to locate docc2contextPackageTests.xctest under .build"
+            find .build -maxdepth 6 -type f -name '*.xctest' | head -n 50 || true
+            exit 1
+          fi
           echo "PROFILE=$PROFILE" >> "$GITHUB_ENV"
+          echo "TEST_BINARY=$TEST_BINARY" >> "$GITHUB_ENV"
 
       - name: Generate lcov
         run: |
           llvm-cov export \
             -format=lcov \
-            .build/debug/docc2contextPackageTests.xctest \
+            "$TEST_BINARY" \
             -instr-profile "$PROFILE" \
             > coverage.lcov
 
@@ -41,7 +53,7 @@ jobs:
         run: |
           mkdir -p coverage-html
           llvm-cov show \
-            .build/debug/docc2contextPackageTests.xctest \
+            "$TEST_BINARY" \
             -instr-profile "$PROFILE" \
             -format=html \
             -output-dir coverage-html \
@@ -50,11 +62,15 @@ jobs:
       - name: Enforce 83% line coverage for Docc2contextCore
         run: |
           llvm-cov report \
-            .build/debug/docc2contextPackageTests.xctest \
+            "$TEST_BINARY" \
             -instr-profile "$PROFILE" \
             -ignore-filename-regex=".build|Tests/.*Snapshot" \
             > coverage.txt
-          awk '/^Sources\/Docc2contextCore\// { if ($4+0 < 83) { print "Coverage", $4"%"; exit 1 } }' coverage.txt
+          python3 Scripts/enforce_coverage.py \
+            --profdata "$PROFILE" \
+            --binary "$TEST_BINARY" \
+            --threshold 83 \
+            --target Docc2contextCore=Sources/Docc2contextCore
 
       - name: Upload coverage artifacts
         uses: actions/upload-artifact@v4
