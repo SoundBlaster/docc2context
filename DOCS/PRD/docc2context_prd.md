@@ -139,3 +139,11 @@ To close out Phase D, the release automation must ship documented distribution c
    - Offer manual install path mirroring Linux instructions with `/usr/local/bin` or `/opt/homebrew/bin` destinations, plus a one-line install script option.
    - Document codesigning (`codesign --options runtime`) and notarization (`notarytool submit`, `stapler staple`) steps for prebuilt binaries so Gatekeeper trust warnings are minimized, even if Homebrew rebuilds from source.
    - Call out when notarized/signature artifacts are required (e.g., distributing prebuilt bottles) vs optional for source-installs.
+
+## 5. Post-MVP Enhancements
+
+These items are intentionally out-of-scope for Phases A–D, but remain high-value follow-ups that improve long-term quality, realism of fixtures, and dogfooding coverage.
+
+| ID | Task | Description | Dependencies | Parallelizable |
+| --- | --- | --- | --- | --- |
+| F4 | Dogfood DocC Fixture from Sources | Add real DocC documentation in `Sources/` (DocC comments and/or a `.docc` catalog for this package), then generate a `.doccarchive` from the repo using `swift package generate-documentation` and commit the resulting artifacts under `Fixtures/` as a deterministic test fixture. Document provenance (toolchain + command line) and add tests that validate the converter can parse and emit stable Markdown/link graphs from the new fixture without requiring DocC generation at test time. | A3, A4, B5, C2, C5 | Yes |
