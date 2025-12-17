@@ -16,6 +16,16 @@ log_error() {
   printf '\n[%s][ERROR] %s\n' "$(date -u +%H:%M:%S)" "$1" >&2
 }
 
+MUSL_VARIANT_PUBLISH_HINT="Publish musl variants via tarball releases (or add an explicit opt-in flag once package naming/repo layout is decided)."
+
+warn_skipped_musl_variants() {
+  log_warn "Skipping $# variant package(s) (musl) for repository publishing:"
+  for artifact in "$@"; do
+    printf '  - %s\n' "$artifact" >&2
+  done
+  log_warn "$MUSL_VARIANT_PUBLISH_HINT"
+}
+
 usage() {
   cat <<USAGE
 Usage: $(basename "$0") --owner <cloudsmith-owner> --repository <repo> --version <semver> --artifact-dir <dir> [options]
@@ -208,19 +218,11 @@ if [[ "$skip_rpm" == "0" ]]; then
 fi
 
 if [[ ${#skipped_deb_files[@]} -gt 0 ]]; then
-  log_warn "Skipping ${#skipped_deb_files[@]} variant package(s) (musl) for repository publishing:"
-  for artifact in "${skipped_deb_files[@]}"; do
-    printf '  - %s\n' "$artifact" >&2
-  done
-  log_warn "Publish musl variants via tarball releases (or add an explicit opt-in flag once package naming/repo layout is decided)."
+  warn_skipped_musl_variants "${skipped_deb_files[@]}"
 fi
 
 if [[ ${#skipped_rpm_files[@]} -gt 0 ]]; then
-  log_warn "Skipping ${#skipped_rpm_files[@]} variant package(s) (musl) for repository publishing:"
-  for artifact in "${skipped_rpm_files[@]}"; do
-    printf '  - %s\n' "$artifact" >&2
-  done
-  log_warn "Publish musl variants via tarball releases (or add an explicit opt-in flag once package naming/repo layout is decided)."
+  warn_skipped_musl_variants "${skipped_rpm_files[@]}"
 fi
 
 missing_artifacts=0
