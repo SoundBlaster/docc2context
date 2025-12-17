@@ -101,6 +101,22 @@ public struct DoccDocumentationCatalog: Equatable, Codable {
     public let abstract: [AbstractItem]
     public let topics: [TopicSection]
 
+    public init(
+        identifier: String,
+        kind: String,
+        title: String,
+        role: String?,
+        abstract: [AbstractItem],
+        topics: [TopicSection]
+    ) {
+        self.identifier = identifier
+        self.kind = kind
+        self.title = title
+        self.role = role
+        self.abstract = abstract
+        self.topics = topics
+    }
+
     private enum CodingKeys: String, CodingKey {
         case identifier
         case kind
