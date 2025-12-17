@@ -27,6 +27,8 @@ Required:
   --artifact-dir    Directory containing .deb and .rpm artifacts (searches recursively)
 
 Options:
+  --skip-deb          Skip publishing Debian packages (allow rpm-only uploads)
+  --skip-rpm          Skip publishing RPM packages (allow deb-only uploads)
   --apt-distribution  Debian distribution slug (default: CLOUDSMITH_APT_DISTRIBUTION or 'ubuntu')
   --apt-release       Debian release codename (default: CLOUDSMITH_APT_RELEASE or 'jammy')
   --apt-component     Debian component name (default: CLOUDSMITH_APT_COMPONENT or 'main')
@@ -47,6 +49,8 @@ apt_component="${CLOUDSMITH_APT_COMPONENT:-"main"}"
 rpm_distribution="${CLOUDSMITH_RPM_DISTRIBUTION:-"any-distro"}"
 rpm_release="${CLOUDSMITH_RPM_RELEASE:-"any-version"}"
 dry_run="0"
+skip_deb="0"
+skip_rpm="0"
 
 while [[ $# -gt 0 ]]; do
   case "$1" in
@@ -135,6 +139,14 @@ while [[ $# -gt 0 ]]; do
       dry_run="1"
       shift 1
       ;;
+    --skip-deb)
+      skip_deb="1"
+      shift 1
+      ;;
+    --skip-rpm)
+      skip_rpm="1"
+      shift 1
+      ;;
     -h|--help)
       usage
       exit 0
@@ -164,27 +176,36 @@ if [[ ! -d "$artifact_dir" ]]; then
   exit 1
 fi
 
+if [[ "$skip_deb" == "1" && "$skip_rpm" == "1" ]]; then
+  log_error "Both --skip-deb and --skip-rpm were set; nothing to upload."
+  exit 1
+fi
+
 deb_files=()
 skipped_deb_files=()
-while IFS= read -r deb_path; do
-  base="$(basename "$deb_path")"
-  if [[ "$base" == *-musl.deb ]]; then
-    skipped_deb_files+=("$deb_path")
-    continue
-  fi
-  deb_files+=("$deb_path")
-done < <(find "$artifact_dir" -type f -name "*.deb" | sort)
+if [[ "$skip_deb" == "0" ]]; then
+  while IFS= read -r deb_path; do
+    base="$(basename "$deb_path")"
+    if [[ "$base" == *-musl.deb ]]; then
+      skipped_deb_files+=("$deb_path")
+      continue
+    fi
+    deb_files+=("$deb_path")
+  done < <(find "$artifact_dir" -type f -name "*.deb" | sort)
+fi
 
 rpm_files=()
 skipped_rpm_files=()
-while IFS= read -r rpm_path; do
-  base="$(basename "$rpm_path")"
-  if [[ "$base" == *-musl.rpm ]]; then
-    skipped_rpm_files+=("$rpm_path")
-    continue
-  fi
-  rpm_files+=("$rpm_path")
-done < <(find "$artifact_dir" -type f -name "*.rpm" | sort)
+if [[ "$skip_rpm" == "0" ]]; then
+  while IFS= read -r rpm_path; do
+    base="$(basename "$rpm_path")"
+    if [[ "$base" == *-musl.rpm ]]; then
+      skipped_rpm_files+=("$rpm_path")
+      continue
+    fi
+    rpm_files+=("$rpm_path")
+  done < <(find "$artifact_dir" -type f -name "*.rpm" | sort)
+fi
 
 if [[ ${#skipped_deb_files[@]} -gt 0 ]]; then
   log_warn "Skipping ${#skipped_deb_files[@]} variant package(s) (musl) for repository publishing:"
@@ -203,11 +224,11 @@ if [[ ${#skipped_rpm_files[@]} -gt 0 ]]; then
 fi
 
 missing_artifacts=0
-if [[ ${#deb_files[@]} -eq 0 ]]; then
+if [[ "$skip_deb" == "0" && ${#deb_files[@]} -eq 0 ]]; then
   log_error "No .deb packages found under $artifact_dir"
   missing_artifacts=1
 fi
-if [[ ${#rpm_files[@]} -eq 0 ]]; then
+if [[ "$skip_rpm" == "0" && ${#rpm_files[@]} -eq 0 ]]; then
   log_error "No .rpm packages found under $artifact_dir"
   missing_artifacts=1
 fi
@@ -221,15 +242,19 @@ print_plan() {
   printf '  RPM target: %s/%s\n' "$rpm_distribution" "$rpm_release" >&2
   printf '  Version: %s\n' "$sanitized_version" >&2
 
-  for deb in "${deb_files[@]}"; do
-    printf '  cloudsmith push deb %s/%s "%s" --api-key $CLOUDSMITH_API_KEY --distribution "%s" --release "%s" --component "%s" --version "%s" --republish\n' \
-      "$owner" "$repository" "$deb" "$apt_distribution" "$apt_release" "$apt_component" "$sanitized_version" >&2
-  done
+  if [[ ${#deb_files[@]} -gt 0 ]]; then
+    for deb in "${deb_files[@]}"; do
+      printf '  cloudsmith push deb %s/%s "%s" --api-key $CLOUDSMITH_API_KEY --distribution "%s" --release "%s" --component "%s" --version "%s" --republish\n' \
+        "$owner" "$repository" "$deb" "$apt_distribution" "$apt_release" "$apt_component" "$sanitized_version" >&2
+    done
+  fi
 
-  for rpm in "${rpm_files[@]}"; do
-    printf '  cloudsmith push rpm %s/%s "%s" --api-key $CLOUDSMITH_API_KEY --distribution "%s" --release "%s" --version "%s" --republish\n' \
-      "$owner" "$repository" "$rpm" "$rpm_distribution" "$rpm_release" "$sanitized_version" >&2
-  done
+  if [[ ${#rpm_files[@]} -gt 0 ]]; then
+    for rpm in "${rpm_files[@]}"; do
+      printf '  cloudsmith push rpm %s/%s "%s" --api-key $CLOUDSMITH_API_KEY --distribution "%s" --release "%s" --version "%s" --republish\n' \
+        "$owner" "$repository" "$rpm" "$rpm_distribution" "$rpm_release" "$sanitized_version" >&2
+    done
+  fi
 }
 
 if [[ "$dry_run" == "1" ]]; then
@@ -248,26 +273,30 @@ if ! command -v cloudsmith >/dev/null 2>&1; then
 fi
 
 log_step "Uploading Debian packages to Cloudsmith"
-for deb in "${deb_files[@]}"; do
-  cloudsmith push deb "$owner/$repository" "$deb" \
-    --api-key "$CLOUDSMITH_API_KEY" \
-    --distribution "$apt_distribution" \
-    --release "$apt_release" \
-    --component "$apt_component" \
-    --version "$sanitized_version" \
-    --republish
-  log_step "Uploaded $(basename "$deb")"
-done
+if [[ ${#deb_files[@]} -gt 0 ]]; then
+  for deb in "${deb_files[@]}"; do
+    cloudsmith push deb "$owner/$repository" "$deb" \
+      --api-key "$CLOUDSMITH_API_KEY" \
+      --distribution "$apt_distribution" \
+      --release "$apt_release" \
+      --component "$apt_component" \
+      --version "$sanitized_version" \
+      --republish
+    log_step "Uploaded $(basename "$deb")"
+  done
+fi
 
 log_step "Uploading RPM packages to Cloudsmith"
-for rpm in "${rpm_files[@]}"; do
-  cloudsmith push rpm "$owner/$repository" "$rpm" \
-    --api-key "$CLOUDSMITH_API_KEY" \
-    --distribution "$rpm_distribution" \
-    --release "$rpm_release" \
-    --version "$sanitized_version" \
-    --republish
-  log_step "Uploaded $(basename "$rpm")"
-done
+if [[ ${#rpm_files[@]} -gt 0 ]]; then
+  for rpm in "${rpm_files[@]}"; do
+    cloudsmith push rpm "$owner/$repository" "$rpm" \
+      --api-key "$CLOUDSMITH_API_KEY" \
+      --distribution "$rpm_distribution" \
+      --release "$rpm_release" \
+      --version "$sanitized_version" \
+      --republish
+    log_step "Uploaded $(basename "$rpm")"
+  done
+fi
 
 log_step "Cloudsmith uploads complete"

@@ -140,4 +140,77 @@ final class CloudsmithPublishScriptTests: XCTestCase {
             "Dry-run should exclude musl rpm upload by default"
         )
     }
+
+    func test_dryRunWithDebOnlySucceedsWhenSkippingRpm() throws {
+        let tempDir = FileManager.default.temporaryDirectory
+            .appendingPathComponent(UUID().uuidString, isDirectory: true)
+        try FileManager.default.createDirectory(at: tempDir, withIntermediateDirectories: true)
+        defer { try? FileManager.default.removeItem(at: tempDir) }
+
+        let debPath = tempDir.appendingPathComponent("docc2context_1.2.3_linux_amd64.deb")
+        XCTAssertTrue(FileManager.default.createFile(atPath: debPath.path, contents: Data("deb".utf8)))
+
+        let (exitCode, output) = try runScript(
+            arguments: [
+                "--owner", "soundblaster",
+                "--repository", "docc2context",
+                "--version", "v1.2.3",
+                "--artifact-dir", tempDir.path,
+                "--skip-rpm",
+                "--dry-run"
+            ]
+        )
+
+        XCTAssertEqual(exitCode, 0, "Dry-run should succeed when rpm uploads are skipped")
+        XCTAssertTrue(output.contains("cloudsmith push deb soundblaster/docc2context"), "Dry-run should outline deb upload")
+        XCTAssertFalse(output.contains("cloudsmith push rpm soundblaster/docc2context"), "Dry-run should not outline rpm upload")
+    }
+
+    func test_dryRunWithRpmOnlySucceedsWhenSkippingDeb() throws {
+        let tempDir = FileManager.default.temporaryDirectory
+            .appendingPathComponent(UUID().uuidString, isDirectory: true)
+        try FileManager.default.createDirectory(at: tempDir, withIntermediateDirectories: true)
+        defer { try? FileManager.default.removeItem(at: tempDir) }
+
+        let rpmPath = tempDir.appendingPathComponent("docc2context-1.2.3-linux-x86_64.rpm")
+        XCTAssertTrue(FileManager.default.createFile(atPath: rpmPath.path, contents: Data("rpm".utf8)))
+
+        let (exitCode, output) = try runScript(
+            arguments: [
+                "--owner", "soundblaster",
+                "--repository", "docc2context",
+                "--version", "v1.2.3",
+                "--artifact-dir", tempDir.path,
+                "--skip-deb",
+                "--dry-run"
+            ]
+        )
+
+        XCTAssertEqual(exitCode, 0, "Dry-run should succeed when deb uploads are skipped")
+        XCTAssertTrue(output.contains("cloudsmith push rpm soundblaster/docc2context"), "Dry-run should outline rpm upload")
+        XCTAssertFalse(output.contains("cloudsmith push deb soundblaster/docc2context"), "Dry-run should not outline deb upload")
+    }
+
+    func test_failsWhenBothDebAndRpmUploadsAreSkipped() throws {
+        let tempDir = FileManager.default.temporaryDirectory
+            .appendingPathComponent(UUID().uuidString, isDirectory: true)
+        try FileManager.default.createDirectory(at: tempDir, withIntermediateDirectories: true)
+        defer { try? FileManager.default.removeItem(at: tempDir) }
+
+        let (exitCode, output) = try runScript(
+            arguments: [
+                "--owner", "soundblaster",
+                "--repository", "docc2context",
+                "--version", "v1.2.3",
+                "--artifact-dir", tempDir.path,
+                "--skip-deb",
+                "--skip-rpm",
+                "--dry-run"
+            ]
+        )
+
+        XCTAssertNotEqual(exitCode, 0, "Skipping both artifact types should fail")
+        XCTAssertTrue(output.lowercased().contains("skip"), "Error should mention skip flags")
+        XCTAssertTrue(output.lowercased().contains("nothing"), "Error should explain there is nothing to upload")
+    }
 }

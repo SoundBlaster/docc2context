@@ -180,6 +180,10 @@ That means a single Cloudsmith apt/dnf repository **cannot safely host both vari
 - [ ] Optional dry-run executed locally: `./Scripts/publish_to_cloudsmith.sh --owner <owner> --repository <repo> --version vX.Y.Z --artifact-dir dist --dry-run`
 - [ ] Tagged release pushed after secrets configured to exercise the Cloudsmith upload step
 
+**Optional selective publishing flags:**
+- `--skip-rpm` to publish apt-only (Debian packages only)
+- `--skip-deb` to publish dnf-only (RPM packages only)
+
 ## Repository Metadata Validation (Optional)
 
 ### REPOSITORY_VALIDATION_FLAGS
