@@ -3,7 +3,7 @@
 Use this list for near-term execution. Each entry maps back to the PRD and [workplan](./workplan.md).
 
 ## In Progress
-- [ ] **H1 APT/DNF Repository Hosting (Planning & Unblock Prep)** — Planning the repository hosting path while execution remains blocked pending external credentials; scoping upload helper design, secret inventory, and provider selection criteria. _Doc:_ `DOCS/INPROGRESS/H1_APTDNFRepositoryHostingPlan.md`. _Owner:_ docc2context agent. _Status:_ Planning — 2025-11-30; execution deferred until repository service + signing keys are provisioned.
+- [ ] **H1 APT/DNF Repository Hosting (Blocked)** — ⛔ BLOCKED pending external repository provisioning + credentials (Cloudsmith/Packagecloud owner/repo, API tokens) and signing key decisions; prep work is complete and documented, but end-to-end validation cannot proceed. _Doc:_ `DOCS/INPROGRESS/BLOCKED_H1_APTDNFRepositoryHosting.md`. _Owner:_ maintainer. _Status:_ Blocked — 2025-12-18.
 
 ## Completed
 - [x] **H1.2 Cloudsmith Publish Selective Channels** — Added `--skip-deb` / `--skip-rpm` flags to `Scripts/publish_to_cloudsmith.sh` so operators can publish apt-only or rpm-only repositories intentionally; added tests + `.github/SECRETS.md` docs. _Doc:_ `DOCS/TASK_ARCHIVE/47_H1.2_CloudsmithPublishSelectiveChannels/H1.2_CloudsmithPublishSelectiveChannels.md`. _Owner:_ docc2context agent. _Status:_ Complete — 2025-12-18; validated via `swift test` and `python3 Scripts/lint_markdown.py`.
