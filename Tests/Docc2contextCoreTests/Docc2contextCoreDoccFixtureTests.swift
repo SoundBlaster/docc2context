@@ -38,6 +38,24 @@ final class Docc2contextCoreDoccFixtureTests: XCTestCase {
                 fixtureDogfoodingMarkdown.contains("Regenerating the fixture"),
                 "Expected primary content sections (headings/paragraphs) to be rendered for the article")
 
+            let equatableImplementations = markdownRoot
+                .appendingPathComponent("articles", isDirectory: true)
+                .appendingPathComponent("documentation", isDirectory: true)
+                .appendingPathComponent("docc2contextcore", isDirectory: true)
+                .appendingPathComponent("markdowngenerationpipeline", isDirectory: true)
+                .appendingPathComponent("summary", isDirectory: true)
+                .appendingPathComponent("equatable-implementations.md", isDirectory: false)
+            XCTAssertTrue(
+                FileManager.default.fileExists(atPath: equatableImplementations.path),
+                "Expected collection-group pages to render to a stable path under articles/documentation/")
+
+            let equatableMarkdown = try String(contentsOf: equatableImplementations, encoding: .utf8)
+            XCTAssertTrue(equatableMarkdown.contains("## Topics"), "Expected collection-group topics to render")
+            XCTAssertTrue(equatableMarkdown.contains("### Operators"), "Expected topic section headings to render")
+            XCTAssertTrue(
+                equatableMarkdown.contains("!=(_:_:)"),
+                "Expected referenced symbols in topic sections to be discoverable in the Markdown output")
+
             let articlesRoot = markdownRoot.appendingPathComponent("articles", isDirectory: true)
             if FileManager.default.fileExists(atPath: articlesRoot.path) {
                 let enumerator = FileManager.default.enumerator(at: articlesRoot, includingPropertiesForKeys: nil)

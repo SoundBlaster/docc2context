@@ -298,6 +298,7 @@ public struct DoccArticle: Equatable, Codable {
         case metadata
         case references
         case primaryContentSections
+        case topicSections
     }
 
     private struct RenderIdentifier: Decodable {
@@ -305,6 +306,17 @@ public struct DoccArticle: Equatable, Codable {
     }
 
     private struct RenderMetadata: Decodable {
+        let title: String?
+    }
+
+    private struct RenderTopicSection: Decodable {
+        let title: String
+        let identifiers: [String]
+    }
+
+    private struct RenderReference: Decodable {
+        let identifier: String?
+        let kind: String?
         let title: String?
     }
 
@@ -361,8 +373,33 @@ public struct DoccArticle: Equatable, Codable {
         let decodedPrimaryContent =
             (try? renderContainer.decode([RenderPrimaryContentSection].self, forKey: .primaryContentSections)) ?? []
         sections = Self.parseRenderArchiveSections(from: decodedPrimaryContent)
-        topics = []
-        references = []
+        let decodedTopics = (try? renderContainer.decode([RenderTopicSection].self, forKey: .topicSections)) ?? []
+        topics = decodedTopics.map { TopicSection(title: $0.title, identifiers: $0.identifiers) }
+
+        let decodedReferences =
+            (try? renderContainer.decode([String: RenderReference].self, forKey: .references)) ?? [:]
+        references = Self.referencesForTopicSections(topics, from: decodedReferences)
+    }
+
+    private static func referencesForTopicSections(
+        _ topicSections: [TopicSection],
+        from lookup: [String: RenderReference]
+    ) -> [Reference] {
+        var seen: Set<String> = []
+        var resolved: [Reference] = []
+
+        for section in topicSections {
+            for identifier in section.identifiers {
+                guard seen.insert(identifier).inserted else { continue }
+                guard let reference = lookup[identifier] else { continue }
+                guard let title = reference.title, !title.isEmpty else { continue }
+                let kind = reference.kind ?? "topic"
+                let resolvedIdentifier = reference.identifier ?? identifier
+                resolved.append(Reference(identifier: resolvedIdentifier, kind: kind, title: title))
+            }
+        }
+
+        return resolved
     }
 
     private static func parseRenderArchiveSections(from contentSections: [RenderPrimaryContentSection]) -> [Section] {
