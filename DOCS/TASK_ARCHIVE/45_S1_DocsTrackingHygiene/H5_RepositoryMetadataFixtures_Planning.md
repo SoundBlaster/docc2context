@@ -1,5 +1,7 @@
 # H5 – Repository Metadata Fixtures & Offline Harness (Planning)
 
+**Archived note:** This pre-implementation planning doc is retained for context. The implemented work landed in `DOCS/TASK_ARCHIVE/39_H5_RepositoryMetadataFixturesImplementation/`.
+
 **Status:** Planning (SELECT_NEXT)
 **Date:** 2025-12-10
 **Owner:** docc2context agent
@@ -53,7 +55,7 @@ When START is invoked, the task should:
 ---
 
 ## 📎 References
-- [PRD §4.6 Release Packaging & Distribution Requirements](../PRD/docc2context_prd.md#46-release-packaging--distribution-requirements)
-- [D4-LNX Linux Release Packaging Matrix](../TASK_ARCHIVE/25_D4-LNX_LinuxReleasePackagingMatrix/)
-- [H1 APT/DNF Repository Hosting Plan](H1_APTDNFRepositoryHostingPlan.md)
-- [H4 Repository Validation Harness](H4_RepoValidationHarness.md)
+- [PRD §4.6 Release Packaging & Distribution Requirements](../../PRD/docc2context_prd.md#46-release-packaging--distribution-requirements)
+- [D4-LNX Linux Release Packaging Matrix](../25_D4-LNX_LinuxReleasePackagingMatrix/)
+- [H1 APT/DNF Repository Hosting Plan](../../INPROGRESS/H1_APTDNFRepositoryHostingPlan.md)
+- [H4 Repository Validation Harness](H4_RepoValidationHarness_Planning.md)

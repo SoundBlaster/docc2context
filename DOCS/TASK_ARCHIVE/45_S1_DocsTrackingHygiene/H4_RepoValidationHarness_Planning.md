@@ -1,5 +1,7 @@
 # H4 – Repository Validation Harness (Planning)
 
+**Archived note:** This pre-implementation planning doc is retained for context. The implemented work landed in `DOCS/TASK_ARCHIVE/40_H4_RepositoryValidationHarnessImplementation/`.
+
 **Status:** Planning (SELECT_NEXT)
 **Date:** 2025-12-01
 **Owner:** docc2context agent
@@ -56,8 +58,8 @@ When START is invoked, implement the following:
 ---
 
 ## 📎 References
-- [PRD §4.6 Release Packaging & Distribution Requirements](../PRD/docc2context_prd.md#46-release-packaging--distribution-requirements)
-- [D4-LNX Linux Release Packaging Matrix](../TASK_ARCHIVE/25_D4-LNX_LinuxReleasePackagingMatrix/)
-- [H2 musl Build Support](../TASK_ARCHIVE/33_H2_muslBuildSupport/)
-- [H3 Additional Package Manager Integration](../TASK_ARCHIVE/34_H3_AURPackageIntegration/)
-- [H1 APT/DNF Repository Hosting Plan](H1_APTDNFRepositoryHostingPlan.md)
+- [PRD §4.6 Release Packaging & Distribution Requirements](../../PRD/docc2context_prd.md#46-release-packaging--distribution-requirements)
+- [D4-LNX Linux Release Packaging Matrix](../25_D4-LNX_LinuxReleasePackagingMatrix/)
+- [H2 musl Build Support](../33_H2_muslBuildSupport/)
+- [H3 Additional Package Manager Integration](../34_H3_AURPackageIntegration/)
+- [H1 APT/DNF Repository Hosting Plan](../../INPROGRESS/H1_APTDNFRepositoryHostingPlan.md)

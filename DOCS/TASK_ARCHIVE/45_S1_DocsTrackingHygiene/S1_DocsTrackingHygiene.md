@@ -62,9 +62,34 @@ When START is invoked for S1, perform only the following documentation actions:
 
 ---
 
+## 🧾 Execution Notes (START)
+- **Docs-only exception:** S1 is a tracking hygiene task; implementation is limited to `DOCS/` updates and file moves.
+- **Primary changes planned:**
+  - Remove stale “planning” entries for H4/H5 from `DOCS/todo.md` (implementations already archived).
+  - Move stale planning notes (`H4_RepoValidationHarness.md`, `H5_RepositoryMetadataFixtures.md`) out of `DOCS/INPROGRESS/`.
+  - Move the Linux coverage gate incident note out of `DOCS/INPROGRESS/` (archive location), keeping the fix details discoverable.
+
+---
+
+## ✅ Completion Checklist
+- [x] `DOCS/todo.md` updated (H4/H5 planning removed; S1 marked complete).
+- [x] Stale notes moved from `DOCS/INPROGRESS/` to `DOCS/TASK_ARCHIVE/`.
+- [x] `DOCS/TASK_ARCHIVE/ARCHIVE_SUMMARY.md` updated with an S1 entry.
+
+---
+
+## ✅ Completed (ARCHIVE)
+- Updated `DOCS/todo.md` to remove stale planning entries for H4/H5 (implementations already archived).
+- Moved stale notes out of `DOCS/INPROGRESS/` into `DOCS/TASK_ARCHIVE/45_S1_DocsTrackingHygiene/`:
+  - `H4_RepoValidationHarness.md` → `H4_RepoValidationHarness_Planning.md`
+  - `H5_RepositoryMetadataFixtures.md` → `H5_RepositoryMetadataFixtures_Planning.md`
+  - `coverage_gate_linux_low_coverage.md` → `coverage_gate_linux_low_coverage.md`
+  - `S1_DocsTrackingHygiene.md` → `S1_DocsTrackingHygiene.md`
+- **Validation:** Documentation-only changes; no Swift code/tests/fixtures/workflows modified as part of S1.
+
 ## 📎 References
-- [SELECT_NEXT](../COMMANDS/SELECT_NEXT.md)
-- [ARCHIVE](../COMMANDS/ARCHIVE.md)
+- [SELECT_NEXT](../../COMMANDS/SELECT_NEXT.md)
+- [ARCHIVE](../../COMMANDS/ARCHIVE.md)
 - `DOCS/todo.md`
 - `DOCS/workplan.md`
 - `DOCS/TASK_ARCHIVE/ARCHIVE_SUMMARY.md`
