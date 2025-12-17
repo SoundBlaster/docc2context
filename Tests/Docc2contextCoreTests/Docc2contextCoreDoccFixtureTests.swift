@@ -24,6 +24,20 @@ final class Docc2contextCoreDoccFixtureTests: XCTestCase {
                 .appendingPathComponent("adjacency.json", isDirectory: false)
             XCTAssertTrue(FileManager.default.fileExists(atPath: linkGraph.path))
 
+            let fixtureDogfooding = markdownRoot
+                .appendingPathComponent("articles", isDirectory: true)
+                .appendingPathComponent("documentation", isDirectory: true)
+                .appendingPathComponent("docc2contextcore", isDirectory: true)
+                .appendingPathComponent("fixturedogfooding.md", isDirectory: false)
+            XCTAssertTrue(
+                FileManager.default.fileExists(atPath: fixtureDogfooding.path),
+                "Expected Fixture dogfooding article to render to a stable path under articles/documentation/docc2contextcore/")
+
+            let fixtureDogfoodingMarkdown = try String(contentsOf: fixtureDogfooding, encoding: .utf8)
+            XCTAssertTrue(
+                fixtureDogfoodingMarkdown.contains("Regenerating the fixture"),
+                "Expected primary content sections (headings/paragraphs) to be rendered for the article")
+
             let articlesRoot = markdownRoot.appendingPathComponent("articles", isDirectory: true)
             if FileManager.default.fileExists(atPath: articlesRoot.path) {
                 let enumerator = FileManager.default.enumerator(at: articlesRoot, includingPropertiesForKeys: nil)

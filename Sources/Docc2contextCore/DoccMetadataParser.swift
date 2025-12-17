@@ -297,6 +297,7 @@ public struct DoccArticle: Equatable, Codable {
         case abstract
         case metadata
         case references
+        case primaryContentSections
     }
 
     private struct RenderIdentifier: Decodable {
@@ -305,6 +306,28 @@ public struct DoccArticle: Equatable, Codable {
 
     private struct RenderMetadata: Decodable {
         let title: String?
+    }
+
+    private struct RenderPrimaryContentSection: Decodable {
+        let content: [RenderContentBlock]?
+    }
+
+    private struct RenderContentBlock: Decodable {
+        let type: String
+        let text: String?
+        let level: Int?
+        let inlineContent: [RenderInlineContent]?
+    }
+
+    private struct RenderInlineContent: Decodable {
+        let type: String
+        let text: String?
+        let code: String?
+    }
+
+    private enum RenderContentType: String {
+        case heading
+        case paragraph
     }
 
     public init(from decoder: Decoder) throws {
@@ -335,11 +358,69 @@ public struct DoccArticle: Equatable, Codable {
         title = metadata.title ?? "Article"
         abstract = (try? renderContainer.decode([AbstractItem].self, forKey: .abstract)) ?? []
 
-        // The render archive schema uses a richer representation for sections/topics.
-        // The current Markdown renderer focuses on title + abstract + stable metadata.
-        sections = []
+        let decodedPrimaryContent =
+            (try? renderContainer.decode([RenderPrimaryContentSection].self, forKey: .primaryContentSections)) ?? []
+        sections = Self.parseRenderArchiveSections(from: decodedPrimaryContent)
         topics = []
         references = []
+    }
+
+    private static func parseRenderArchiveSections(from contentSections: [RenderPrimaryContentSection]) -> [Section] {
+        var sections: [Section] = []
+        sections.reserveCapacity(4)
+
+        var currentTitle: String?
+        var currentContent: [String] = []
+
+        func flushSectionIfNeeded() {
+            let title = currentTitle?.trimmingCharacters(in: .whitespacesAndNewlines) ?? ""
+            guard !title.isEmpty || !currentContent.isEmpty else { return }
+            let resolvedTitle = title.isEmpty ? "Overview" : title
+            sections.append(Section(title: resolvedTitle, content: currentContent))
+            currentTitle = nil
+            currentContent = []
+        }
+
+        for contentSection in contentSections {
+            for block in contentSection.content ?? [] {
+                switch RenderContentType(rawValue: block.type) {
+                case .heading:
+                    flushSectionIfNeeded()
+                    currentTitle = block.text?.trimmingCharacters(in: .whitespacesAndNewlines)
+                case .paragraph:
+                    let paragraph = renderParagraphText(from: block.inlineContent ?? [])
+                    let trimmed = paragraph.trimmingCharacters(in: .whitespacesAndNewlines)
+                    if !trimmed.isEmpty {
+                        currentContent.append(trimmed)
+                    }
+                case .none:
+                    continue
+                }
+            }
+        }
+
+        flushSectionIfNeeded()
+        return sections
+    }
+
+    private static func renderParagraphText(from inlineContent: [RenderInlineContent]) -> String {
+        var result = ""
+        result.reserveCapacity(128)
+
+        for item in inlineContent {
+            switch item.type {
+            case "text":
+                result.append(item.text ?? "")
+            case "codeVoice":
+                if let code = item.code {
+                    result.append("`\(code)`")
+                }
+            default:
+                continue
+            }
+        }
+
+        return result
     }
 }
 

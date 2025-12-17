@@ -348,7 +348,14 @@ public struct MarkdownGenerationPipeline {
     }
 
     private func makeArticleFileURL(for identifier: String, under root: URL) -> URL {
-        var components = identifier.split(separator: "/").map { slug(for: String($0), fallback: "segment") }
+        let rawComponents: [String]
+        if let url = URL(string: identifier), url.scheme == "doc" {
+            rawComponents = url.pathComponents.filter { $0 != "/" }
+        } else {
+            rawComponents = identifier.split(separator: "/").map(String.init)
+        }
+
+        var components = rawComponents.map { slug(for: String($0), fallback: "segment") }
         guard let fileName = components.popLast() else {
             return root.appendingPathComponent("article.md", isDirectory: false)
         }
