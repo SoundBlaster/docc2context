@@ -1001,6 +1001,134 @@ extension DoccMetadataParser {
         }
     }
 
+    public func loadSwiftDocCRenderArchiveSymbolPages(from bundleURL: URL) throws -> [String: DoccSymbolPage] {
+        guard isSwiftDocCRenderArchive(bundleURL) else { return [:] }
+
+        struct KindProbe: Decodable { let kind: String }
+
+        struct RenderNode: Decodable {
+            struct Identifier: Decodable { let url: String }
+            struct Module: Decodable { let name: String }
+            struct Metadata: Decodable {
+                let title: String?
+                let roleHeading: String?
+                let symbolKind: String?
+                let role: String?
+                let modules: [Module]?
+            }
+
+            struct TopicSection: Decodable {
+                let title: String
+                let identifiers: [String]
+            }
+
+            struct RelationshipSection: Decodable {
+                let title: String
+                let identifiers: [String]
+            }
+
+            struct DeclarationToken: Decodable {
+                let text: String
+            }
+
+            struct Declaration: Decodable {
+                let languages: [String]?
+                let tokens: [DeclarationToken]
+            }
+
+            struct PrimaryContentSection: Decodable {
+                let declarations: [Declaration]?
+            }
+
+            struct Reference: Decodable {
+                let identifier: String?
+                let kind: String?
+                let title: String?
+                let url: String?
+            }
+
+            let kind: String
+            let identifier: Identifier
+            let abstract: [DoccDocumentationCatalog.AbstractItem]?
+            let topicSections: [TopicSection]?
+            let relationshipsSections: [RelationshipSection]?
+            let primaryContentSections: [PrimaryContentSection]?
+            let metadata: Metadata
+            let references: [String: Reference]?
+        }
+
+        let decoder = JSONDecoder()
+        var pagesByIdentifier: [String: DoccSymbolPage] = [:]
+
+        for fileURL in documentationJSONFiles(in: bundleURL) {
+            let data = try Data(contentsOf: fileURL)
+            guard let probe = try? decoder.decode(KindProbe.self, from: data),
+                  probe.kind == "symbol"
+            else {
+                continue
+            }
+
+            let node: RenderNode
+            do {
+                node = try decoder.decode(RenderNode.self, from: data)
+            } catch {
+                // Skip nodes we can't decode yet.
+                continue
+            }
+
+            let moduleName = node.metadata.modules?.first?.name
+            let topicSections = (node.topicSections ?? []).map {
+                DoccSymbolPage.TopicSection(title: $0.title, identifiers: $0.identifiers)
+            }
+            let relationshipSections = (node.relationshipsSections ?? []).map {
+                DoccSymbolPage.RelationshipSection(title: $0.title, identifiers: $0.identifiers)
+            }
+
+            var declarations: [DoccSymbolPage.Declaration] = []
+            for section in node.primaryContentSections ?? [] {
+                for declaration in section.declarations ?? [] {
+                    let text = declaration.tokens.map(\.text).joined()
+                        .trimmingCharacters(in: .whitespacesAndNewlines)
+                    guard !text.isEmpty else { continue }
+                    declarations.append(
+                        DoccSymbolPage.Declaration(
+                            language: declaration.languages?.first,
+                            text: text
+                        )
+                    )
+                }
+            }
+
+            var referencesByIdentifier: [String: DoccSymbolPage.Reference] = [:]
+            for (key, reference) in (node.references ?? [:]) {
+                guard let title = reference.title, !title.isEmpty else { continue }
+                let kind = reference.kind ?? "topic"
+                referencesByIdentifier[key] = DoccSymbolPage.Reference(
+                    identifier: reference.identifier ?? key,
+                    kind: kind,
+                    title: title,
+                    urlPath: reference.url
+                )
+            }
+
+            let pageTitle = node.metadata.title ?? node.identifier.url
+            pagesByIdentifier[node.identifier.url] = DoccSymbolPage(
+                identifier: node.identifier.url,
+                title: pageTitle,
+                abstract: node.abstract ?? [],
+                symbolKind: node.metadata.symbolKind,
+                roleHeading: node.metadata.roleHeading,
+                moduleName: moduleName,
+                topicSections: topicSections,
+                relationshipSections: relationshipSections,
+                declarations: declarations,
+                referencesByIdentifier: referencesByIdentifier
+            )
+        }
+
+        return pagesByIdentifier
+    }
+
     private func makeTutorialFileURL(for identifier: String, bundleURL: URL) -> URL {
         let slug = identifier.split(separator: "/").last.map(String.init) ?? identifier
         return bundleURL

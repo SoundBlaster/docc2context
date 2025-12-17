@@ -208,6 +208,17 @@ public struct MarkdownGenerationPipeline {
             referenceArticleCount += 1
         }
 
+        // Swift-DocC render archive symbol pages (F5): render `kind: "symbol"` nodes into Xcode-like Markdown.
+        let renderArchiveSymbols = try metadataParser.loadSwiftDocCRenderArchiveSymbolPages(from: inputURL)
+        if !renderArchiveSymbols.isEmpty {
+            for identifier in renderArchiveSymbols.keys.sorted() {
+                guard let symbol = renderArchiveSymbols[identifier] else { continue }
+                let markdown = renderer.renderSymbolPage(catalog: bundleModel.documentationCatalog, symbol: symbol)
+                let symbolURL = makeRenderNodeIndexFileURL(for: identifier, under: markdownRoot)
+                try write(markdown: markdown, to: symbolURL)
+            }
+        }
+
         // Build and write link graph
         let linkGraph = try linkGraphBuilder.buildLinkGraph(from: bundleModel)
         let linkGraphRoot = outputURL.appendingPathComponent("linkgraph", isDirectory: true)
@@ -364,6 +375,22 @@ public struct MarkdownGenerationPipeline {
             directory = directory.appendingPathComponent(component, isDirectory: true)
         }
         return directory.appendingPathComponent(fileName).appendingPathExtension("md")
+    }
+
+    private func makeRenderNodeIndexFileURL(for identifier: String, under markdownRoot: URL) -> URL {
+        guard let docURL = URL(string: identifier), docURL.scheme == "doc" else {
+            return markdownRoot
+                .appendingPathComponent("documentation", isDirectory: true)
+                .appendingPathComponent(slug(for: identifier, fallback: "symbol"), isDirectory: true)
+                .appendingPathComponent("index.md", isDirectory: false)
+        }
+
+        let rawComponents = docURL.pathComponents.filter { $0 != "/" }
+        var directory = markdownRoot
+        for component in rawComponents {
+            directory = directory.appendingPathComponent(slug(for: component, fallback: "segment"), isDirectory: true)
+        }
+        return directory.appendingPathComponent("index.md", isDirectory: false)
     }
 
     /// Streaming-optimized article loading: Returns dictionary directly without intermediate array

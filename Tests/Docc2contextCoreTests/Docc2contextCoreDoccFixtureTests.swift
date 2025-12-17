@@ -56,6 +56,32 @@ final class Docc2contextCoreDoccFixtureTests: XCTestCase {
                 equatableMarkdown.contains("!=(_:_:)"),
                 "Expected referenced symbols in topic sections to be discoverable in the Markdown output")
 
+            let pipelineSymbol = markdownRoot
+                .appendingPathComponent("documentation", isDirectory: true)
+                .appendingPathComponent("docc2contextcore", isDirectory: true)
+                .appendingPathComponent("markdowngenerationpipeline", isDirectory: true)
+                .appendingPathComponent("index.md", isDirectory: false)
+            XCTAssertTrue(
+                FileManager.default.fileExists(atPath: pipelineSymbol.path),
+                "Expected Swift-DocC symbol pages to render under markdown/documentation/")
+
+            let pipelineSymbolMarkdown = try String(contentsOf: pipelineSymbol, encoding: .utf8)
+            XCTAssertTrue(
+                pipelineSymbolMarkdown.contains("Converts a DocC bundle into deterministic Markdown and a link graph."),
+                "Expected symbol page summary to be rendered")
+            XCTAssertTrue(pipelineSymbolMarkdown.contains("## Topics"), "Expected symbol Topics section to render")
+            XCTAssertTrue(
+                pipelineSymbolMarkdown.contains("MarkdownGenerationPipeline.Summary"),
+                "Expected symbol Topics items to use reference titles")
+            XCTAssertTrue(
+                pipelineSymbolMarkdown.contains("generateMarkdown"),
+                "Expected instance methods to appear in Topics")
+            try MarkdownSnapshot.assertSnapshot(
+                self,
+                matching: pipelineSymbolMarkdown,
+                named: "markdownGenerationPipelineSymbolPage",
+                record: SnapshotRecording.isEnabled)
+
             let articlesRoot = markdownRoot.appendingPathComponent("articles", isDirectory: true)
             if FileManager.default.fileExists(atPath: articlesRoot.path) {
                 let enumerator = FileManager.default.enumerator(at: articlesRoot, includingPropertiesForKeys: nil)

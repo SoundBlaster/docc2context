@@ -3,6 +3,39 @@ import Foundation
 public struct DoccMarkdownRenderer {
     public init() {}
 
+    public func renderSymbolPage(
+        catalog: DoccDocumentationCatalog,
+        symbol: DoccSymbolPage
+    ) -> String {
+        var sections: [String] = []
+        sections.append("# \(symbol.title)")
+        sections.append(makeSymbolMetadataSection(catalog: catalog, symbol: symbol))
+
+        if let summary = makeSymbolSummarySection(from: symbol.abstract) {
+            sections.append(summary)
+        }
+
+        if let declarationsSection = makeDeclarationsSection(from: symbol.declarations) {
+            sections.append(declarationsSection)
+        }
+
+        if let topicsSection = makeSymbolTopicsSection(
+            from: symbol.topicSections,
+            referencesByIdentifier: symbol.referencesByIdentifier
+        ) {
+            sections.append(topicsSection)
+        }
+
+        if let relationshipsSection = makeSymbolRelationshipsSection(
+            from: symbol.relationshipSections,
+            referencesByIdentifier: symbol.referencesByIdentifier
+        ) {
+            sections.append(relationshipsSection)
+        }
+
+        return sections.joined(separator: "\n\n") + "\n"
+    }
+
     public func renderTutorialVolumeOverview(
         catalog: DoccDocumentationCatalog,
         volume: DoccTutorialVolume
@@ -57,6 +90,84 @@ public struct DoccMarkdownRenderer {
             sections.append(referencesSection)
         }
         return sections.joined(separator: "\n\n") + "\n"
+    }
+
+    private func makeSymbolMetadataSection(
+        catalog: DoccDocumentationCatalog,
+        symbol: DoccSymbolPage
+    ) -> String {
+        var lines: [String] = ["## Symbol Metadata"]
+        lines.append("- **Identifier:** \(symbol.identifier)")
+        if let moduleName = symbol.moduleName {
+            lines.append("- **Module:** \(moduleName)")
+        }
+        if let symbolKind = symbol.symbolKind {
+            lines.append("- **Symbol Kind:** \(symbolKind)")
+        }
+        if let roleHeading = symbol.roleHeading {
+            lines.append("- **Role Heading:** \(roleHeading)")
+        }
+        lines.append("- **Catalog Identifier:** \(catalog.identifier)")
+        lines.append("- **Catalog Title:** \(catalog.title)")
+        return lines.joined(separator: "\n")
+    }
+
+    private func makeSymbolSummarySection(
+        from abstractItems: [DoccDocumentationCatalog.AbstractItem]
+    ) -> String? {
+        guard !abstractItems.isEmpty else { return nil }
+        let text = abstractItems
+            .map { $0.text.trimmingCharacters(in: .whitespacesAndNewlines) }
+            .filter { !$0.isEmpty }
+            .joined(separator: " ")
+            .trimmingCharacters(in: .whitespacesAndNewlines)
+        guard !text.isEmpty else { return nil }
+        return ["## Summary", text].joined(separator: "\n")
+    }
+
+    private func makeDeclarationsSection(from declarations: [DoccSymbolPage.Declaration]) -> String? {
+        guard !declarations.isEmpty else { return nil }
+        let language = declarations.compactMap(\.language).first ?? "swift"
+        let renderedDeclarations = declarations
+            .map { $0.text }
+            .filter { !$0.isEmpty }
+        guard !renderedDeclarations.isEmpty else { return nil }
+        let code = renderedDeclarations.joined(separator: "\n")
+        return ["## Declarations", "```\(language)", code, "```"].joined(separator: "\n")
+    }
+
+    private func makeSymbolTopicsSection(
+        from topicSections: [DoccSymbolPage.TopicSection],
+        referencesByIdentifier: [String: DoccSymbolPage.Reference]
+    ) -> String? {
+        guard !topicSections.isEmpty else { return nil }
+        var lines: [String] = ["## Topics"]
+        for section in topicSections {
+            lines.append("")
+            lines.append("### \(section.title)")
+            for identifier in section.identifiers {
+                let title = referencesByIdentifier[identifier]?.title ?? identifier
+                lines.append("- \(title)")
+            }
+        }
+        return lines.joined(separator: "\n")
+    }
+
+    private func makeSymbolRelationshipsSection(
+        from relationshipSections: [DoccSymbolPage.RelationshipSection],
+        referencesByIdentifier: [String: DoccSymbolPage.Reference]
+    ) -> String? {
+        guard !relationshipSections.isEmpty else { return nil }
+        var lines: [String] = ["## Relationships"]
+        for section in relationshipSections {
+            lines.append("")
+            lines.append("### \(section.title)")
+            for identifier in section.identifiers {
+                let title = referencesByIdentifier[identifier]?.title ?? identifier
+                lines.append("- \(title)")
+            }
+        }
+        return lines.joined(separator: "\n")
     }
 
     private func makeMetadataSection(
