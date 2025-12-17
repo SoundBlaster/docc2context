@@ -62,7 +62,7 @@ Use this list for near-term execution. Each entry maps back to the PRD and [work
 - [x] **C1 Tutorial Chapter Snapshot Spec** Capture the deterministic Markdown contract for the first tutorial chapter page (`tutorialcatalog/tutorials/getting-started`) and lock it via `MarkdownSnapshotSpecsTests.test_tutorialChapterPageMatchesSnapshot`. _Depends on:_ C1 outline + tutorial overview snapshot harness. _Doc:_ PRD §Phase C (snapshot specs). _Owner:_ docc2context agent. _Status:_ Complete – archived under `DOCS/TASK_ARCHIVE/15_C1_TutorialChapterSnapshot/`; validated with `swift test --filter MarkdownSnapshotSpecsTests.test_tutorialChapterPageMatchesSnapshot` and the full `swift test` suite, with follow-on tutorial + article specs tracked in `DOCS/TASK_ARCHIVE/16_C1_MarkdownSnapshotSpecs/` and `17_C1_ReferenceArticleSnapshot/`.
 
 ## Ready to Start
-- [ ] _(none — all ready items are now tracked in progress.)_
+- [ ] **F5 Xcode-Parity Symbol Page Rendering (Swift-DocC Render Archives)** — Render Swift-DocC `kind: "symbol"` nodes into Xcode-like Markdown pages (topics/relationships/declarations), using `topicSections`, `relationshipsSections`, `primaryContentSections`, and `references`. Treat `collectionGroup` pages (e.g. “Equatable Implementations”) as structured sub-sections. Add snapshot tests against `Fixtures/Docc2contextCore.doccarchive` to lock output and determinism. _Doc:_ PRD §5 (F5). _Owner:_ docc2context agent. _Status:_ Ready — 2025-12-18.
 
 ## Blocked
 Tasks prevented from proceeding by external dependencies, missing resources, or pending decisions.
