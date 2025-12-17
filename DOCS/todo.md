@@ -4,6 +4,7 @@ Use this list for near-term execution. Each entry maps back to the PRD and [work
 
 ## In Progress
 - [ ] **H1 APT/DNF Repository Hosting (Blocked)** — ⛔ BLOCKED pending external repository provisioning + credentials (Cloudsmith/Packagecloud owner/repo, API tokens) and signing key decisions; prep work is complete and documented, but end-to-end validation cannot proceed. _Doc:_ `DOCS/INPROGRESS/BLOCKED_H1_APTDNFRepositoryHosting.md`. _Owner:_ maintainer. _Status:_ Blocked — 2025-12-18.
+- [ ] **S3 Clarify `.doccarchive` Inputs in Public Docs** — Make README/PRD examples unambiguous about `.doccarchive` directory vs file inputs (directory supported; file requires manual extraction). _Doc:_ `DOCS/INPROGRESS/S3_ClarifyDoccarchiveInputs.md`. _Owner:_ docc2context agent. _Status:_ Planning — 2025-12-18 (docs-only).
 
 ## Completed
 - [x] **S2 Align Docs/PRD with Archive Input Behavior** — Reconciled PRD/workplan/archives so “archive input” docs match the current tested contract: `.doccarchive` directories are supported; `.doccarchive` files are rejected with extraction guidance; removed stale B4 placeholder tests. _Doc:_ `DOCS/TASK_ARCHIVE/48_S2_DocsAlignArchiveInputs/S2_DocsAlignArchiveInputs.md`. _Owner:_ docc2context agent. _Status:_ Complete — 2025-12-18; validated via `python3 Scripts/lint_markdown.py` and `swift test`.
