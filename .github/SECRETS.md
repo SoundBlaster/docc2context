@@ -146,7 +146,7 @@ After configuring the secrets, you can verify the setup:
 
 1. In Cloudsmith, ensure the apt repository is configured for the chosen distribution/release.
 2. Add the distribution, release, and component values as repository secrets.
-3. If unset, the upload helper defaults to `ubuntu/jammy` and `main`.
+3. If unset, the upload helper defaults to `ubuntu/jammy` and `main` (recommended only for initial smoke runs — set explicit secrets for real releases).
 
 ### CLOUDSMITH_RPM_DISTRIBUTION / CLOUDSMITH_RPM_RELEASE
 
@@ -159,6 +159,17 @@ After configuring the secrets, you can verify the setup:
 
 1. Align slugs with the RPM repository configuration inside Cloudsmith.
 2. Add the values as repository secrets; defaults (`any-distro` / `any-version`) are used if unset.
+
+### Variant publishing policy (glibc vs musl)
+
+The Linux packaging pipeline emits both **glibc** and **musl** installers. Today, both variants share the same package metadata:
+
+- Debian control: `Package: docc2context` and `Version: <version>`
+- RPM spec: `Name: docc2context` and `Version: <version>`
+
+That means a single Cloudsmith apt/dnf repository **cannot safely host both variants for the same version/architecture** without collisions or overwrites.
+
+**Current policy:** `Scripts/publish_to_cloudsmith.sh` skips `*-musl.deb` and `*-musl.rpm` by default and publishes only the glibc installers. Keep musl distribution via tarballs until we decide on a stable scheme (e.g., separate package names like `docc2context-musl`, separate repositories, or version suffixing).
 
 ### Activation checklist (Cloudsmith)
 

@@ -165,14 +165,42 @@ if [[ ! -d "$artifact_dir" ]]; then
 fi
 
 deb_files=()
+skipped_deb_files=()
 while IFS= read -r deb_path; do
+  base="$(basename "$deb_path")"
+  if [[ "$base" == *-musl.deb ]]; then
+    skipped_deb_files+=("$deb_path")
+    continue
+  fi
   deb_files+=("$deb_path")
 done < <(find "$artifact_dir" -type f -name "*.deb" | sort)
 
 rpm_files=()
+skipped_rpm_files=()
 while IFS= read -r rpm_path; do
+  base="$(basename "$rpm_path")"
+  if [[ "$base" == *-musl.rpm ]]; then
+    skipped_rpm_files+=("$rpm_path")
+    continue
+  fi
   rpm_files+=("$rpm_path")
 done < <(find "$artifact_dir" -type f -name "*.rpm" | sort)
+
+if [[ ${#skipped_deb_files[@]} -gt 0 ]]; then
+  log_warn "Skipping ${#skipped_deb_files[@]} variant package(s) (musl) for repository publishing:"
+  for artifact in "${skipped_deb_files[@]}"; do
+    printf '  - %s\n' "$artifact" >&2
+  done
+  log_warn "Publish musl variants via tarball releases (or add an explicit opt-in flag once package naming/repo layout is decided)."
+fi
+
+if [[ ${#skipped_rpm_files[@]} -gt 0 ]]; then
+  log_warn "Skipping ${#skipped_rpm_files[@]} variant package(s) (musl) for repository publishing:"
+  for artifact in "${skipped_rpm_files[@]}"; do
+    printf '  - %s\n' "$artifact" >&2
+  done
+  log_warn "Publish musl variants via tarball releases (or add an explicit opt-in flag once package naming/repo layout is decided)."
+fi
 
 missing_artifacts=0
 if [[ ${#deb_files[@]} -eq 0 ]]; then

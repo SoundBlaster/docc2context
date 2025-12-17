@@ -311,7 +311,7 @@ The release workflow now includes an optional Cloudsmith upload step (backed by 
 For now, continue using the manual tarball/apt/rpm commands above. Maintainer TODO:
 
 - Configure `CLOUDSMITH_*` secrets documented in `.github/SECRETS.md` (owner, repository, API key, distribution/release slugs, optional component)
-- Provision a Cloudsmith repository (e.g., `ubuntu/jammy` + `any-distro/any-version` for RPM) and verify dry-run uploads locally via `./Scripts/publish_to_cloudsmith.sh --dry-run`
+- Provision a Cloudsmith repository (e.g., `ubuntu/jammy` + `any-distro/any-version` for RPM) and verify dry-run uploads locally via `./Scripts/publish_to_cloudsmith.sh --dry-run` (publishes glibc installers; musl variants remain tarball-only until package naming/repo layout is decided)
 - Trigger a tagged release once secrets are in place to publish packages automatically
 
 #### Arch Linux / AUR packaging

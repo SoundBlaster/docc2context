@@ -99,4 +99,45 @@ final class CloudsmithPublishScriptTests: XCTestCase {
         XCTAssertTrue(output.lowercased().contains("deb"), "Error output should mention missing deb packages")
         XCTAssertTrue(output.lowercased().contains("rpm"), "Error output should mention missing rpm packages")
     }
+
+    func test_dryRunSkipsMuslVariantArtifactsByDefault() throws {
+        let tempDir = FileManager.default.temporaryDirectory
+            .appendingPathComponent(UUID().uuidString, isDirectory: true)
+        try FileManager.default.createDirectory(at: tempDir, withIntermediateDirectories: true)
+        defer { try? FileManager.default.removeItem(at: tempDir) }
+
+        let glibcDebPath = tempDir.appendingPathComponent("docc2context_1.2.3_linux_amd64.deb")
+        let muslDebPath = tempDir.appendingPathComponent("docc2context_1.2.3_linux_amd64-musl.deb")
+        let glibcRpmPath = tempDir.appendingPathComponent("docc2context-1.2.3-linux-x86_64.rpm")
+        let muslRpmPath = tempDir.appendingPathComponent("docc2context-1.2.3-linux-x86_64-musl.rpm")
+
+        XCTAssertTrue(FileManager.default.createFile(atPath: glibcDebPath.path, contents: Data("deb".utf8)))
+        XCTAssertTrue(FileManager.default.createFile(atPath: muslDebPath.path, contents: Data("deb".utf8)))
+        XCTAssertTrue(FileManager.default.createFile(atPath: glibcRpmPath.path, contents: Data("rpm".utf8)))
+        XCTAssertTrue(FileManager.default.createFile(atPath: muslRpmPath.path, contents: Data("rpm".utf8)))
+
+        let (exitCode, output) = try runScript(
+            arguments: [
+                "--owner", "soundblaster",
+                "--repository", "docc2context",
+                "--version", "v1.2.3",
+                "--artifact-dir", tempDir.path,
+                "--dry-run"
+            ],
+            environment: ["CLOUDSMITH_API_KEY": "dummy-key"]
+        )
+
+        XCTAssertEqual(exitCode, 0, "Dry-run should succeed")
+        XCTAssertTrue(output.contains("Skipping 1 variant package(s)"), "Dry-run should warn about skipped variants")
+        XCTAssertTrue(output.contains(glibcDebPath.path), "Dry-run should include glibc deb upload")
+        XCTAssertFalse(
+            output.contains("cloudsmith push deb soundblaster/docc2context \"\(muslDebPath.path)\""),
+            "Dry-run should exclude musl deb upload by default"
+        )
+        XCTAssertTrue(output.contains(glibcRpmPath.path), "Dry-run should include glibc rpm upload")
+        XCTAssertFalse(
+            output.contains("cloudsmith push rpm soundblaster/docc2context \"\(muslRpmPath.path)\""),
+            "Dry-run should exclude musl rpm upload by default"
+        )
+    }
 }

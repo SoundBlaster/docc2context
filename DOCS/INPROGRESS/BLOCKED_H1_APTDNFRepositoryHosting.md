@@ -49,6 +49,7 @@ This task requires external resources and operational setup that cannot be compl
 - Cloudsmith account/repository creation (owner/repo slugs required by upload helper)
 - API key provisioning and secret configuration (`CLOUDSMITH_API_KEY`, `CLOUDSMITH_OWNER`, `CLOUDSMITH_REPOSITORY`)
 - Distribution metadata decisions (apt: distribution/release/component; rpm: distribution/release) and corresponding secrets
+- Variant publishing decision (glibc vs musl): musl installers share the same package name/version as glibc, so repository publishing must be glibc-only unless we adopt separate package names or separate repositories
 - GPG signing keys for apt/dnf repositories and CI integration
 - Test repository to validate real uploads before enabling the workflow condition
 
