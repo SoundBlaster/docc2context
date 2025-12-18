@@ -150,6 +150,7 @@ These items are intentionally out-of-scope for Phases A–D, but remain high-val
 | F5 | Xcode-Parity Symbol Page Rendering (Swift-DocC Render Archives) | Extend the Markdown export to render Swift-DocC `kind: "symbol"` render nodes into Xcode-like pages (structure + topics + relationships) rather than relying on synthetic fixture schemas. Use `topicSections`, `relationshipsSections`, `primaryContentSections` (including declarations) and `references` to emit stable Markdown pages for symbols (e.g. `MarkdownGenerationPipeline`) and to treat `collectionGroup` nodes (e.g. “Equatable Implementations”) as structured sub-sections. Add snapshot tests against the `Docc2contextCore.doccarchive` fixture to lock output structure and determinism. | F4, B5, C2, C5 | Limited |
 | F6 | Single-Page Symbol Markdown Mode | Add an opt-in output mode that renders each DocC symbol (struct/class/enum/protocol/etc.) as a single “solid” Markdown document instead of a nested folder tree of member pages. In this mode, the symbol’s Topics/Relationships/Declarations are flattened and member references are inlined (as headings or bullet sections) so outputs are easier to ingest as standalone documents. The default output remains the current tree layout. | F5, C2, C5 | Limited |
 | F7 | Rich Inline Source Documentation | Add high-quality DocC documentation comments directly in `Sources/` for the public API surface (CLI command types, pipeline, parser, renderer, models), including usage examples and cross-references, and keep the committed `Fixtures/Docc2contextCore.doccarchive` + Markdown snapshots in sync by regenerating/updating them under controlled provenance. | F4, F5, C2, C5 | Limited |
+| F8 | CI Self-Docs Markdown Artifact | Add a GitHub Actions CI job that runs `docc2context` against the project’s own committed DocC fixture (`Fixtures/Docc2contextCore.doccarchive`) and uploads the generated Markdown output as a build artifact for inspection. This keeps the “what does it look like?” feedback loop fast without requiring manual local runs. | C2, C5, F4, F5 | Yes |
 
 ### F5 Acceptance Criteria (Xcode parity)
 - Render Swift-DocC symbol pages (`kind: "symbol"`) into Markdown with the same major structure Xcode shows: summary, topics, relationships, and declarations (as available in the render node).
@@ -168,3 +169,9 @@ These items are intentionally out-of-scope for Phases A–D, but remain high-val
 - Include at least one short “Usage” example in the public docs for the CLI/pipeline entry point that is safe, deterministic, and offline-friendly.
 - Regenerate `Fixtures/Docc2contextCore.doccarchive` from the updated sources using a documented, pinned toolchain + command line, and update `Fixtures/manifest.json` accordingly.
 - Update Markdown snapshots impacted by the richer source documentation, and keep determinism checks green (`swift test` + fixture manifest validation).
+
+### F8 Acceptance Criteria (CI self-docs Markdown artifact)
+- Add a CI workflow/job that runs `docc2context` on `Fixtures/Docc2contextCore.doccarchive` and writes outputs to a deterministic directory within the runner workspace.
+- Upload at least the generated `markdown/` subtree as a GitHub Actions artifact (for easy review of symbol/article output without cloning locally).
+- The job must remain offline-friendly (no network fetches, no DocC generation required); it uses committed fixtures only.
+- The workflow must not require committing generated outputs back to the repository (artifact-only).
