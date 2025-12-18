@@ -1,5 +1,12 @@
 import Foundation
 
+/// Compares benchmark results against a baseline and produces human-readable regression messages.
+///
+/// This helper is used by the `docc2context-benchmark` executable and CI workflows to detect performance
+/// regressions over time without requiring external benchmarking infrastructure.
+///
+/// The comparator operates on aggregated timing metrics (average/max seconds) and applies independent
+/// multipliers to the average and max thresholds so projects can tune how strict performance gating should be.
 public struct BenchmarkComparator {
     public struct Tolerance {
         public let averageMultiplier: Double

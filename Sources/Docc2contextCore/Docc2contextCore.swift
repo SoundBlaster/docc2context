@@ -11,6 +11,26 @@ public struct Docc2contextCommandResult {
     }
 }
 
+/// Programmatic entry point for running the `docc2context` CLI.
+///
+/// This type is primarily used by the executable target, but is also convenient for tests and for embedding
+/// `docc2context` behavior into other tooling (e.g. a custom release pipeline).
+///
+/// The command is intentionally deterministic and offline-friendly: it converts DocC bundle directories or
+/// `.doccarchive` directories into Markdown outputs under `--output`.
+///
+/// ## Usage
+/// ```swift
+/// let result = Docc2contextCommand().run(arguments: [
+///   "docc2context",
+///   "/path/to/MyDocs.doccarchive",
+///   "--output", "/tmp/out",
+///   "--force",
+///   "--symbol-layout", "single",
+/// ])
+/// print(result.exitCode)
+/// print(result.output)
+/// ```
 public struct Docc2contextCommand {
     private let inputDetector: InputLocationDetector
     private let pipeline: MarkdownGenerationPipeline

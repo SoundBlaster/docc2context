@@ -47,7 +47,8 @@ public struct DoccSymbolPage: Equatable {
 
     public let identifier: String
     public let title: String
-    public let abstract: [DoccDocumentationCatalog.AbstractItem]
+    public let abstract: String?
+    public let discussion: [String]
     public let symbolKind: String?
     public let roleHeading: String?
     public let moduleName: String?
@@ -59,7 +60,8 @@ public struct DoccSymbolPage: Equatable {
     public init(
         identifier: String,
         title: String,
-        abstract: [DoccDocumentationCatalog.AbstractItem],
+        abstract: String?,
+        discussion: [String],
         symbolKind: String?,
         roleHeading: String?,
         moduleName: String?,
@@ -71,6 +73,7 @@ public struct DoccSymbolPage: Equatable {
         self.identifier = identifier
         self.title = title
         self.abstract = abstract
+        self.discussion = discussion
         self.symbolKind = symbolKind
         self.roleHeading = roleHeading
         self.moduleName = moduleName
@@ -80,4 +83,3 @@ public struct DoccSymbolPage: Equatable {
         self.referencesByIdentifier = referencesByIdentifier
     }
 }
-

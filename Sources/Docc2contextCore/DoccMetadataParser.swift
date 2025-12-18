@@ -569,6 +569,14 @@ public enum DoccMetadataParserError: Error, LocalizedError, Equatable {
 }
 
 public struct DoccMetadataParser {
+    /// Loads DocC bundle metadata and pages from either:
+    /// - a classic DocC bundle directory (with `Info.plist` and `data/`), or
+    /// - a Swift-DocC render archive directory (`.doccarchive`) produced by `swift package generate-documentation`.
+    ///
+    /// The parser is used by `MarkdownGenerationPipeline` and prefers deterministic behavior:
+    /// - file enumeration is sorted
+    /// - optional, non-critical inputs are treated as recoverable when possible
+    /// - render-archive inputs synthesize minimal metadata so conversion can proceed offline
     public init() {}
 
     public func loadInfoPlist(from bundleURL: URL) throws -> DoccBundleMetadata {
@@ -1020,11 +1028,33 @@ extension DoccMetadataParser {
             struct TopicSection: Decodable {
                 let title: String
                 let identifiers: [String]
+
+                init(from decoder: Decoder) throws {
+                    let container = try decoder.container(keyedBy: CodingKeys.self)
+                    title = (try? container.decode(String.self, forKey: .title)) ?? ""
+                    identifiers = (try? container.decode([String].self, forKey: .identifiers)) ?? []
+                }
+
+                private enum CodingKeys: String, CodingKey {
+                    case title
+                    case identifiers
+                }
             }
 
             struct RelationshipSection: Decodable {
                 let title: String
                 let identifiers: [String]
+
+                init(from decoder: Decoder) throws {
+                    let container = try decoder.container(keyedBy: CodingKeys.self)
+                    title = (try? container.decode(String.self, forKey: .title)) ?? ""
+                    identifiers = (try? container.decode([String].self, forKey: .identifiers)) ?? []
+                }
+
+                private enum CodingKeys: String, CodingKey {
+                    case title
+                    case identifiers
+                }
             }
 
             struct DeclarationToken: Decodable {
@@ -1036,8 +1066,33 @@ extension DoccMetadataParser {
                 let tokens: [DeclarationToken]
             }
 
+            struct InlineContent: Decodable {
+                let type: String
+                let text: String?
+                let code: String?
+            }
+
+            struct ContentBlock: Decodable {
+                let type: String
+                let level: Int?
+                let text: String?
+                let inlineContent: [InlineContent]?
+                let style: String?
+                let content: [ContentBlock]?
+                let syntax: String?
+                let code: String?
+            }
+
+            struct Parameter: Decodable {
+                let name: String
+                let content: [ContentBlock]
+            }
+
             struct PrimaryContentSection: Decodable {
+                let kind: String?
                 let declarations: [Declaration]?
+                let content: [ContentBlock]?
+                let parameters: [Parameter]?
             }
 
             struct Reference: Decodable {
@@ -1045,11 +1100,26 @@ extension DoccMetadataParser {
                 let kind: String?
                 let title: String?
                 let url: String?
+
+                init(from decoder: Decoder) throws {
+                    let container = try decoder.container(keyedBy: CodingKeys.self)
+                    identifier = try? container.decodeIfPresent(String.self, forKey: .identifier)
+                    kind = try? container.decodeIfPresent(String.self, forKey: .kind)
+                    title = try? container.decodeIfPresent(String.self, forKey: .title)
+                    url = try? container.decodeIfPresent(String.self, forKey: .url)
+                }
+
+                private enum CodingKeys: String, CodingKey {
+                    case identifier
+                    case kind
+                    case title
+                    case url
+                }
             }
 
             let kind: String
             let identifier: Identifier
-            let abstract: [DoccDocumentationCatalog.AbstractItem]?
+            let abstract: [InlineContent]?
             let topicSections: [TopicSection]?
             let relationshipsSections: [RelationshipSection]?
             let primaryContentSections: [PrimaryContentSection]?
@@ -1057,25 +1127,60 @@ extension DoccMetadataParser {
             let references: [String: Reference]?
         }
 
-        let decoder = JSONDecoder()
-        var pagesByIdentifier: [String: DoccSymbolPage] = [:]
+        func renderInlineText(from items: [RenderNode.InlineContent]) -> String {
+            items.map { item in
+                switch item.type {
+                case "text":
+                    return item.text ?? ""
+                case "codeVoice":
+                    let code = item.code ?? item.text ?? ""
+                    return code.isEmpty ? "" : "`\(code)`"
+                default:
+                    return item.text ?? item.code ?? ""
+                }
+            }
+            .joined()
+            .trimmingCharacters(in: .whitespacesAndNewlines)
+        }
 
-        for fileURL in documentationJSONFiles(in: bundleURL) {
-            let data = try Data(contentsOf: fileURL)
-            guard let probe = try? decoder.decode(KindProbe.self, from: data),
-                  probe.kind == "symbol"
-            else {
-                continue
+        func renderContentBlocks(_ blocks: [RenderNode.ContentBlock], headingLevelOffset: Int) -> [String] {
+            var rendered: [String] = []
+            rendered.reserveCapacity(blocks.count)
+
+            for block in blocks {
+                switch block.type {
+                case "heading":
+                    let level = max(1, min(6, (block.level ?? 2) + headingLevelOffset))
+                    let hashes = String(repeating: "#", count: level)
+                    let text = (block.text ?? "").trimmingCharacters(in: .whitespacesAndNewlines)
+                    guard !text.isEmpty else { continue }
+                    rendered.append("\(hashes) \(text)")
+                case "paragraph":
+                    let text = renderInlineText(from: block.inlineContent ?? [])
+                    guard !text.isEmpty else { continue }
+                    rendered.append(text)
+                case "aside":
+                    let style = (block.style ?? "note").trimmingCharacters(in: .whitespacesAndNewlines)
+                    let label = style.isEmpty ? "Note" : style.capitalized
+                    let inner = renderContentBlocks(block.content ?? [], headingLevelOffset: headingLevelOffset)
+                    let innerText = inner.joined(separator: "\n\n")
+                    guard !innerText.isEmpty else { continue }
+                    let quoted = innerText.replacingOccurrences(of: "\n", with: "\n> ")
+                    rendered.append("> **\(label):** \(quoted)")
+                case "codeListing":
+                    let syntax = (block.syntax ?? "swift").trimmingCharacters(in: .whitespacesAndNewlines)
+                    let code = (block.code ?? "").trimmingCharacters(in: .whitespacesAndNewlines)
+                    guard !code.isEmpty else { continue }
+                    rendered.append("```\(syntax)\n\(code)\n```")
+                default:
+                    continue
+                }
             }
 
-            let node: RenderNode
-            do {
-                node = try decoder.decode(RenderNode.self, from: data)
-            } catch {
-                // Skip nodes we can't decode yet.
-                continue
-            }
+            return rendered
+        }
 
+        func makeSymbolPage(from node: RenderNode) -> DoccSymbolPage {
             let moduleName = node.metadata.modules?.first?.name
             let topicSections = (node.topicSections ?? []).map {
                 DoccSymbolPage.TopicSection(title: $0.title, identifiers: $0.identifiers)
@@ -1085,7 +1190,21 @@ extension DoccMetadataParser {
             }
 
             var declarations: [DoccSymbolPage.Declaration] = []
+            var discussionBlocks: [String] = []
             for section in node.primaryContentSections ?? [] {
+                if section.kind == "content", let content = section.content {
+                    discussionBlocks.append(contentsOf: renderContentBlocks(content, headingLevelOffset: 1))
+                }
+                if section.kind == "parameters", let parameters = section.parameters {
+                    var lines: [String] = []
+                    lines.append("### Parameters")
+                    for parameter in parameters {
+                        let rendered = renderContentBlocks(parameter.content, headingLevelOffset: 0)
+                        let text = rendered.joined(separator: " ").trimmingCharacters(in: .whitespacesAndNewlines)
+                        lines.append("- `\(parameter.name)`: \(text.isEmpty ? "_" : text)")
+                    }
+                    discussionBlocks.append(lines.joined(separator: "\n"))
+                }
                 for declaration in section.declarations ?? [] {
                     let text = declaration.tokens.map(\.text).joined()
                         .trimmingCharacters(in: .whitespacesAndNewlines)
@@ -1111,11 +1230,13 @@ extension DoccMetadataParser {
                 )
             }
 
+            let abstractText = node.abstract.map { renderInlineText(from: $0) }
             let pageTitle = node.metadata.title ?? node.identifier.url
-            pagesByIdentifier[node.identifier.url] = DoccSymbolPage(
+            return DoccSymbolPage(
                 identifier: node.identifier.url,
                 title: pageTitle,
-                abstract: node.abstract ?? [],
+                abstract: abstractText,
+                discussion: discussionBlocks,
                 symbolKind: node.metadata.symbolKind,
                 roleHeading: node.metadata.roleHeading,
                 moduleName: moduleName,
@@ -1124,6 +1245,74 @@ extension DoccMetadataParser {
                 declarations: declarations,
                 referencesByIdentifier: referencesByIdentifier
             )
+        }
+
+        func decodeRenderNodeLossy(from data: Data, decoder: JSONDecoder) -> RenderNode? {
+            guard let json = (try? JSONSerialization.jsonObject(with: data)) as? [String: Any] else {
+                return nil
+            }
+
+            func dataFor(_ value: Any?) -> Data? {
+                guard let value else { return nil }
+                return try? JSONSerialization.data(withJSONObject: value)
+            }
+
+            guard
+                let identifierValue = json["identifier"],
+                let metadataValue = json["metadata"],
+                let identifierData = dataFor(identifierValue),
+                let metadataData = dataFor(metadataValue),
+                let decodedIdentifier = try? decoder.decode(RenderNode.Identifier.self, from: identifierData),
+                let decodedMetadata = try? decoder.decode(RenderNode.Metadata.self, from: metadataData)
+            else {
+                return nil
+            }
+
+            let abstract = (try? dataFor(json["abstract"]).flatMap { try decoder.decode([RenderNode.InlineContent].self, from: $0) }) ?? nil
+            let topicSections = (try? dataFor(json["topicSections"]).flatMap { try decoder.decode([RenderNode.TopicSection].self, from: $0) }) ?? nil
+            let relationshipsSections =
+                (try? dataFor(json["relationshipsSections"]).flatMap { try decoder.decode([RenderNode.RelationshipSection].self, from: $0) }) ??
+                (try? dataFor(json["relationshipSections"]).flatMap { try decoder.decode([RenderNode.RelationshipSection].self, from: $0) }) ??
+                nil
+            let primaryContentSections =
+                (try? dataFor(json["primaryContentSections"]).flatMap { try decoder.decode([RenderNode.PrimaryContentSection].self, from: $0) }) ?? nil
+            let references = (try? dataFor(json["references"]).flatMap { try decoder.decode([String: RenderNode.Reference].self, from: $0) }) ?? nil
+
+            let kind = (json["kind"] as? String) ?? "symbol"
+            return RenderNode(
+                kind: kind,
+                identifier: decodedIdentifier,
+                abstract: abstract,
+                topicSections: topicSections,
+                relationshipsSections: relationshipsSections,
+                primaryContentSections: primaryContentSections,
+                metadata: decodedMetadata,
+                references: references
+            )
+        }
+
+        let decoder = JSONDecoder()
+        var pagesByIdentifier: [String: DoccSymbolPage] = [:]
+
+        for fileURL in documentationJSONFiles(in: bundleURL) {
+            let data = try Data(contentsOf: fileURL)
+            guard let probe = try? decoder.decode(KindProbe.self, from: data),
+                  probe.kind == "symbol"
+            else {
+                continue
+            }
+
+            let node: RenderNode
+            do {
+                node = try decoder.decode(RenderNode.self, from: data)
+            } catch {
+                guard let lossy = decodeRenderNodeLossy(from: data, decoder: decoder) else {
+                    continue
+                }
+                node = lossy
+            }
+
+            pagesByIdentifier[node.identifier.url] = makeSymbolPage(from: node)
         }
 
         return pagesByIdentifier

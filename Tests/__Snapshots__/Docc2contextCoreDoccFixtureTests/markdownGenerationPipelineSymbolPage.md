@@ -11,11 +11,6 @@
 ## Summary
 Converts a DocC bundle into deterministic Markdown and a link graph.
 
-## Declarations
-```swift
-struct MarkdownGenerationPipeline
-```
-
 ## Topics
 
 ### Structures
@@ -25,7 +20,8 @@ struct MarkdownGenerationPipeline
 - init(fileManager:metadataParser:modelBuilder:renderer:linkGraphBuilder:markdownWriter:dataWriter:)
 
 ### Instance Methods
-- generateMarkdown(from:to:forceOverwrite:technologyFilter:)
+- generateMarkdown(from:to:forceOverwrite:technologyFilter:symbolLayout:)
 
 ### Enumerations
 - MarkdownGenerationPipeline.Error
+- MarkdownGenerationPipeline.SymbolLayout

@@ -53,3 +53,15 @@ Improve the “real” DocC content for this project by adding rich DocC documen
 4. Re-run conversion tests; update snapshots under `Tests/__Snapshots__/` as required.
 5. Validate determinism and commit.
 
+## Implemented (START)
+- Added richer DocC comments for key public types (`MarkdownGenerationPipeline`, `Docc2contextCommand`, `DoccMetadataParser`, `DoccMarkdownRenderer`, `BenchmarkComparator`), including deterministic usage examples.
+- Extended Swift-DocC render-archive parsing for symbol pages to:
+  - decode render-archive `abstract` inline content (including `codeVoice`) into stable Markdown text,
+  - render `primaryContentSections` (content + parameters) into a `## Discussion` section,
+  - fall back to a lossy JSON decode path so schema drift in render nodes doesn’t silently drop top-level symbol pages.
+- Regenerated and pruned `Fixtures/Docc2contextCore.doccarchive` (kept `metadata.json` + `data/documentation/`), updated `Fixtures/manifest.json`, and refreshed affected snapshots.
+
+## Validation evidence
+- `swift test`
+- `python3 Scripts/validate_fixtures_manifest.py Fixtures/manifest.json`
+- `python3 Scripts/lint_markdown.py`

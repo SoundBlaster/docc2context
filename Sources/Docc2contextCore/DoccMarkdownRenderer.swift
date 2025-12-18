@@ -1,5 +1,10 @@
 import Foundation
 
+/// Renders decoded DocC models into deterministic Markdown.
+///
+/// The renderer is intentionally conservative: it prefers stable, predictable output over attempting to
+/// reproduce every DocC presentation feature. Snapshot tests in `Tests/__Snapshots__/` lock the exact
+/// Markdown emitted for representative fixtures.
 public struct DoccMarkdownRenderer {
     public init() {}
 
@@ -13,6 +18,10 @@ public struct DoccMarkdownRenderer {
 
         if let summary = makeSymbolSummarySection(from: symbol.abstract) {
             sections.append(summary)
+        }
+
+        if let discussionSection = makeSymbolDiscussionSection(from: symbol.discussion) {
+            sections.append(discussionSection)
         }
 
         if let declarationsSection = makeDeclarationsSection(from: symbol.declarations) {
@@ -112,17 +121,19 @@ public struct DoccMarkdownRenderer {
         return lines.joined(separator: "\n")
     }
 
-    private func makeSymbolSummarySection(
-        from abstractItems: [DoccDocumentationCatalog.AbstractItem]
-    ) -> String? {
-        guard !abstractItems.isEmpty else { return nil }
-        let text = abstractItems
-            .map { $0.text.trimmingCharacters(in: .whitespacesAndNewlines) }
-            .filter { !$0.isEmpty }
-            .joined(separator: " ")
+    private func makeSymbolSummarySection(from abstractText: String?) -> String? {
+        let text = (abstractText ?? "")
             .trimmingCharacters(in: .whitespacesAndNewlines)
         guard !text.isEmpty else { return nil }
         return ["## Summary", text].joined(separator: "\n")
+    }
+
+    private func makeSymbolDiscussionSection(from discussionBlocks: [String]) -> String? {
+        let blocks = discussionBlocks
+            .map { $0.trimmingCharacters(in: .whitespacesAndNewlines) }
+            .filter { !$0.isEmpty }
+        guard !blocks.isEmpty else { return nil }
+        return (["## Discussion"] + blocks).joined(separator: "\n\n")
     }
 
     private func makeDeclarationsSection(from declarations: [DoccSymbolPage.Declaration]) -> String? {

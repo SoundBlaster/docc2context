@@ -64,9 +64,9 @@
       },
       "checksum": {
         "algorithm": "sha256",
-        "value": "229b7b38190c26a05a1b8354256ad01bcd6331a1187db4427ed35a44e4a61096"
+        "value": "55adc3ed9c0fb325a3d75766901ae40c95228d585b43b96f7e555403dccc693c"
       },
-      "size_bytes": 1971284,
+      "size_bytes": 2261658,
       "notes": "First-party DocC output generated from this repository's Sources/ as a dogfooding fixture (F4)."
     }
   ]

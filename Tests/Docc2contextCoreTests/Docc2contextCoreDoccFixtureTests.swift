@@ -94,6 +94,28 @@ final class Docc2contextCoreDoccFixtureTests: XCTestCase {
         }
     }
 
+    func test_symbolPagesRenderDiscussionFromPrimaryContentSections() throws {
+        let fixtureURL = FixtureLoader.urlForBundle(named: "Docc2contextCore.doccarchive")
+        let parser = DoccMetadataParser()
+        let renderer = DoccMarkdownRenderer()
+
+        let bundleMetadata = try parser.loadInfoPlist(from: fixtureURL)
+        let catalog = try parser.loadDocumentationCatalog(from: fixtureURL, technologyRoot: bundleMetadata.technologyRoot)
+        let symbols = try parser.loadSwiftDocCRenderArchiveSymbolPages(from: fixtureURL)
+
+        let identifier = "doc://Docc2contextCore/documentation/Docc2contextCore/DeterminismValidator/hashFile(at:)"
+        guard let symbol = symbols[identifier] else {
+            XCTFail("Expected fixture to include DeterminismValidator.hashFile(at:) render node.")
+            return
+        }
+
+        let markdown = renderer.renderSymbolPage(catalog: catalog, symbol: symbol)
+        XCTAssertTrue(
+            markdown.contains("Hex-encoded hash string"),
+            "Expected render-archive primaryContentSections content blocks to be rendered as discussion Markdown."
+        )
+    }
+
     func test_generatedDoccFixtureSingleSymbolLayoutProducesSingleFileForTopLevelSymbols() throws {
         let fixtureURL = FixtureLoader.urlForBundle(named: "Docc2contextCore.doccarchive")
 
