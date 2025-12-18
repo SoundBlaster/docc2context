@@ -329,17 +329,65 @@ public struct DoccArticle: Equatable, Codable {
         let text: String?
         let level: Int?
         let inlineContent: [RenderInlineContent]?
+        let items: [RenderListItem]?
+        let header: String?
+        let rows: [[[RenderContentBlock]]]?
+        let syntax: String?
+        let code: String?
+
+        private enum CodingKeys: String, CodingKey {
+            case type
+            case text
+            case level
+            case inlineContent
+            case items
+            case header
+            case rows
+            case syntax
+            case code
+        }
+
+        init(from decoder: Decoder) throws {
+            let container = try decoder.container(keyedBy: CodingKeys.self)
+            type = try container.decode(String.self, forKey: .type)
+            text = try? container.decodeIfPresent(String.self, forKey: .text)
+            level = try? container.decodeIfPresent(Int.self, forKey: .level)
+            inlineContent = try? container.decodeIfPresent([RenderInlineContent].self, forKey: .inlineContent)
+            items = try? container.decodeIfPresent([RenderListItem].self, forKey: .items)
+            header = try? container.decodeIfPresent(String.self, forKey: .header)
+            rows = try? container.decodeIfPresent([[[RenderContentBlock]]].self, forKey: .rows)
+            syntax = try? container.decodeIfPresent(String.self, forKey: .syntax)
+
+            if let codeString = try? container.decodeIfPresent(String.self, forKey: .code) {
+                code = codeString
+            } else if let codeLines = try? container.decodeIfPresent([String].self, forKey: .code) {
+                code = codeLines.joined(separator: "\n")
+            } else {
+                code = nil
+            }
+        }
     }
 
     private struct RenderInlineContent: Decodable {
         let type: String
         let text: String?
         let code: String?
+        let inlineContent: [RenderInlineContent]?
+        let identifier: String?
+        let isActive: Bool?
+    }
+
+    private struct RenderListItem: Decodable {
+        let content: [RenderContentBlock]
     }
 
     private enum RenderContentType: String {
         case heading
         case paragraph
+        case unorderedList
+        case orderedList
+        case codeListing
+        case table
     }
 
     public init(from decoder: Decoder) throws {
@@ -372,13 +420,13 @@ public struct DoccArticle: Equatable, Codable {
 
         let decodedPrimaryContent =
             (try? renderContainer.decode([RenderPrimaryContentSection].self, forKey: .primaryContentSections)) ?? []
-        sections = Self.parseRenderArchiveSections(from: decodedPrimaryContent)
         let decodedTopics = (try? renderContainer.decode([RenderTopicSection].self, forKey: .topicSections)) ?? []
         topics = decodedTopics.map { TopicSection(title: $0.title, identifiers: $0.identifiers) }
 
         let decodedReferences =
             (try? renderContainer.decode([String: RenderReference].self, forKey: .references)) ?? [:]
         references = Self.referencesForTopicSections(topics, from: decodedReferences)
+        sections = Self.parseRenderArchiveSections(from: decodedPrimaryContent, references: decodedReferences)
     }
 
     private static func referencesForTopicSections(
@@ -402,7 +450,10 @@ public struct DoccArticle: Equatable, Codable {
         return resolved
     }
 
-    private static func parseRenderArchiveSections(from contentSections: [RenderPrimaryContentSection]) -> [Section] {
+    private static func parseRenderArchiveSections(
+        from contentSections: [RenderPrimaryContentSection],
+        references: [String: RenderReference]
+    ) -> [Section] {
         var sections: [Section] = []
         sections.reserveCapacity(4)
 
@@ -418,18 +469,122 @@ public struct DoccArticle: Equatable, Codable {
             currentContent = []
         }
 
+        func resolveReference(_ identifier: String) -> String? {
+            let candidate = references[identifier] ?? references.values.first(where: { $0.identifier == identifier })
+            guard let candidate, let title = candidate.title, !title.isEmpty else { return nil }
+            return title
+        }
+
+        func renderInlineText(from inlineContent: [RenderInlineContent]) -> String {
+            var result = ""
+            result.reserveCapacity(128)
+
+            for item in inlineContent {
+                switch item.type {
+                case "text":
+                    result.append(item.text ?? "")
+                case "codeVoice":
+                    if let code = item.code {
+                        result.append("`\(code)`")
+                    }
+                case "strong", "emphasis":
+                    result.append(renderInlineText(from: item.inlineContent ?? []))
+                case "reference":
+                    guard let identifier = item.identifier else { continue }
+                    if let title = resolveReference(identifier) {
+                        result.append(title)
+                    }
+                default:
+                    continue
+                }
+            }
+
+            return result
+        }
+
+        func renderContentBlocks(_ blocks: [RenderContentBlock]) -> [String] {
+            var rendered: [String] = []
+            rendered.reserveCapacity(blocks.count)
+
+            for block in blocks {
+                switch RenderContentType(rawValue: block.type) {
+                case .heading:
+                    let level = max(1, min(6, block.level ?? 2))
+                    let hashes = String(repeating: "#", count: level)
+                    let text = (block.text ?? "").trimmingCharacters(in: .whitespacesAndNewlines)
+                    if !text.isEmpty { rendered.append("\(hashes) \(text)") }
+                case .paragraph:
+                    let paragraph = renderInlineText(from: block.inlineContent ?? [])
+                    let trimmed = paragraph.trimmingCharacters(in: .whitespacesAndNewlines)
+                    if !trimmed.isEmpty { rendered.append(trimmed) }
+                case .unorderedList:
+                    for item in block.items ?? [] {
+                        let parts = renderContentBlocks(item.content)
+                        let text = parts.joined(separator: " ").trimmingCharacters(in: .whitespacesAndNewlines)
+                        rendered.append("- \(text.isEmpty ? "_" : text)")
+                    }
+                case .orderedList:
+                    let items = block.items ?? []
+                    for (index, item) in items.enumerated() {
+                        let parts = renderContentBlocks(item.content)
+                        let text = parts.joined(separator: " ").trimmingCharacters(in: .whitespacesAndNewlines)
+                        rendered.append("\(index + 1). \(text.isEmpty ? "_" : text)")
+                    }
+                case .codeListing:
+                    let syntax = (block.syntax ?? "swift").trimmingCharacters(in: .whitespacesAndNewlines)
+                    let code = (block.code ?? "").trimmingCharacters(in: .whitespacesAndNewlines)
+                    if !code.isEmpty { rendered.append("```\(syntax)\n\(code)\n```") }
+                case .table:
+                    let rows = block.rows ?? []
+                    guard !rows.isEmpty else { break }
+
+                    func renderCell(_ cellBlocks: [RenderContentBlock]) -> String {
+                        let parts = renderContentBlocks(cellBlocks)
+                        let text = parts.joined(separator: " ").trimmingCharacters(in: .whitespacesAndNewlines)
+                        let singleLine = text
+                            .replacingOccurrences(of: "\n\n", with: "\n")
+                            .replacingOccurrences(of: "\n", with: "<br>")
+                        return singleLine.isEmpty ? "_" : singleLine
+                    }
+
+                    func renderRow(_ row: [[RenderContentBlock]]) -> [String] {
+                        row.map(renderCell)
+                    }
+
+                    var renderedRows = rows.map(renderRow)
+                    if renderedRows.isEmpty { break }
+                    let isHeaderRow = (block.header ?? "").lowercased() == "row"
+                    let header = isHeaderRow ? renderedRows.removeFirst() : Array(repeating: "", count: renderedRows[0].count)
+                    let columnCount = header.count
+
+                    let headerLine = "| " + header.map { $0.replacingOccurrences(of: "|", with: "\\|") }.joined(separator: " | ") + " |"
+                    let separatorLine = "| " + Array(repeating: "---", count: columnCount).joined(separator: " | ") + " |"
+                    rendered.append(headerLine)
+                    rendered.append(separatorLine)
+
+                    for row in renderedRows {
+                        let normalized = row.count == columnCount
+                            ? row
+                            : (row + Array(repeating: "", count: max(0, columnCount - row.count)))
+                        let rowLine = "| " + normalized.prefix(columnCount).map { $0.replacingOccurrences(of: "|", with: "\\|") }.joined(separator: " | ") + " |"
+                        rendered.append(rowLine)
+                    }
+                case .none:
+                    continue
+                }
+            }
+
+            return rendered
+        }
+
         for contentSection in contentSections {
             for block in contentSection.content ?? [] {
                 switch RenderContentType(rawValue: block.type) {
                 case .heading:
                     flushSectionIfNeeded()
                     currentTitle = block.text?.trimmingCharacters(in: .whitespacesAndNewlines)
-                case .paragraph:
-                    let paragraph = renderParagraphText(from: block.inlineContent ?? [])
-                    let trimmed = paragraph.trimmingCharacters(in: .whitespacesAndNewlines)
-                    if !trimmed.isEmpty {
-                        currentContent.append(trimmed)
-                    }
+                case .paragraph, .unorderedList, .orderedList, .codeListing, .table:
+                    currentContent.append(contentsOf: renderContentBlocks([block]))
                 case .none:
                     continue
                 }
@@ -438,26 +593,6 @@ public struct DoccArticle: Equatable, Codable {
 
         flushSectionIfNeeded()
         return sections
-    }
-
-    private static func renderParagraphText(from inlineContent: [RenderInlineContent]) -> String {
-        var result = ""
-        result.reserveCapacity(128)
-
-        for item in inlineContent {
-            switch item.type {
-            case "text":
-                result.append(item.text ?? "")
-            case "codeVoice":
-                if let code = item.code {
-                    result.append("`\(code)`")
-                }
-            default:
-                continue
-            }
-        }
-
-        return result
     }
 }
 
@@ -1071,6 +1206,8 @@ extension DoccMetadataParser {
                 let text: String?
                 let code: String?
                 let inlineContent: [InlineContent]?
+                let identifier: String?
+                let isActive: Bool?
             }
 
             struct ContentBlock: Decodable {
@@ -1081,6 +1218,8 @@ extension DoccMetadataParser {
                 let style: String?
                 let content: [ContentBlock]?
                 let items: [ListItem]?
+                let header: String?
+                let rows: [[[ContentBlock]]]?
                 let syntax: String?
                 let code: String?
 
@@ -1092,6 +1231,8 @@ extension DoccMetadataParser {
                     case style
                     case content
                     case items
+                    case header
+                    case rows
                     case syntax
                     case code
                 }
@@ -1105,6 +1246,8 @@ extension DoccMetadataParser {
                     style = try? container.decodeIfPresent(String.self, forKey: .style)
                     content = try? container.decodeIfPresent([ContentBlock].self, forKey: .content)
                     items = try? container.decodeIfPresent([ListItem].self, forKey: .items)
+                    header = try? container.decodeIfPresent(String.self, forKey: .header)
+                    rows = try? container.decodeIfPresent([[[ContentBlock]]].self, forKey: .rows)
                     syntax = try? container.decodeIfPresent(String.self, forKey: .syntax)
 
                     if let codeString = try? container.decodeIfPresent(String.self, forKey: .code) {
@@ -1165,7 +1308,10 @@ extension DoccMetadataParser {
             let references: [String: Reference]?
         }
 
-        func renderInlineText(from items: [RenderNode.InlineContent]) -> String {
+        func renderInlineText(
+            from items: [RenderNode.InlineContent],
+            resolveReference: ((String) -> String?)? = nil
+        ) -> String {
             items.map { item in
                 switch item.type {
                 case "text":
@@ -1174,7 +1320,10 @@ extension DoccMetadataParser {
                     let code = item.code ?? item.text ?? ""
                     return code.isEmpty ? "" : "`\(code)`"
                 case "strong", "emphasis":
-                    return renderInlineText(from: item.inlineContent ?? [])
+                    return renderInlineText(from: item.inlineContent ?? [], resolveReference: resolveReference)
+                case "reference":
+                    guard let identifier = item.identifier else { return "" }
+                    return resolveReference?(identifier) ?? ""
                 default:
                     return item.text ?? item.code ?? ""
                 }
@@ -1183,7 +1332,11 @@ extension DoccMetadataParser {
             .trimmingCharacters(in: .whitespacesAndNewlines)
         }
 
-        func renderContentBlocks(_ blocks: [RenderNode.ContentBlock], headingLevelOffset: Int) -> [String] {
+        func renderContentBlocks(
+            _ blocks: [RenderNode.ContentBlock],
+            headingLevelOffset: Int,
+            resolveReference: ((String) -> String?)? = nil
+        ) -> [String] {
             var rendered: [String] = []
             rendered.reserveCapacity(blocks.count)
 
@@ -1196,27 +1349,80 @@ extension DoccMetadataParser {
                     guard !text.isEmpty else { continue }
                     rendered.append("\(hashes) \(text)")
                 case "paragraph":
-                    let text = renderInlineText(from: block.inlineContent ?? [])
+                    let text = renderInlineText(from: block.inlineContent ?? [], resolveReference: resolveReference)
                     guard !text.isEmpty else { continue }
                     rendered.append(text)
                 case "unorderedList":
                     let items = block.items ?? []
                     for item in items {
-                        let parts = renderContentBlocks(item.content, headingLevelOffset: headingLevelOffset)
+                        let parts = renderContentBlocks(
+                            item.content,
+                            headingLevelOffset: headingLevelOffset,
+                            resolveReference: resolveReference
+                        )
                         let text = parts.joined(separator: " ").trimmingCharacters(in: .whitespacesAndNewlines)
                         rendered.append("- \(text.isEmpty ? "_" : text)")
                     }
                 case "orderedList":
                     let items = block.items ?? []
                     for (index, item) in items.enumerated() {
-                        let parts = renderContentBlocks(item.content, headingLevelOffset: headingLevelOffset)
+                        let parts = renderContentBlocks(
+                            item.content,
+                            headingLevelOffset: headingLevelOffset,
+                            resolveReference: resolveReference
+                        )
                         let text = parts.joined(separator: " ").trimmingCharacters(in: .whitespacesAndNewlines)
                         rendered.append("\(index + 1). \(text.isEmpty ? "_" : text)")
+                    }
+                case "table":
+                    let rows = block.rows ?? []
+                    guard !rows.isEmpty else { continue }
+
+                    func renderCell(_ blocks: [RenderNode.ContentBlock]) -> String {
+                        let parts = renderContentBlocks(
+                            blocks,
+                            headingLevelOffset: headingLevelOffset,
+                            resolveReference: resolveReference
+                        )
+                        let text = parts.joined(separator: " ").trimmingCharacters(in: .whitespacesAndNewlines)
+                        let singleLine = text
+                            .replacingOccurrences(of: "\n\n", with: "\n")
+                            .replacingOccurrences(of: "\n", with: "<br>")
+                        return singleLine.isEmpty ? "_" : singleLine
+                    }
+
+                    func renderRow(_ row: [[RenderNode.ContentBlock]]) -> [String] {
+                        row.map(renderCell)
+                    }
+
+                    var renderedRows = rows.map(renderRow)
+                    if renderedRows.isEmpty { continue }
+
+                    let isHeaderRow = (block.header ?? "").lowercased() == "row"
+                    let header = isHeaderRow ? renderedRows.removeFirst() : Array(repeating: "", count: renderedRows[0].count)
+                    let columnCount = header.count
+                    let normalizedBody = renderedRows.map { row -> [String] in
+                        if row.count == columnCount { return row }
+                        if row.count < columnCount { return row + Array(repeating: "", count: columnCount - row.count) }
+                        return Array(row.prefix(columnCount))
+                    }
+
+                    let headerLine = "| " + header.map { $0.replacingOccurrences(of: "|", with: "\\|") }.joined(separator: " | ") + " |"
+                    let separatorLine = "| " + Array(repeating: "---", count: columnCount).joined(separator: " | ") + " |"
+                    rendered.append(headerLine)
+                    rendered.append(separatorLine)
+                    for row in normalizedBody {
+                        let rowLine = "| " + row.map { $0.replacingOccurrences(of: "|", with: "\\|") }.joined(separator: " | ") + " |"
+                        rendered.append(rowLine)
                     }
                 case "aside":
                     let style = (block.style ?? "note").trimmingCharacters(in: .whitespacesAndNewlines)
                     let label = style.isEmpty ? "Note" : style.capitalized
-                    let inner = renderContentBlocks(block.content ?? [], headingLevelOffset: headingLevelOffset)
+                    let inner = renderContentBlocks(
+                        block.content ?? [],
+                        headingLevelOffset: headingLevelOffset,
+                        resolveReference: resolveReference
+                    )
                     let innerText = inner.joined(separator: "\n\n")
                     guard !innerText.isEmpty else { continue }
                     let quoted = innerText.replacingOccurrences(of: "\n", with: "\n> ")
@@ -1236,6 +1442,16 @@ extension DoccMetadataParser {
 
         func makeSymbolPage(from node: RenderNode) -> DoccSymbolPage {
             let moduleName = node.metadata.modules?.first?.name
+            let resolveReference: (String) -> String? = { identifier in
+                guard let references = node.references else { return nil }
+                let candidate = references[identifier] ?? references.values.first(where: { $0.identifier == identifier })
+                guard let candidate else { return nil }
+                guard let title = candidate.title, !title.isEmpty else { return nil }
+                if let url = candidate.url, !url.isEmpty {
+                    return "[\(title)](\(url))"
+                }
+                return title
+            }
             let topicSections = (node.topicSections ?? []).map {
                 DoccSymbolPage.TopicSection(title: $0.title, identifiers: $0.identifiers)
             }
@@ -1247,13 +1463,21 @@ extension DoccMetadataParser {
             var discussionBlocks: [String] = []
             for section in node.primaryContentSections ?? [] {
                 if section.kind == "content", let content = section.content {
-                    discussionBlocks.append(contentsOf: renderContentBlocks(content, headingLevelOffset: 1))
+                    discussionBlocks.append(contentsOf: renderContentBlocks(
+                        content,
+                        headingLevelOffset: 1,
+                        resolveReference: resolveReference
+                    ))
                 }
                 if section.kind == "parameters", let parameters = section.parameters {
                     var lines: [String] = []
                     lines.append("### Parameters")
                     for parameter in parameters {
-                        let rendered = renderContentBlocks(parameter.content, headingLevelOffset: 0)
+                        let rendered = renderContentBlocks(
+                            parameter.content,
+                            headingLevelOffset: 0,
+                            resolveReference: resolveReference
+                        )
                         let text = rendered.joined(separator: " ").trimmingCharacters(in: .whitespacesAndNewlines)
                         lines.append("- `\(parameter.name)`: \(text.isEmpty ? "_" : text)")
                     }
@@ -1284,7 +1508,7 @@ extension DoccMetadataParser {
                 )
             }
 
-            let abstractText = node.abstract.map { renderInlineText(from: $0) }
+            let abstractText = node.abstract.map { renderInlineText(from: $0, resolveReference: resolveReference) }
             let pageTitle = node.metadata.title ?? node.identifier.url
             return DoccSymbolPage(
                 identifier: node.identifier.url,

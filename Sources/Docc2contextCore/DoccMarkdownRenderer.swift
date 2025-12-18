@@ -365,7 +365,20 @@ public struct DoccMarkdownRenderer {
                 lines.append("_No content available for this section._")
             } else {
                 for entry in section.content {
-                    lines.append("- \(entry)")
+                    let trimmed = entry.trimmingCharacters(in: .whitespacesAndNewlines)
+                    guard !trimmed.isEmpty else { continue }
+
+                    let isMultiLine = trimmed.contains("\n")
+                    let isCodeFence = trimmed.hasPrefix("```")
+                    let isTableRow = trimmed.hasPrefix("|")
+                    let isListItem = trimmed.hasPrefix("- ")
+                    let isOrderedListItem = trimmed.range(of: #"^\d+\.\s"#, options: .regularExpression) != nil
+
+                    if isMultiLine || isCodeFence || isTableRow || isListItem || isOrderedListItem {
+                        lines.append(trimmed)
+                    } else {
+                        lines.append("- \(trimmed)")
+                    }
                 }
             }
         }

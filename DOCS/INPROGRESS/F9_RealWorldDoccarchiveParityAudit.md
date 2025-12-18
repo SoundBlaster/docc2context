@@ -62,3 +62,43 @@ This task is a focused investigation spike to identify what’s missing, classif
 
 ## Current State
 - Selected; ready to start (implementation will follow START.md).
+
+## START Progress (Implementation)
+
+### Repro Command
+`swift run docc2context DOCS/INPROGRESS/SpecificationKit.doccarchive --output /tmp/f9-out --force --symbol-layout single`
+
+### Findings (Initial)
+- The “missing content” issue for real-world archives is not only about symbol pages: many pages in `SpecificationKit.doccarchive` are `kind: "article"` render nodes.
+- Before this task, render-archive articles were parsed using a minimal “heading + paragraph only” decoder, so most content in sections (lists, code examples, tables) was silently dropped, yielding many “_No content available_” sections in Markdown.
+- Additionally, the Markdown renderer for articles always prefixed section entries with `- `, which made rich Markdown (code fences, tables, pre-bulleted list entries) render incorrectly as `- ```...` or `- | ...`.
+
+### Implemented Fixes
+- Render-archive **articles** now render additional block types inside `primaryContentSections`:
+  - `unorderedList`, `orderedList`, `codeListing`, `table` (header-row tables) in addition to `heading` and `paragraph`.
+  - Inline `reference`, `strong`, `emphasis` are decoded for article paragraphs (references resolve to titles deterministically).
+- Article Markdown output now preserves rich Markdown entries:
+  - In article sections, multiline entries, code fences, table rows, and explicit list/ordered-list items are emitted without an extra `- ` prefix.
+
+### Example Verification
+After the changes, `PlatformContextProviders` (a render-archive article) now includes code blocks, list content, and the platform support table in:
+`/tmp/f9-out/markdown/articles/documentation/specificationkit/platformcontextproviders.md`
+
+### Tests Added
+- `Tests/Docc2contextCoreTests/SwiftDocCRenderArchiveContentRenderingTests.swift`
+  - symbol page table rendering
+  - inline reference rendering to Markdown link text
+- `Tests/Docc2contextCoreTests/SwiftDocCRenderArchiveArticleRenderingTests.swift`
+  - article rendering of lists, code listings, and tables into sections
+- Snapshots re-recorded for article formatting changes:
+  - `Tests/__Snapshots__/MarkdownSnapshotSpecsTests/test_referenceArticlePageMatchesSnapshot().md`
+  - `Tests/__Snapshots__/MarkdownGenerationPipelineTests/referenceArticleFromPipeline.md`
+
+### Validation Evidence
+- `swift test`
+- `python3 Scripts/lint_markdown.py`
+
+### Remaining Parity Gaps (Next Candidates)
+- Article inline references should ideally render as links when `url` is available (currently titles-only in article sections).
+- Additional render-node content types not yet supported for articles/symbols (to confirm in real archive):
+  - richer asides/callouts, images/media, term lists, and deeper inline types (`link`, etc.).
