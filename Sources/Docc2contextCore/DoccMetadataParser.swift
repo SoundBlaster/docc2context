@@ -1247,7 +1247,7 @@ extension DoccMetadataParser {
             )
         }
 
-        func decodeRenderNodeLossy(from data: Data, decoder: JSONDecoder) -> RenderNode? {
+        func decodeSymbolPageLossy(from data: Data, decoder: JSONDecoder) -> DoccSymbolPage? {
             guard let json = (try? JSONSerialization.jsonObject(with: data)) as? [String: Any] else {
                 return nil
             }
@@ -1257,37 +1257,116 @@ extension DoccMetadataParser {
                 return try? JSONSerialization.data(withJSONObject: value)
             }
 
-            guard
-                let identifierValue = json["identifier"],
-                let metadataValue = json["metadata"],
-                let identifierData = dataFor(identifierValue),
-                let metadataData = dataFor(metadataValue),
-                let decodedIdentifier = try? decoder.decode(RenderNode.Identifier.self, from: identifierData),
-                let decodedMetadata = try? decoder.decode(RenderNode.Metadata.self, from: metadataData)
+            guard let identifierValue = json["identifier"] as? [String: Any],
+                  let identifierURL = identifierValue["url"] as? String,
+                  let metadataValue = json["metadata"] as? [String: Any]
             else {
                 return nil
             }
 
-            let abstract = (try? dataFor(json["abstract"]).flatMap { try decoder.decode([RenderNode.InlineContent].self, from: $0) }) ?? nil
-            let topicSections = (try? dataFor(json["topicSections"]).flatMap { try decoder.decode([RenderNode.TopicSection].self, from: $0) }) ?? nil
-            let relationshipsSections =
-                (try? dataFor(json["relationshipsSections"]).flatMap { try decoder.decode([RenderNode.RelationshipSection].self, from: $0) }) ??
-                (try? dataFor(json["relationshipSections"]).flatMap { try decoder.decode([RenderNode.RelationshipSection].self, from: $0) }) ??
-                nil
-            let primaryContentSections =
-                (try? dataFor(json["primaryContentSections"]).flatMap { try decoder.decode([RenderNode.PrimaryContentSection].self, from: $0) }) ?? nil
-            let references = (try? dataFor(json["references"]).flatMap { try decoder.decode([String: RenderNode.Reference].self, from: $0) }) ?? nil
+            let title = (metadataValue["title"] as? String) ?? identifierURL
+            let roleHeading = metadataValue["roleHeading"] as? String
+            let symbolKind = metadataValue["symbolKind"] as? String
+            let moduleName = ((metadataValue["modules"] as? [[String: Any]])?.first?["name"] as? String)
 
-            let kind = (json["kind"] as? String) ?? "symbol"
-            return RenderNode(
-                kind: kind,
-                identifier: decodedIdentifier,
-                abstract: abstract,
+            let abstractItems = (json["abstract"] as? [[String: Any]]) ?? []
+            let abstractText = abstractItems.map { item -> String in
+                let type = item["type"] as? String
+                if type == "codeVoice", let code = item["code"] as? String {
+                    return "`\(code)`"
+                }
+                return (item["text"] as? String) ?? ""
+            }
+            .joined()
+            .trimmingCharacters(in: .whitespacesAndNewlines)
+
+            let topicSectionsRaw = (json["topicSections"] as? [[String: Any]]) ?? []
+            let topicSections = topicSectionsRaw.compactMap { section -> DoccSymbolPage.TopicSection? in
+                guard let title = section["title"] as? String else { return nil }
+                let identifiers = (section["identifiers"] as? [String]) ?? []
+                return DoccSymbolPage.TopicSection(title: title, identifiers: identifiers)
+            }
+
+            let relationshipSectionsRaw =
+                (json["relationshipsSections"] as? [[String: Any]]) ??
+                (json["relationshipSections"] as? [[String: Any]]) ??
+                []
+            let relationshipSections = relationshipSectionsRaw.compactMap { section -> DoccSymbolPage.RelationshipSection? in
+                guard let title = section["title"] as? String else { return nil }
+                let identifiers = (section["identifiers"] as? [String]) ?? []
+                return DoccSymbolPage.RelationshipSection(title: title, identifiers: identifiers)
+            }
+
+            var referencesByIdentifier: [String: DoccSymbolPage.Reference] = [:]
+            if let referencesRaw = json["references"] as? [String: Any] {
+                for (key, value) in referencesRaw {
+                    guard let ref = value as? [String: Any] else { continue }
+                    guard let title = ref["title"] as? String, !title.isEmpty else { continue }
+                    let kind = (ref["kind"] as? String) ?? "topic"
+                    let identifier = (ref["identifier"] as? String) ?? key
+                    let urlPath = ref["url"] as? String
+                    referencesByIdentifier[key] = DoccSymbolPage.Reference(
+                        identifier: identifier,
+                        kind: kind,
+                        title: title,
+                        urlPath: urlPath
+                    )
+                }
+            }
+
+            var declarations: [DoccSymbolPage.Declaration] = []
+            var discussionBlocks: [String] = []
+            if let primarySections = json["primaryContentSections"] as? [[String: Any]] {
+                for section in primarySections {
+                    let kind = section["kind"] as? String
+                    if kind == "declarations", let decls = section["declarations"] as? [[String: Any]] {
+                        for decl in decls {
+                            let languages = decl["languages"] as? [String]
+                            let language = languages?.first
+                            let tokens = (decl["tokens"] as? [[String: Any]]) ?? []
+                            let text = tokens.compactMap { $0["text"] as? String }.joined()
+                                .trimmingCharacters(in: .whitespacesAndNewlines)
+                            guard !text.isEmpty else { continue }
+                            declarations.append(DoccSymbolPage.Declaration(language: language, text: text))
+                        }
+                    }
+                    if kind == "content", let content = section["content"] as? [[String: Any]] {
+                        let contentData = dataFor(content) ?? Data()
+                        if let decodedBlocks = try? decoder.decode([RenderNode.ContentBlock].self, from: contentData) {
+                            discussionBlocks.append(contentsOf: renderContentBlocks(decodedBlocks, headingLevelOffset: 1))
+                        } else {
+                            // Best-effort manual parse for common heading/paragraph shapes.
+                            for block in content {
+                                guard let type = block["type"] as? String else { continue }
+                                if type == "heading", let text = block["text"] as? String {
+                                    let level = max(1, min(6, (block["level"] as? Int ?? 2) + 1))
+                                    discussionBlocks.append("\(String(repeating: "#", count: level)) \(text)")
+                                } else if type == "paragraph", let inline = block["inlineContent"] as? [[String: Any]] {
+                                    let text = inline.map { item -> String in
+                                        let t = item["type"] as? String
+                                        if t == "codeVoice", let code = item["code"] as? String { return "`\(code)`" }
+                                        return (item["text"] as? String) ?? ""
+                                    }.joined().trimmingCharacters(in: .whitespacesAndNewlines)
+                                    if !text.isEmpty { discussionBlocks.append(text) }
+                                }
+                            }
+                        }
+                    }
+                }
+            }
+
+            return DoccSymbolPage(
+                identifier: identifierURL,
+                title: title,
+                abstract: abstractText.isEmpty ? nil : abstractText,
+                discussion: discussionBlocks,
+                symbolKind: symbolKind,
+                roleHeading: roleHeading,
+                moduleName: moduleName,
                 topicSections: topicSections,
-                relationshipsSections: relationshipsSections,
-                primaryContentSections: primaryContentSections,
-                metadata: decodedMetadata,
-                references: references
+                relationshipSections: relationshipSections,
+                declarations: declarations,
+                referencesByIdentifier: referencesByIdentifier
             )
         }
 
@@ -1306,10 +1385,9 @@ extension DoccMetadataParser {
             do {
                 node = try decoder.decode(RenderNode.self, from: data)
             } catch {
-                guard let lossy = decodeRenderNodeLossy(from: data, decoder: decoder) else {
-                    continue
-                }
-                node = lossy
+                guard let page = decodeSymbolPageLossy(from: data, decoder: decoder) else { continue }
+                pagesByIdentifier[page.identifier] = page
+                continue
             }
 
             pagesByIdentifier[node.identifier.url] = makeSymbolPage(from: node)

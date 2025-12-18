@@ -11,6 +11,23 @@
 ## Summary
 Converts a DocC bundle into deterministic Markdown and a link graph.
 
+## Discussion
+
+### Overview
+
+Use this type when you want a , filesystem-based export that is suitable for feeding into downstream tooling (for example, LLM context ingestion) without requiring Xcode.
+
+The pipeline is designed to be:
+
+### Usage
+
+Convert a DocC archive directory to Markdown:
+
+## Declarations
+```swift
+struct MarkdownGenerationPipeline
+```
+
 ## Topics
 
 ### Structures

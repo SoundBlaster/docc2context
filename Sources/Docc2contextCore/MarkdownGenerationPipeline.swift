@@ -231,22 +231,27 @@ public struct MarkdownGenerationPipeline {
             from: bundleModel.documentationCatalog,
             availableArticles: Set(articlesByIdentifier.keys))
 
+        let renderArchiveSymbols = try metadataParser.loadSwiftDocCRenderArchiveSymbolPages(from: inputURL)
+
         if !articleIdentifiers.isEmpty && !articlesByIdentifier.isEmpty {
             try ensureDirectoryExists(articlesRoot)
         }
 
         for identifier in articleIdentifiers {
             guard let article = articlesByIdentifier[identifier] else { continue }
+            let renderedArticle = maybeAugmentCollectionGroupArticle(
+                article,
+                symbolsByIdentifier: renderArchiveSymbols
+            )
             let markdown = renderer.renderReferenceArticle(
                 catalog: bundleModel.documentationCatalog,
-                article: article)
+                article: renderedArticle)
             let articleURL = makeArticleFileURL(for: identifier, under: articlesRoot)
             try write(markdown: markdown, to: articleURL)
             referenceArticleCount += 1
         }
 
         // Swift-DocC render archive symbol pages (F5): render `kind: "symbol"` nodes into Xcode-like Markdown.
-        let renderArchiveSymbols = try metadataParser.loadSwiftDocCRenderArchiveSymbolPages(from: inputURL)
         if !renderArchiveSymbols.isEmpty {
             switch symbolLayout {
             case .tree:
@@ -469,6 +474,56 @@ public struct MarkdownGenerationPipeline {
 
         let fileName = slug(for: rawComponents.last ?? "symbol", fallback: "symbol")
         return directory.appendingPathComponent(fileName).appendingPathExtension("md")
+    }
+
+    private func maybeAugmentCollectionGroupArticle(
+        _ article: DoccArticle,
+        symbolsByIdentifier: [String: DoccSymbolPage]
+    ) -> DoccArticle {
+        guard article.kind == "article",
+              article.sections.isEmpty,
+              let parentIdentifier = parentSymbolIdentifier(forCollectionGroupArticleIdentifier: article.identifier),
+              let parentSymbol = symbolsByIdentifier[parentIdentifier]
+        else {
+            return article
+        }
+
+        var contextLines: [String] = []
+        if let summary = parentSymbol.abstract?.trimmingCharacters(in: .whitespacesAndNewlines), !summary.isEmpty {
+            contextLines.append(summary)
+        }
+
+        let discussionText = parentSymbol.discussion
+            .map { $0.trimmingCharacters(in: .whitespacesAndNewlines) }
+            .filter { !$0.isEmpty }
+
+        if let firstParagraph = discussionText.first(where: { !$0.hasPrefix("#") }) {
+            contextLines.append(firstParagraph)
+        }
+
+        guard !contextLines.isEmpty else { return article }
+
+        let augmentedSections = [DoccArticle.Section(title: "Context", content: contextLines)]
+        return DoccArticle(
+            identifier: article.identifier,
+            kind: article.kind,
+            title: article.title,
+            abstract: article.abstract,
+            sections: augmentedSections + article.sections,
+            topics: article.topics,
+            references: article.references
+        )
+    }
+
+    private func parentSymbolIdentifier(forCollectionGroupArticleIdentifier identifier: String) -> String? {
+        guard let url = URL(string: identifier), url.scheme == "doc", let host = url.host else { return nil }
+        let components = url.pathComponents.filter { $0 != "/" }
+        guard components.count >= 4 else { return nil }
+        guard components.first == "documentation" else { return nil }
+        // documentation/<module>/<symbol>/<collection-group>
+        let module = components[1]
+        let symbol = components[2]
+        return "doc://\(host)/documentation/\(module)/\(symbol)"
     }
 
     /// Streaming-optimized article loading: Returns dictionary directly without intermediate array
