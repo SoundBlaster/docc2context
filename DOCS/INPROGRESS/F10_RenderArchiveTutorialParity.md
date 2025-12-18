@@ -47,4 +47,21 @@ These warnings indicate the tutorial render-node JSON exists but does not match 
 - Determinism smoke: run conversion twice on the same fixture and hash outputs.
 
 ## Current State
-- Task created; not started.
+## Selection (SELECT_NEXT)
+- Selected next because it eliminates the most visible real-world warning (`invalidTutorialPage`) and unlocks tutorial Markdown parity for `@Tutorial` content, complementing F5/F5.1/F9’s symbol/article parity work.
+- Phase: **C (Markdown generation)** — tutorial render-node decoding + Markdown emission.
+- Priority: **P1** (important). Rationale: tutorials are a major DocC surface area; skipping them makes outputs feel incomplete even when symbol pages are good.
+
+## Dependencies / Preconditions
+- Existing render-archive detection and bundle walking are in place.
+- Real-world repro archive available locally: `DOCS/INPROGRESS/SpecificationKit.doccarchive`.
+- Existing tutorial pipeline already tolerates failures by warning and continuing; we’ll replace warnings with successful decode for supported shapes.
+
+## Planned Execution (High Level)
+1. Inspect the schema of `gettingstarted.json` and `advancedpatterns.json` under `data/tutorials/...` to enumerate block/inline types and structure.
+2. Define/extend internal tutorial models to match render-node JSON (tolerant decoding, lossy fallback if needed).
+3. Implement Markdown emission rules for intro/sections/steps/code/assessments with determinism constraints.
+4. Add fixture-backed snapshot tests that lock tutorial pages and prevent regressions.
+
+## Current State
+- Selected; ready to start with START.md.
