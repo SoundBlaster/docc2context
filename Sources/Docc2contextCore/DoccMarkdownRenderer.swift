@@ -81,6 +81,38 @@ public struct DoccMarkdownRenderer {
         return sections.joined(separator: "\n\n") + "\n"
     }
 
+    public func renderTutorialPage(
+        catalog: DoccDocumentationCatalog,
+        volume: DoccTutorialVolume,
+        chapter: DoccTutorialChapter,
+        tutorial: DoccTutorial
+    ) -> String {
+        var sections: [String] = []
+        sections.append("# \(tutorial.title)")
+        sections.append(makeTutorialMetadataSection(
+            catalog: catalog,
+            volume: volume,
+            chapter: chapter,
+            tutorial: tutorial
+        ))
+
+        if let introduction = tutorial.introduction?.trimmingCharacters(in: .whitespacesAndNewlines),
+           !introduction.isEmpty
+        {
+            sections.append(["## Introduction", introduction].joined(separator: "\n"))
+        }
+
+        if !tutorial.steps.isEmpty {
+            sections.append((["## Sections", "### Steps"] + makeStepLines(for: tutorial.steps)).joined(separator: "\n"))
+        }
+
+        if !tutorial.assessments.isEmpty {
+            sections.append((["## Assessments"] + makeAssessmentLines(for: tutorial.assessments)).joined(separator: "\n"))
+        }
+
+        return sections.joined(separator: "\n\n") + "\n"
+    }
+
     public func renderReferenceArticle(
         catalog: DoccDocumentationCatalog,
         article: DoccArticle
@@ -262,6 +294,22 @@ public struct DoccMarkdownRenderer {
             }
         }
 
+        return lines.joined(separator: "\n")
+    }
+
+    private func makeTutorialMetadataSection(
+        catalog: DoccDocumentationCatalog,
+        volume: DoccTutorialVolume,
+        chapter: DoccTutorialChapter,
+        tutorial: DoccTutorial
+    ) -> String {
+        var lines: [String] = ["## Tutorial Metadata"]
+        lines.append("- **Identifier:** \(tutorial.identifier)")
+        lines.append("- **Catalog Identifier:** \(catalog.identifier)")
+        lines.append("- **Catalog Title:** \(catalog.title)")
+        lines.append("- **Volume Title:** \(volume.title)")
+        lines.append("- **Volume Identifier:** \(volume.identifier)")
+        lines.append("- **Chapter Title:** \(chapter.title)")
         return lines.joined(separator: "\n")
     }
 

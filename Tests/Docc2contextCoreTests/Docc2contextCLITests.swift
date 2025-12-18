@@ -188,6 +188,48 @@ final class Docc2contextCLITests: XCTestCase {
         XCTAssertTrue(result.output.contains("single"), "F6 spec: help text should mention the 'single' mode.")
     }
 
+    func testHelpDescribesTutorialLayoutFlag() throws {
+        let result = Docc2contextCommand().run(arguments: ["docc2context", "--help"])
+
+        XCTAssertTrue(
+            result.output.contains("--tutorial-layout"),
+            "F10 spec: help text must document the opt-in single-page tutorial layout flag."
+        )
+        XCTAssertTrue(result.output.contains("chapter"), "F10 spec: help text should mention the 'chapter' mode.")
+        XCTAssertTrue(result.output.contains("single"), "F10 spec: help text should mention the 'single' mode.")
+    }
+
+    func testTutorialLayoutSingleWritesPerTutorialFiles() throws {
+        let fixturesURL = FixtureLoader.urlForBundle(named: "TutorialCatalog.doccarchive")
+        try TestTemporaryDirectory.withTemporaryDirectory { temp in
+            let outputDirectory = temp.childDirectory(named: "cli-tutorial-single-layout")
+
+            let command = Docc2contextCommand()
+            let result = command.run(arguments: [
+                "docc2context",
+                fixturesURL.path,
+                "--output",
+                outputDirectory.path,
+                "--force",
+                "--tutorial-layout",
+                "single",
+            ])
+
+            XCTAssertEqual(result.exitCode, 0, "F10 spec: --tutorial-layout single should be accepted.")
+
+            let chapterDirectory = outputDirectory
+                .appendingPathComponent("markdown", isDirectory: true)
+                .appendingPathComponent("tutorials", isDirectory: true)
+                .appendingPathComponent("tutorialcatalog", isDirectory: true)
+                .appendingPathComponent("getting-started", isDirectory: true)
+
+            XCTAssertTrue(
+                FileManager.default.fileExists(atPath: chapterDirectory.path),
+                "F10 spec: --tutorial-layout single should create a per-chapter tutorial directory."
+            )
+        }
+    }
+
     func testSymbolLayoutSingleFlagEmitsTopLevelSymbolAsSingleMarkdownFile() throws {
         let fixturesURL = FixtureLoader.urlForBundle(named: "Docc2contextCore.doccarchive")
         try TestTemporaryDirectory.withTemporaryDirectory { temp in

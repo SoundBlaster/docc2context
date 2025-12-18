@@ -50,6 +50,11 @@ public struct MarkdownGenerationPipeline {
         case single
     }
 
+    public enum TutorialLayout: String, CaseIterable, Codable {
+        case chapter
+        case single
+    }
+
     public enum Error: Swift.Error, LocalizedError {
         case inputDoesNotExist(URL)
         case inputIsNotDirectory(URL)
@@ -137,7 +142,8 @@ public struct MarkdownGenerationPipeline {
         to outputPath: String,
         forceOverwrite: Bool,
         technologyFilter: [String]? = nil,
-        symbolLayout: SymbolLayout = .tree
+        symbolLayout: SymbolLayout = .tree,
+        tutorialLayout: TutorialLayout = .chapter
     ) throws -> Summary {
         let inputURL = URL(fileURLWithPath: inputPath).standardizedFileURL
         try validateInputDirectory(inputURL)
@@ -207,18 +213,49 @@ public struct MarkdownGenerationPipeline {
                         }
                     }
 
-                    let chapterMarkdown = renderer.renderTutorialChapterPage(
-                        catalog: bundleModel.documentationCatalog,
-                        volume: volume,
-                        chapter: chapter,
-                        tutorials: tutorials)
+                    switch tutorialLayout {
+                    case .chapter:
+                        let chapterMarkdown = renderer.renderTutorialChapterPage(
+                            catalog: bundleModel.documentationCatalog,
+                            volume: volume,
+                            chapter: chapter,
+                            tutorials: tutorials)
 
-                    let chapterURL = makeChapterFileURL(
-                        title: chapter.title,
-                        index: index,
-                        under: volumeDirectory)
-                    try write(markdown: chapterMarkdown, to: chapterURL)
-                    chapterCount += 1
+                        let chapterURL = makeChapterFileURL(
+                            title: chapter.title,
+                            index: index,
+                            under: volumeDirectory)
+                        try write(markdown: chapterMarkdown, to: chapterURL)
+                        chapterCount += 1
+                    case .single:
+                        let chapterMarkdown = renderer.renderTutorialChapterPage(
+                            catalog: bundleModel.documentationCatalog,
+                            volume: volume,
+                            chapter: chapter,
+                            tutorials: tutorials)
+
+                        let chapterURL = makeChapterFileURL(
+                            title: chapter.title,
+                            index: index,
+                            under: volumeDirectory)
+                        try write(markdown: chapterMarkdown, to: chapterURL)
+                        chapterCount += 1
+
+                        let chapterTutorialsDirectory = volumeDirectory
+                            .appendingPathComponent(slug(for: chapter.title, fallback: "chapter"), isDirectory: true)
+                        try ensureDirectoryExists(chapterTutorialsDirectory)
+
+                        for tutorial in tutorials {
+                            let tutorialMarkdown = renderer.renderTutorialPage(
+                                catalog: bundleModel.documentationCatalog,
+                                volume: volume,
+                                chapter: chapter,
+                                tutorial: tutorial
+                            )
+                            let tutorialURL = makeTutorialFileURL(title: tutorial.title, under: chapterTutorialsDirectory)
+                            try write(markdown: tutorialMarkdown, to: tutorialURL)
+                        }
+                    }
                 }
             }
         }
@@ -409,6 +446,11 @@ public struct MarkdownGenerationPipeline {
         let numberedTitle = "\(index + 1)-\(title)"
         let slugValue = slug(for: numberedTitle, fallback: "chapter-\(index + 1)")
         return volumeDirectory.appendingPathComponent("\(slugValue).md", isDirectory: false)
+    }
+
+    private func makeTutorialFileURL(title: String, under directory: URL) -> URL {
+        let slugValue = slug(for: title, fallback: "tutorial")
+        return directory.appendingPathComponent("\(slugValue).md", isDirectory: false)
     }
 
     private func makeArticleFileURL(for identifier: String, under root: URL) -> URL {
