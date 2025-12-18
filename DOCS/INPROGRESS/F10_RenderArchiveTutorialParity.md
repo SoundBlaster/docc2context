@@ -65,3 +65,35 @@ These warnings indicate the tutorial render-node JSON exists but does not match 
 
 ## Current State
 - Selected; ready to start with START.md.
+
+## START Progress
+
+### What Swift-DocC Actually Emits (Repro)
+For `SpecificationKit.doccarchive`, tutorial pages under `data/tutorials/.../*.json` are **render nodes with**:
+- `kind: "project"`
+- `metadata.role: "project"`
+- `sections: [ { kind: "hero" }, { kind: "tasks" }, { kind: "callToAction" } ]`
+
+They are not shaped like our legacy `DoccTutorial` JSON model, which is why decoding previously failed with `invalidTutorialPage(...)`.
+
+### Changes Implemented
+- Added render-archive decoding support to `DoccTutorial` for `kind: "project"` tutorial pages:
+  - `identifier.url` → `DoccTutorial.identifier`
+  - `metadata.title` → `DoccTutorial.title`
+  - `sections[kind=hero].content` paragraphs → `DoccTutorial.introduction`
+  - `sections[kind=tasks].tasks[].title` → `DoccTutorial.steps[].title`
+  - task reference abstracts (`references["<identifier>#<anchor>"].abstract`) → `DoccTutorial.steps[].content`
+- This eliminates `invalidTutorialPage` warnings for `GettingStarted` and `AdvancedPatterns` in the `SpecificationKit` archive.
+
+### Tests Added
+- `Tests/Docc2contextCoreTests/SwiftDocCRenderArchiveTutorialDecodingTests.swift`
+  - Ensures `loadTutorialPage` decodes a render-archive project node into a usable `DoccTutorial`.
+
+### Manual Validation
+`swift run docc2context DOCS/INPROGRESS/SpecificationKit.doccarchive --output /tmp/f10-out --force --symbol-layout single`
+
+Tutorials now render into:
+`/tmp/f10-out/markdown/tutorials/doc-specificationkit-specificationkit-documentation-specificationkit/1-learning-specificationkit.md`
+
+### Remaining Gaps
+- `project` pages are TOC-like and may not include step-by-step bodies; richer interactive tutorial pages (steps with code/media, assessments) likely require additional render-node kinds and schemas beyond `project`.

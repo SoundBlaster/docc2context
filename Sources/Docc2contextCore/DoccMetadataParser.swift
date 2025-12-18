@@ -618,6 +618,167 @@ public struct DoccTutorial: Equatable, Codable {
     public let introduction: String?
     public let steps: [Step]
     public let assessments: [Assessment]
+
+    private enum CodingKeys: String, CodingKey {
+        case identifier
+        case title
+        case introduction
+        case steps
+        case assessments
+    }
+
+    // Swift-DocC render archive tutorial (project) keys.
+    private enum RenderCodingKeys: String, CodingKey {
+        case identifier
+        case kind
+        case metadata
+        case sections
+        case references
+    }
+
+    private struct RenderIdentifier: Decodable {
+        let url: String
+    }
+
+    private struct RenderMetadata: Decodable {
+        let title: String?
+        let role: String?
+    }
+
+    private struct RenderInlineContent: Decodable {
+        let type: String
+        let text: String?
+        let code: String?
+        let inlineContent: [RenderInlineContent]?
+        let identifier: String?
+    }
+
+    private struct RenderContentBlock: Decodable {
+        let type: String
+        let inlineContent: [RenderInlineContent]?
+    }
+
+    private struct RenderTask: Decodable {
+        let title: String?
+        let anchor: String?
+    }
+
+    private struct RenderSection: Decodable {
+        let kind: String
+        let title: String?
+        let content: [RenderContentBlock]?
+        let tasks: [RenderTask]?
+    }
+
+    private struct RenderReference: Decodable {
+        struct AbstractItem: Decodable {
+            let type: String
+            let text: String?
+            let code: String?
+        }
+
+        let identifier: String?
+        let title: String?
+        let abstract: [AbstractItem]?
+    }
+
+    public init(from decoder: Decoder) throws {
+        let container = try decoder.container(keyedBy: CodingKeys.self)
+
+        // Legacy synthetic format.
+        if let decodedIdentifier = try? container.decode(String.self, forKey: .identifier),
+           let decodedTitle = try? container.decode(String.self, forKey: .title)
+        {
+            identifier = decodedIdentifier
+            title = decodedTitle
+            introduction = try? container.decodeIfPresent(String.self, forKey: .introduction)
+            steps = (try? container.decode([Step].self, forKey: .steps)) ?? []
+            assessments = (try? container.decode([Assessment].self, forKey: .assessments)) ?? []
+            return
+        }
+
+        // Swift-DocC render archive "project" tutorial page.
+        let renderContainer = try decoder.container(keyedBy: RenderCodingKeys.self)
+        let renderIdentifier = try renderContainer.decode(RenderIdentifier.self, forKey: .identifier)
+        let kind = try renderContainer.decode(String.self, forKey: .kind)
+        let metadata = try renderContainer.decode(RenderMetadata.self, forKey: .metadata)
+        let sections = (try? renderContainer.decode([RenderSection].self, forKey: .sections)) ?? []
+        let references = (try? renderContainer.decode([String: RenderReference].self, forKey: .references)) ?? [:]
+
+        guard kind == "project" else {
+            throw DecodingError.dataCorruptedError(
+                forKey: .kind,
+                in: renderContainer,
+                debugDescription: "Unsupported tutorial render node kind: \(kind)")
+        }
+
+        let identifierURL = renderIdentifier.url
+        identifier = identifierURL
+        title = metadata.title ?? "Tutorial"
+
+        func renderInlineText(_ items: [RenderInlineContent]) -> String {
+            items.map { item in
+                switch item.type {
+                case "text":
+                    return item.text ?? ""
+                case "codeVoice":
+                    let code = item.code ?? ""
+                    return code.isEmpty ? "" : "`\(code)`"
+                case "strong", "emphasis":
+                    return renderInlineText(item.inlineContent ?? [])
+                case "reference":
+                    guard let refID = item.identifier else { return "" }
+                    let candidate = references[refID] ?? references.values.first(where: { $0.identifier == refID })
+                    return candidate?.title ?? ""
+                default:
+                    return item.text ?? item.code ?? ""
+                }
+            }
+            .joined()
+            .trimmingCharacters(in: .whitespacesAndNewlines)
+        }
+
+        func renderParagraphs(from blocks: [RenderContentBlock]) -> [String] {
+            blocks.compactMap { block in
+                guard block.type == "paragraph" else { return nil }
+                let text = renderInlineText(block.inlineContent ?? [])
+                return text.isEmpty ? nil : text
+            }
+        }
+
+        // Intro from hero content.
+        let hero = sections.first(where: { $0.kind == "hero" })
+        let heroParagraphs = hero.flatMap { renderParagraphs(from: $0.content ?? []) } ?? []
+        introduction = heroParagraphs.isEmpty ? nil : heroParagraphs.joined(separator: "\n\n")
+
+        // Steps from tasks list + optional abstract from reference map keyed by anchor.
+        let tasksSection = sections.first(where: { $0.kind == "tasks" })
+        let tasks = tasksSection?.tasks ?? []
+        steps = tasks.map { task in
+            let stepTitle = (task.title ?? "").trimmingCharacters(in: .whitespacesAndNewlines)
+            let anchor = (task.anchor ?? "").trimmingCharacters(in: .whitespacesAndNewlines)
+            let refKey = anchor.isEmpty ? nil : "\(identifierURL)#\(anchor)"
+            let abstract = refKey.flatMap { references[$0]?.abstract } ?? []
+            let abstractText = abstract.compactMap { item -> String? in
+                if item.type == "codeVoice", let code = item.code { return "`\(code)`" }
+                let text = item.text?.trimmingCharacters(in: .whitespacesAndNewlines) ?? ""
+                return text.isEmpty ? nil : text
+            }
+            let content = abstractText.isEmpty ? [] : abstractText
+            return Step(title: stepTitle.isEmpty ? "Step" : stepTitle, content: content)
+        }
+
+        assessments = []
+    }
+
+    public func encode(to encoder: Encoder) throws {
+        var container = encoder.container(keyedBy: CodingKeys.self)
+        try container.encode(identifier, forKey: .identifier)
+        try container.encode(title, forKey: .title)
+        try container.encodeIfPresent(introduction, forKey: .introduction)
+        try container.encode(steps, forKey: .steps)
+        try container.encode(assessments, forKey: .assessments)
+    }
 }
 
 public struct DoccSymbolReference: Equatable, Codable {
