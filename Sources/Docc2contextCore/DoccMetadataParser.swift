@@ -1070,6 +1070,7 @@ extension DoccMetadataParser {
                 let type: String
                 let text: String?
                 let code: String?
+                let inlineContent: [InlineContent]?
             }
 
             struct ContentBlock: Decodable {
@@ -1079,8 +1080,45 @@ extension DoccMetadataParser {
                 let inlineContent: [InlineContent]?
                 let style: String?
                 let content: [ContentBlock]?
+                let items: [ListItem]?
                 let syntax: String?
                 let code: String?
+
+                private enum CodingKeys: String, CodingKey {
+                    case type
+                    case level
+                    case text
+                    case inlineContent
+                    case style
+                    case content
+                    case items
+                    case syntax
+                    case code
+                }
+
+                init(from decoder: Decoder) throws {
+                    let container = try decoder.container(keyedBy: CodingKeys.self)
+                    type = try container.decode(String.self, forKey: .type)
+                    level = try? container.decodeIfPresent(Int.self, forKey: .level)
+                    text = try? container.decodeIfPresent(String.self, forKey: .text)
+                    inlineContent = try? container.decodeIfPresent([InlineContent].self, forKey: .inlineContent)
+                    style = try? container.decodeIfPresent(String.self, forKey: .style)
+                    content = try? container.decodeIfPresent([ContentBlock].self, forKey: .content)
+                    items = try? container.decodeIfPresent([ListItem].self, forKey: .items)
+                    syntax = try? container.decodeIfPresent(String.self, forKey: .syntax)
+
+                    if let codeString = try? container.decodeIfPresent(String.self, forKey: .code) {
+                        code = codeString
+                    } else if let codeLines = try? container.decodeIfPresent([String].self, forKey: .code) {
+                        code = codeLines.joined(separator: "\n")
+                    } else {
+                        code = nil
+                    }
+                }
+            }
+
+            struct ListItem: Decodable {
+                let content: [ContentBlock]
             }
 
             struct Parameter: Decodable {
@@ -1135,6 +1173,8 @@ extension DoccMetadataParser {
                 case "codeVoice":
                     let code = item.code ?? item.text ?? ""
                     return code.isEmpty ? "" : "`\(code)`"
+                case "strong", "emphasis":
+                    return renderInlineText(from: item.inlineContent ?? [])
                 default:
                     return item.text ?? item.code ?? ""
                 }
@@ -1159,6 +1199,20 @@ extension DoccMetadataParser {
                     let text = renderInlineText(from: block.inlineContent ?? [])
                     guard !text.isEmpty else { continue }
                     rendered.append(text)
+                case "unorderedList":
+                    let items = block.items ?? []
+                    for item in items {
+                        let parts = renderContentBlocks(item.content, headingLevelOffset: headingLevelOffset)
+                        let text = parts.joined(separator: " ").trimmingCharacters(in: .whitespacesAndNewlines)
+                        rendered.append("- \(text.isEmpty ? "_" : text)")
+                    }
+                case "orderedList":
+                    let items = block.items ?? []
+                    for (index, item) in items.enumerated() {
+                        let parts = renderContentBlocks(item.content, headingLevelOffset: headingLevelOffset)
+                        let text = parts.joined(separator: " ").trimmingCharacters(in: .whitespacesAndNewlines)
+                        rendered.append("\(index + 1). \(text.isEmpty ? "_" : text)")
+                    }
                 case "aside":
                     let style = (block.style ?? "note").trimmingCharacters(in: .whitespacesAndNewlines)
                     let label = style.isEmpty ? "Note" : style.capitalized
@@ -1348,6 +1402,40 @@ extension DoccMetadataParser {
                                         return (item["text"] as? String) ?? ""
                                     }.joined().trimmingCharacters(in: .whitespacesAndNewlines)
                                     if !text.isEmpty { discussionBlocks.append(text) }
+                                } else if type == "codeListing" {
+                                    let syntax = ((block["syntax"] as? String) ?? "swift").trimmingCharacters(in: .whitespacesAndNewlines)
+                                    let code = ((block["code"] as? String) ?? "").trimmingCharacters(in: .whitespacesAndNewlines)
+                                    if !code.isEmpty {
+                                        discussionBlocks.append("```\(syntax)\n\(code)\n```")
+                                    }
+                                } else if type == "unorderedList", let items = block["items"] as? [[String: Any]] {
+                                    for item in items {
+                                        guard let itemContent = item["content"] as? [[String: Any]] else { continue }
+                                        let parts = itemContent.compactMap { sub -> String? in
+                                            guard let subType = sub["type"] as? String else { return nil }
+                                            if subType == "paragraph", let inline = sub["inlineContent"] as? [[String: Any]] {
+                                                let text = inline.map { item -> String in
+                                                    let t = item["type"] as? String
+                                                    if t == "codeVoice", let code = item["code"] as? String { return "`\(code)`" }
+                                                    if (t == "strong" || t == "emphasis"), let inner = item["inlineContent"] as? [[String: Any]] {
+                                                        return inner.map { innerItem -> String in
+                                                            let innerType = innerItem["type"] as? String
+                                                            if innerType == "codeVoice", let code = innerItem["code"] as? String { return "`\(code)`" }
+                                                            return (innerItem["text"] as? String) ?? ""
+                                                        }.joined()
+                                                    }
+                                                    return (item["text"] as? String) ?? ""
+                                                }.joined().trimmingCharacters(in: .whitespacesAndNewlines)
+                                                return text.isEmpty ? nil : text
+                                            }
+                                            if subType == "heading", let text = sub["text"] as? String {
+                                                return text.trimmingCharacters(in: .whitespacesAndNewlines)
+                                            }
+                                            return nil
+                                        }
+                                        let text = parts.joined(separator: " ").trimmingCharacters(in: .whitespacesAndNewlines)
+                                        discussionBlocks.append("- \(text.isEmpty ? "_" : text)")
+                                    }
                                 }
                             }
                         }
