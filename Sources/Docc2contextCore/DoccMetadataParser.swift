@@ -656,11 +656,29 @@ public struct DoccTutorial: Equatable, Codable {
     private struct RenderContentBlock: Decodable {
         let type: String
         let inlineContent: [RenderInlineContent]?
+        let items: [RenderListItem]?
+    }
+
+    private struct RenderListItem: Decodable {
+        let content: [RenderContentBlock]
+    }
+
+    private struct RenderContentAndMedia: Decodable {
+        let kind: String?
+        let content: [RenderContentBlock]?
+    }
+
+    private struct RenderStep: Decodable {
+        let type: String?
+        let content: [RenderContentBlock]?
+        let code: String?
     }
 
     private struct RenderTask: Decodable {
         let title: String?
         let anchor: String?
+        let contentSection: [RenderContentAndMedia]?
+        let stepsSection: [RenderStep]?
     }
 
     private struct RenderSection: Decodable {
@@ -680,6 +698,18 @@ public struct DoccTutorial: Equatable, Codable {
         let identifier: String?
         let title: String?
         let abstract: [AbstractItem]?
+        let fileName: String?
+        let syntax: String?
+        let content: [String]?
+
+        private enum CodingKeys: String, CodingKey {
+            case identifier
+            case title
+            case abstract
+            case fileName
+            case syntax
+            case content
+        }
     }
 
     public init(from decoder: Decoder) throws {
@@ -738,17 +768,33 @@ public struct DoccTutorial: Equatable, Codable {
             .trimmingCharacters(in: .whitespacesAndNewlines)
         }
 
-        func renderParagraphs(from blocks: [RenderContentBlock]) -> [String] {
-            blocks.compactMap { block in
-                guard block.type == "paragraph" else { return nil }
-                let text = renderInlineText(block.inlineContent ?? [])
-                return text.isEmpty ? nil : text
+        func renderBlocks(_ blocks: [RenderContentBlock]) -> [String] {
+            var rendered: [String] = []
+            rendered.reserveCapacity(blocks.count)
+
+            for block in blocks {
+                switch block.type {
+                case "paragraph":
+                    let text = renderInlineText(block.inlineContent ?? [])
+                    if !text.isEmpty { rendered.append(text) }
+                case "unorderedList":
+                    let items = block.items ?? []
+                    for item in items {
+                        let parts = renderBlocks(item.content)
+                        let text = parts.joined(separator: " ").trimmingCharacters(in: .whitespacesAndNewlines)
+                        rendered.append("- \(text.isEmpty ? "_" : text)")
+                    }
+                default:
+                    continue
+                }
             }
+
+            return rendered
         }
 
         // Intro from hero content.
         let hero = sections.first(where: { $0.kind == "hero" })
-        let heroParagraphs = hero.flatMap { renderParagraphs(from: $0.content ?? []) } ?? []
+        let heroParagraphs = hero.flatMap { renderBlocks($0.content ?? []) } ?? []
         let resolvedIntroduction = heroParagraphs.isEmpty ? nil : heroParagraphs.joined(separator: "\n\n")
         introduction = resolvedIntroduction
         let firstIntroParagraph = heroParagraphs.first?.trimmingCharacters(in: .whitespacesAndNewlines)
@@ -760,13 +806,52 @@ public struct DoccTutorial: Equatable, Codable {
             let stepTitle = (task.title ?? "").trimmingCharacters(in: .whitespacesAndNewlines)
             let anchor = (task.anchor ?? "").trimmingCharacters(in: .whitespacesAndNewlines)
             let refKey = anchor.isEmpty ? nil : "\(identifierURL)#\(anchor)"
-            let abstract = refKey.flatMap { references[$0]?.abstract } ?? []
-            let abstractText = abstract.compactMap { item -> String? in
-                if item.type == "codeVoice", let code = item.code { return "`\(code)`" }
-                let text = item.text?.trimmingCharacters(in: .whitespacesAndNewlines) ?? ""
-                return text.isEmpty ? nil : text
+
+            var content: [String] = []
+
+            // Section-level intro content.
+            for section in (task.contentSection ?? []) {
+                content.append(contentsOf: renderBlocks(section.content ?? []))
             }
-            let content = abstractText.isEmpty ? [] : abstractText
+
+            // Step-by-step content.
+            let stepsSection = task.stepsSection ?? []
+            for (index, step) in stepsSection.enumerated() {
+                let renderedStepBlocks = renderBlocks(step.content ?? [])
+                if !renderedStepBlocks.isEmpty {
+                    content.append("##### Step \(index + 1)")
+                    content.append(contentsOf: renderedStepBlocks)
+                }
+
+                if let codeRef = step.code,
+                   let file = references[codeRef],
+                   let lines = file.content,
+                   !lines.isEmpty
+                {
+                    let syntax = (file.syntax ?? "swift").trimmingCharacters(in: .whitespacesAndNewlines)
+                    let code = lines.joined(separator: "\n").trimmingCharacters(in: .whitespacesAndNewlines)
+                    if !code.isEmpty {
+                        if let fileName = file.fileName?.trimmingCharacters(in: .whitespacesAndNewlines),
+                           !fileName.isEmpty
+                        {
+                            content.append("**\(fileName)**")
+                        }
+                        content.append("```\(syntax)\n\(code)\n```")
+                    }
+                }
+            }
+
+            // Fallback to the task reference abstract if there was no rich content.
+            if content.isEmpty, let refKey, let reference = references[refKey] {
+                let abstract = reference.abstract ?? []
+                let abstractText = abstract.compactMap { item -> String? in
+                    if item.type == "codeVoice", let code = item.code { return "`\(code)`" }
+                    let text = item.text?.trimmingCharacters(in: .whitespacesAndNewlines) ?? ""
+                    return text.isEmpty ? nil : text
+                }
+                content.append(contentsOf: abstractText)
+            }
+
             return Step(title: stepTitle.isEmpty ? "Step" : stepTitle, content: content)
         }
         let uniqueStepContent = Set(resolvedSteps.flatMap(\.content))

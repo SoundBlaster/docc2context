@@ -31,12 +31,39 @@ final class SwiftDocCRenderArchiveTutorialDecodingTests: XCTestCase {
                 {
                   "kind": "tasks",
                   "tasks": [
-                    { "title": "First Task", "anchor": "First-Task", "content": [] },
+                    {
+                      "title": "First Task",
+                      "anchor": "First-Task",
+                      "contentSection": [
+                        {
+                          "kind": "contentAndMedia",
+                          "content": [
+                            { "type": "paragraph", "inlineContent": [ { "type": "text", "text": "Section intro." } ] }
+                          ]
+                        }
+                      ],
+                      "stepsSection": [
+                        {
+                          "type": "step",
+                          "content": [
+                            { "type": "paragraph", "inlineContent": [ { "type": "text", "text": "Do the thing." } ] }
+                          ],
+                          "code": "getting-started-01.swift"
+                        }
+                      ]
+                    },
                     { "title": "Second Task", "anchor": "Second-Task", "content": [] }
                   ]
                 }
               ],
               "references": {
+                "getting-started-01.swift": {
+                  "identifier": "getting-started-01.swift",
+                  "type": "file",
+                  "fileName": "GettingStarted.swift",
+                  "syntax": "swift",
+                  "content": ["import Foundation", "print(1)"]
+                },
                 "doc://test/tutorials/Test/GettingStarted#First-Task": {
                   "identifier": "doc://test/tutorials/Test/GettingStarted#First-Task",
                   "title": "First Task",
@@ -57,7 +84,11 @@ final class SwiftDocCRenderArchiveTutorialDecodingTests: XCTestCase {
             XCTAssertEqual(tutorial.title, "Getting Started")
             XCTAssertEqual(tutorial.introduction, "Intro paragraph.")
             XCTAssertEqual(tutorial.steps.map(\.title), ["First Task", "Second Task"])
-            XCTAssertEqual(tutorial.steps[0].content, ["First task abstract."])
+            let firstTaskContent = tutorial.steps[0].content.joined(separator: "\n\n")
+            XCTAssertTrue(firstTaskContent.contains("Section intro."))
+            XCTAssertTrue(firstTaskContent.contains("Do the thing."))
+            XCTAssertTrue(firstTaskContent.contains("```swift"))
+            XCTAssertTrue(firstTaskContent.contains("import Foundation"))
             XCTAssertEqual(tutorial.steps[1].content, [])
         }
     }

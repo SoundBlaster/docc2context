@@ -273,7 +273,18 @@ public struct DoccMarkdownRenderer {
                 .map { $0.trimmingCharacters(in: .whitespacesAndNewlines) }
                 .filter { !$0.isEmpty }
             for entry in normalizedContent {
-                lines.append("   - \(entry)")
+                let isMultiLine = entry.contains("\n")
+                let isCodeFence = entry.hasPrefix("```")
+                let isTableRow = entry.hasPrefix("|")
+                let isHeading = entry.hasPrefix("#")
+                let isListItem = entry.hasPrefix("- ")
+                let isOrderedListItem = entry.range(of: #"^\d+\.\s"#, options: .regularExpression) != nil
+
+                if isMultiLine || isCodeFence || isTableRow || isHeading || isListItem || isOrderedListItem {
+                    lines.append(contentsOf: entry.split(separator: "\n", omittingEmptySubsequences: false).map { "   \($0)" })
+                } else {
+                    lines.append("   - \(entry)")
+                }
             }
         }
         return lines
