@@ -11,7 +11,7 @@ REPO_ROOT = Path(__file__).resolve().parents[1]
 README_PATH = REPO_ROOT / "README.md"
 
 REQUIRED_README_HEADINGS = [
-    "## Quick start (try it now)",
+    "## Quick start",
     "## More docs",
 ]
 
