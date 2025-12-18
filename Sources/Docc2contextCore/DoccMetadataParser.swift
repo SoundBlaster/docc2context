@@ -749,12 +749,14 @@ public struct DoccTutorial: Equatable, Codable {
         // Intro from hero content.
         let hero = sections.first(where: { $0.kind == "hero" })
         let heroParagraphs = hero.flatMap { renderParagraphs(from: $0.content ?? []) } ?? []
-        introduction = heroParagraphs.isEmpty ? nil : heroParagraphs.joined(separator: "\n\n")
+        let resolvedIntroduction = heroParagraphs.isEmpty ? nil : heroParagraphs.joined(separator: "\n\n")
+        introduction = resolvedIntroduction
+        let firstIntroParagraph = heroParagraphs.first?.trimmingCharacters(in: .whitespacesAndNewlines)
 
         // Steps from tasks list + optional abstract from reference map keyed by anchor.
         let tasksSection = sections.first(where: { $0.kind == "tasks" })
         let tasks = tasksSection?.tasks ?? []
-        steps = tasks.map { task in
+        let resolvedSteps: [Step] = tasks.map { task in
             let stepTitle = (task.title ?? "").trimmingCharacters(in: .whitespacesAndNewlines)
             let anchor = (task.anchor ?? "").trimmingCharacters(in: .whitespacesAndNewlines)
             let refKey = anchor.isEmpty ? nil : "\(identifierURL)#\(anchor)"
@@ -767,6 +769,14 @@ public struct DoccTutorial: Equatable, Codable {
             let content = abstractText.isEmpty ? [] : abstractText
             return Step(title: stepTitle.isEmpty ? "Step" : stepTitle, content: content)
         }
+        let uniqueStepContent = Set(resolvedSteps.flatMap(\.content))
+        let shouldSuppressStepContent =
+            uniqueStepContent.count == 1 &&
+            firstIntroParagraph == uniqueStepContent.first
+
+        steps = shouldSuppressStepContent
+            ? resolvedSteps.map { Step(title: $0.title, content: []) }
+            : resolvedSteps
 
         assessments = []
     }

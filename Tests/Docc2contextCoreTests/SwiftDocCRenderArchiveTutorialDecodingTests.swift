@@ -57,7 +57,8 @@ final class SwiftDocCRenderArchiveTutorialDecodingTests: XCTestCase {
             XCTAssertEqual(tutorial.title, "Getting Started")
             XCTAssertEqual(tutorial.introduction, "Intro paragraph.")
             XCTAssertEqual(tutorial.steps.map(\.title), ["First Task", "Second Task"])
-            XCTAssertEqual(tutorial.steps.first?.content.first, "First task abstract.")
+            XCTAssertEqual(tutorial.steps[0].content, ["First task abstract."])
+            XCTAssertEqual(tutorial.steps[1].content, [])
         }
     }
 
@@ -156,5 +157,68 @@ final class SwiftDocCRenderArchiveTutorialDecodingTests: XCTestCase {
         """
 
         XCTAssertThrowsError(try JSONDecoder().decode(DoccTutorial.self, from: Data(json.utf8)))
+    }
+
+    func testRenderArchiveTutorialDecodingAvoidsRepeatingHeroAbstractInEveryStep() throws {
+        try TestTemporaryDirectory.withTemporaryDirectory { temp in
+            try Data(#"{"bundleID":"com.example.test","bundleDisplayName":"Test"}"#.utf8)
+                .write(to: temp.url.appendingPathComponent("metadata.json", isDirectory: false))
+
+            let tutorialsDir = temp.url
+                .appendingPathComponent("data", isDirectory: true)
+                .appendingPathComponent("tutorials", isDirectory: true)
+                .appendingPathComponent("test", isDirectory: true)
+            try FileManager.default.createDirectory(at: tutorialsDir, withIntermediateDirectories: true)
+
+            let tutorialURL = tutorialsDir.appendingPathComponent("repeat.json", isDirectory: false)
+            let json = """
+            {
+              "kind": "project",
+              "identifier": { "url": "doc://test/tutorials/Test/Repeat" },
+              "metadata": { "title": "Repeat", "role": "project" },
+              "sections": [
+                {
+                  "kind": "hero",
+                  "title": "Repeat",
+                  "content": [
+                    { "type": "paragraph", "inlineContent": [ { "type": "text", "text": "Same abstract." } ] },
+                    { "type": "paragraph", "inlineContent": [ { "type": "text", "text": "Additional intro paragraph." } ] }
+                  ]
+                },
+                {
+                  "kind": "tasks",
+                  "tasks": [
+                    { "title": "One", "anchor": "One", "content": [] },
+                    { "title": "Two", "anchor": "Two", "content": [] }
+                  ]
+                }
+              ],
+              "references": {
+                "doc://test/tutorials/Test/Repeat#One": {
+                  "identifier": "doc://test/tutorials/Test/Repeat#One",
+                  "title": "One",
+                  "abstract": [ { "type": "text", "text": "Same abstract." } ]
+                },
+                "doc://test/tutorials/Test/Repeat#Two": {
+                  "identifier": "doc://test/tutorials/Test/Repeat#Two",
+                  "title": "Two",
+                  "abstract": [ { "type": "text", "text": "Same abstract." } ]
+                }
+              }
+            }
+            """
+            try Data(json.utf8).write(to: tutorialURL)
+
+            let parser = DoccMetadataParser()
+            let tutorial = try parser.loadTutorialPage(
+                withIdentifier: "doc://test/tutorials/Test/Repeat",
+                from: temp.url
+            )
+
+            XCTAssertEqual(tutorial.introduction, "Same abstract.\n\nAdditional intro paragraph.")
+            XCTAssertEqual(tutorial.steps.count, 2)
+            XCTAssertEqual(tutorial.steps[0].content, [])
+            XCTAssertEqual(tutorial.steps[1].content, [])
+        }
     }
 }
