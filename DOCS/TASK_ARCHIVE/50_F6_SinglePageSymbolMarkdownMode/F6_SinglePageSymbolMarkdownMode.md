@@ -1,6 +1,6 @@
 # F6 Single-Page Symbol Markdown Mode
 
-**Status:** Selected (planning)  
+**Status:** Implementation complete — pending `DOCS/COMMANDS/ARCHIVE.md`  
 **Owner:** docc2context agent  
 **Selected on:** 2025-12-18  
 **PRD reference:** `DOCS/PRD/docc2context_prd.md` §5 (F6)  
@@ -66,3 +66,15 @@ Alternative naming (if “layout” conflicts with existing flags):
 - Snapshot tests lock the single-page output.
 - Default output remains the existing tree layout.
 
+## Implementation notes
+- CLI: added `--symbol-layout tree|single` (default: `tree`).
+- Pipeline: added `MarkdownGenerationPipeline.SymbolLayout` and threaded it through `generateMarkdown(...)`.
+- Single layout behavior:
+  - Only emits **top-level** DocC symbol pages whose doc URL path is exactly `/documentation/<module>/<symbol>`.
+  - Writes them as one file per symbol: `markdown/documentation/<module>/<symbol>.md`.
+  - Skips nested member pages to avoid creating per-symbol directories.
+
+## Validation evidence
+- `swift test`
+- `python3 Scripts/validate_fixtures_manifest.py Fixtures/manifest.json`
+- `python3 Scripts/lint_markdown.py`

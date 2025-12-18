@@ -177,4 +177,44 @@ final class Docc2contextCLITests: XCTestCase {
         XCTAssertTrue(result.output.contains("--technology"), "F2 spec: help text must document --technology flag.")
         XCTAssertTrue(result.output.contains("technology"), "F2 spec: help text must document technology filter option.")
     }
+
+    func testHelpDescribesSymbolLayoutFlag() throws {
+        let result = Docc2contextCommand().run(arguments: ["docc2context", "--help"])
+
+        XCTAssertTrue(
+            result.output.contains("--symbol-layout"),
+            "F6 spec: help text must document the opt-in single-page symbol layout flag."
+        )
+        XCTAssertTrue(result.output.contains("single"), "F6 spec: help text should mention the 'single' mode.")
+    }
+
+    func testSymbolLayoutSingleFlagEmitsTopLevelSymbolAsSingleMarkdownFile() throws {
+        let fixturesURL = FixtureLoader.urlForBundle(named: "Docc2contextCore.doccarchive")
+        try TestTemporaryDirectory.withTemporaryDirectory { temp in
+            let outputDirectory = temp.childDirectory(named: "cli-single-layout")
+
+            let command = Docc2contextCommand()
+            let result = command.run(arguments: [
+                "docc2context",
+                fixturesURL.path,
+                "--output",
+                outputDirectory.path,
+                "--force",
+                "--symbol-layout",
+                "single",
+            ])
+
+            XCTAssertEqual(result.exitCode, 0, "F6 spec: --symbol-layout single should be accepted.")
+
+            let expectedSymbol = outputDirectory
+                .appendingPathComponent("markdown", isDirectory: true)
+                .appendingPathComponent("documentation", isDirectory: true)
+                .appendingPathComponent("docc2contextcore", isDirectory: true)
+                .appendingPathComponent("benchmarkcomparator.md", isDirectory: false)
+            XCTAssertTrue(
+                FileManager.default.fileExists(atPath: expectedSymbol.path),
+                "F6 spec: --symbol-layout single should emit top-level symbol pages as .md files."
+            )
+        }
+    }
 }

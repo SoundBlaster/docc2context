@@ -24,6 +24,11 @@ public struct MarkdownGenerationPipeline {
         }
     }
 
+    public enum SymbolLayout: String, CaseIterable, Codable {
+        case tree
+        case single
+    }
+
     public enum Error: Swift.Error, LocalizedError {
         case inputDoesNotExist(URL)
         case inputIsNotDirectory(URL)
@@ -110,7 +115,8 @@ public struct MarkdownGenerationPipeline {
         from inputPath: String,
         to outputPath: String,
         forceOverwrite: Bool,
-        technologyFilter: [String]? = nil
+        technologyFilter: [String]? = nil,
+        symbolLayout: SymbolLayout = .tree
     ) throws -> Summary {
         let inputURL = URL(fileURLWithPath: inputPath).standardizedFileURL
         try validateInputDirectory(inputURL)
@@ -211,11 +217,22 @@ public struct MarkdownGenerationPipeline {
         // Swift-DocC render archive symbol pages (F5): render `kind: "symbol"` nodes into Xcode-like Markdown.
         let renderArchiveSymbols = try metadataParser.loadSwiftDocCRenderArchiveSymbolPages(from: inputURL)
         if !renderArchiveSymbols.isEmpty {
-            for identifier in renderArchiveSymbols.keys.sorted() {
-                guard let symbol = renderArchiveSymbols[identifier] else { continue }
-                let markdown = renderer.renderSymbolPage(catalog: bundleModel.documentationCatalog, symbol: symbol)
-                let symbolURL = makeRenderNodeIndexFileURL(for: identifier, under: markdownRoot)
-                try write(markdown: markdown, to: symbolURL)
+            switch symbolLayout {
+            case .tree:
+                for identifier in renderArchiveSymbols.keys.sorted() {
+                    guard let symbol = renderArchiveSymbols[identifier] else { continue }
+                    let markdown = renderer.renderSymbolPage(catalog: bundleModel.documentationCatalog, symbol: symbol)
+                    let symbolURL = makeRenderNodeIndexFileURL(for: identifier, under: markdownRoot)
+                    try write(markdown: markdown, to: symbolURL)
+                }
+            case .single:
+                for identifier in renderArchiveSymbols.keys.sorted() {
+                    guard isTopLevelSymbolIdentifier(identifier) else { continue }
+                    guard let symbol = renderArchiveSymbols[identifier] else { continue }
+                    let markdown = renderer.renderSymbolPage(catalog: bundleModel.documentationCatalog, symbol: symbol)
+                    let symbolURL = makeRenderNodeSingleFileURL(for: identifier, under: markdownRoot)
+                    try write(markdown: markdown, to: symbolURL)
+                }
             }
         }
 
@@ -391,6 +408,36 @@ public struct MarkdownGenerationPipeline {
             directory = directory.appendingPathComponent(slug(for: component, fallback: "segment"), isDirectory: true)
         }
         return directory.appendingPathComponent("index.md", isDirectory: false)
+    }
+
+    private func isTopLevelSymbolIdentifier(_ identifier: String) -> Bool {
+        guard let docURL = URL(string: identifier), docURL.scheme == "doc" else { return false }
+        let rawComponents = docURL.pathComponents.filter { $0 != "/" }
+        guard rawComponents.count == 3 else { return false }
+        return rawComponents.first == "documentation"
+    }
+
+    private func makeRenderNodeSingleFileURL(for identifier: String, under markdownRoot: URL) -> URL {
+        guard let docURL = URL(string: identifier), docURL.scheme == "doc" else {
+            return markdownRoot
+                .appendingPathComponent("documentation", isDirectory: true)
+                .appendingPathComponent(slug(for: identifier, fallback: "symbol") + ".md", isDirectory: false)
+        }
+
+        let rawComponents = docURL.pathComponents.filter { $0 != "/" }
+        guard rawComponents.count >= 2 else {
+            return markdownRoot
+                .appendingPathComponent("documentation", isDirectory: true)
+                .appendingPathComponent("symbol.md", isDirectory: false)
+        }
+
+        var directory = markdownRoot
+        for component in rawComponents.dropLast() {
+            directory = directory.appendingPathComponent(slug(for: component, fallback: "segment"), isDirectory: true)
+        }
+
+        let fileName = slug(for: rawComponents.last ?? "symbol", fallback: "symbol")
+        return directory.appendingPathComponent(fileName).appendingPathExtension("md")
     }
 
     /// Streaming-optimized article loading: Returns dictionary directly without intermediate array

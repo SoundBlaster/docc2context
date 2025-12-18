@@ -94,6 +94,75 @@ final class Docc2contextCoreDoccFixtureTests: XCTestCase {
         }
     }
 
+    func test_generatedDoccFixtureSingleSymbolLayoutProducesSingleFileForTopLevelSymbols() throws {
+        let fixtureURL = FixtureLoader.urlForBundle(named: "Docc2contextCore.doccarchive")
+
+        try TestTemporaryDirectory.withTemporaryDirectory { temp in
+            let outputDirectory = temp.childDirectory(named: "output-single")
+            let pipeline = MarkdownGenerationPipeline()
+
+            _ = try pipeline.generateMarkdown(
+                from: fixtureURL.path,
+                to: outputDirectory.path,
+                forceOverwrite: false,
+                symbolLayout: .single)
+
+            let markdownRoot = outputDirectory.appendingPathComponent("markdown", isDirectory: true)
+
+            let benchmarkComparatorSymbol = markdownRoot
+                .appendingPathComponent("documentation", isDirectory: true)
+                .appendingPathComponent("docc2contextcore", isDirectory: true)
+                .appendingPathComponent("benchmarkcomparator.md", isDirectory: false)
+            XCTAssertTrue(
+                FileManager.default.fileExists(atPath: benchmarkComparatorSymbol.path),
+                "Expected single-page symbol layout to emit top-level symbols as .md files (no per-symbol directory).")
+
+            let benchmarkComparatorSymbolTreeIndex = markdownRoot
+                .appendingPathComponent("documentation", isDirectory: true)
+                .appendingPathComponent("docc2contextcore", isDirectory: true)
+                .appendingPathComponent("benchmarkcomparator", isDirectory: true)
+                .appendingPathComponent("index.md", isDirectory: false)
+            XCTAssertFalse(
+                FileManager.default.fileExists(atPath: benchmarkComparatorSymbolTreeIndex.path),
+                "Expected single-page symbol layout to avoid writing tree-layout index.md pages for the same symbol.")
+
+            let markdown = try String(contentsOf: benchmarkComparatorSymbol, encoding: .utf8)
+            XCTAssertTrue(markdown.contains("## Topics"), "Expected single-page symbol output to include Topics.")
+            try MarkdownSnapshot.assertSnapshot(
+                self,
+                matching: markdown,
+                named: "benchmarkComparatorSymbolPageSingle",
+                record: SnapshotRecording.isEnabled)
+        }
+    }
+
+    func test_generatedDoccFixtureSingleSymbolLayoutProducesDeterministicOutputs() throws {
+        let fixtureURL = FixtureLoader.urlForBundle(named: "Docc2contextCore.doccarchive")
+
+        try TestTemporaryDirectory.withTemporaryDirectory { temp in
+            let outputDir1 = temp.childDirectory(named: "output1-single")
+            let outputDir2 = temp.childDirectory(named: "output2-single")
+            let pipeline = MarkdownGenerationPipeline()
+
+            _ = try pipeline.generateMarkdown(
+                from: fixtureURL.path,
+                to: outputDir1.path,
+                forceOverwrite: false,
+                symbolLayout: .single)
+            _ = try pipeline.generateMarkdown(
+                from: fixtureURL.path,
+                to: outputDir2.path,
+                forceOverwrite: false,
+                symbolLayout: .single)
+
+            let validator = DeterminismValidator()
+            let comparison = try validator.compareDirectories(
+                firstPath: outputDir1.path,
+                secondPath: outputDir2.path)
+            XCTAssertTrue(comparison.isDeterministic, "Single-page symbol layout outputs should be byte-identical.")
+        }
+    }
+
     func test_generatedDoccFixtureProducesDeterministicOutputs() throws {
         let fixtureURL = FixtureLoader.urlForBundle(named: "Docc2contextCore.doccarchive")
 
