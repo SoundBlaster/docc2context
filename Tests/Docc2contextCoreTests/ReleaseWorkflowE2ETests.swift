@@ -352,12 +352,14 @@ final class ReleaseWorkflowE2ETests: XCTestCase {
     /// the actual artifacts produced by the release scripts
     func test_readmeInstallationInstructionsMatchActualArtifacts() throws {
         let fileManager = FileManager.default
-        let readmePath = TestSupportPaths.repositoryRootDirectory
-            .appendingPathComponent("README.md")
+        let docsPath = TestSupportPaths.repositoryRootDirectory
+            .appendingPathComponent("DOCS", isDirectory: true)
+            .appendingPathComponent("README", isDirectory: true)
+            .appendingPathComponent("releases.md", isDirectory: false)
 
-        XCTAssertTrue(fileManager.fileExists(atPath: readmePath.path), "README.md must exist")
+        XCTAssertTrue(fileManager.fileExists(atPath: docsPath.path), "Release docs must exist")
 
-        let readmeContent = try String(contentsOf: readmePath, encoding: .utf8)
+        let readmeContent = try String(contentsOf: docsPath, encoding: .utf8)
 
         // Verify README mentions Linux tarball format (without 'v' prefix)
         XCTAssertTrue(readmeContent.contains("docc2context-") && readmeContent.contains("-linux-"),

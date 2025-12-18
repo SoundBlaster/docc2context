@@ -13,7 +13,7 @@ jobs:
     steps:
       - uses: actions/checkout@v4
       - name: Lint Markdown guidance
-        run: python3 Scripts/lint_markdown.py README.md DOCS/PRD/phase_d.md
+        run: python3 Scripts/lint_markdown.py README.md DOCS/README DOCS/PRD/phase_d.md
 
   linux:
     name: Swift ${{ matrix.swift }} on Ubuntu
