@@ -67,7 +67,7 @@ Use this list for near-term execution. Each entry maps back to the PRD and [work
 
 ## Ready to Start
 - [ ] **F8 CI Self-Docs Markdown Artifact** — Add a GitHub Actions CI job that runs `docc2context` against `Fixtures/Docc2contextCore.doccarchive` and uploads the generated `markdown/` output as an artifact for inspection; keep it offline-friendly by using committed fixtures only. _Doc:_ `DOCS/PRD/docc2context_prd.md` §5 (F8). _Owner:_ unassigned. _Status:_ Ready — 2025-12-18.
-- [ ] **F9 Real-World `.doccarchive` Parity Audit (Missing Parts)** — Investigate “missing in Markdown but present in Xcode” for a real-world render archive (initial repro: `SpecificationKit.doccarchive`), record the render-node JSON shapes/types involved, and propose a test-backed plan to close major gaps while preserving determinism. _Doc:_ `DOCS/INPROGRESS/F9_RealWorldDoccarchiveParityAudit.md`. _Owner:_ unassigned. _Status:_ Ready — 2025-12-18.
+- [ ] **F9 Real-World `.doccarchive` Parity Audit (Missing Parts)** — Investigate “missing in Markdown but present in Xcode” for a real-world render archive (initial repro: `SpecificationKit.doccarchive`), record the render-node JSON shapes/types involved, and propose a test-backed plan to close major gaps while preserving determinism. _Doc:_ `DOCS/INPROGRESS/F9_RealWorldDoccarchiveParityAudit.md`. _Owner:_ docc2context agent. _Status:_ In Progress — 2025-12-18.
 
 ## Blocked
 Tasks prevented from proceeding by external dependencies, missing resources, or pending decisions.

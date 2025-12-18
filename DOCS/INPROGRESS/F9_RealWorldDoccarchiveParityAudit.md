@@ -41,4 +41,24 @@ This task is a focused investigation spike to identify what’s missing, classif
 - Optional: determinism check by running conversion twice and hashing output.
 
 ## Current State
-- Task created; investigation not started yet.
+## Selection (SELECT_NEXT)
+- Selected as the next investigation task because it directly targets remaining real-world parity gaps vs Xcode for render archives, building on F5/F5.1 without introducing new external dependencies.
+- Phase: **C (Markdown generation)** — parity improvements to the Swift-DocC render archive decoding/rendering layer.
+- Priority: **P1** (important). Rationale: improves trustworthiness of generated Markdown; reduces “empty/buggy output” reports on real projects.
+
+## Dependencies / Preconditions
+- Existing support for Swift-DocC render archives (F5) and initial discussion rendering (F5.1).
+- Real-world repro archive: `DOCS/INPROGRESS/SpecificationKit.doccarchive` (already present locally).
+- Determinism guardrails: snapshot tests and existing release gates.
+
+## Planned Investigation Steps (Docs Only)
+1. Generate output via: `swift run docc2context DOCS/INPROGRESS/SpecificationKit.doccarchive --output /tmp/f9-out --force --symbol-layout single`.
+2. Identify 3–5 pages with clear Xcode-vs-Markdown mismatch; record file paths + screenshots/quotes in this note.
+3. For each page, find corresponding render-node JSON under `DOCS/INPROGRESS/SpecificationKit.doccarchive/data/**` and capture:
+   - `primaryContentSections` shapes (`kind`, block `type` values)
+   - inline content node types (e.g., `reference`, `emphasis`, `link`)
+4. Produce a prioritized “missing render types” checklist and propose how to map them to deterministic Markdown.
+5. Define a TDD plan: fixtures/snapshots to lock each new mapping.
+
+## Current State
+- Selected; ready to start (implementation will follow START.md).
