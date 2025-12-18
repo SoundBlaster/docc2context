@@ -4,6 +4,7 @@ Use this list for near-term execution. Each entry maps back to the PRD and [work
 
 ## In Progress
 - [ ] **H1 APT/DNF Repository Hosting (Blocked)** — ⛔ BLOCKED pending external repository provisioning + credentials (Cloudsmith/Packagecloud owner/repo, API tokens) and signing key decisions; prep work is complete and documented, but end-to-end validation cannot proceed. _Doc:_ `DOCS/INPROGRESS/BLOCKED_H1_APTDNFRepositoryHosting.md`. _Owner:_ maintainer. _Status:_ Blocked — 2025-12-18.
+- [ ] **F7 Rich Inline Source Documentation** — Add high-quality DocC documentation comments directly in `Sources/` for the public API surface (CLI/pipeline/parser/renderer/models), including usage examples and cross-references; regenerate `Fixtures/Docc2contextCore.doccarchive` and update affected Markdown snapshots under pinned provenance. _Doc:_ `DOCS/INPROGRESS/F7_RichInlineSourceDocumentation.md`. _Owner:_ docc2context agent. _Status:_ Selected — 2025-12-18.
 
 ## Completed
 - [x] **F5 Xcode-Parity Symbol Page Rendering (Swift-DocC Render Archives)** — Render Swift-DocC `kind: "symbol"` nodes into Xcode-like Markdown pages (topics/relationships/declarations) using `topicSections`, `relationshipsSections`, `primaryContentSections`, and `references`, and treat `collectionGroup` pages (e.g. “Equatable Implementations”) as structured sub-sections; locked output with snapshot tests against `Fixtures/Docc2contextCore.doccarchive`. _Doc:_ `DOCS/TASK_ARCHIVE/52_F5_XcodeParitySymbolPageRendering/F5_XcodeParitySymbolPageRendering.md`. _Owner:_ docc2context agent. _Status:_ Complete — 2025-12-18; validated via `swift test`, `python3 Scripts/validate_fixtures_manifest.py Fixtures/manifest.json`, and `python3 Scripts/lint_markdown.py`.
@@ -64,7 +65,7 @@ Use this list for near-term execution. Each entry maps back to the PRD and [work
 - [x] **C1 Tutorial Chapter Snapshot Spec** Capture the deterministic Markdown contract for the first tutorial chapter page (`tutorialcatalog/tutorials/getting-started`) and lock it via `MarkdownSnapshotSpecsTests.test_tutorialChapterPageMatchesSnapshot`. _Depends on:_ C1 outline + tutorial overview snapshot harness. _Doc:_ PRD §Phase C (snapshot specs). _Owner:_ docc2context agent. _Status:_ Complete – archived under `DOCS/TASK_ARCHIVE/15_C1_TutorialChapterSnapshot/`; validated with `swift test --filter MarkdownSnapshotSpecsTests.test_tutorialChapterPageMatchesSnapshot` and the full `swift test` suite, with follow-on tutorial + article specs tracked in `DOCS/TASK_ARCHIVE/16_C1_MarkdownSnapshotSpecs/` and `17_C1_ReferenceArticleSnapshot/`.
 
 ## Ready to Start
-- [ ] **F7 Rich Inline Source Documentation** — Add high-quality DocC documentation comments directly in `Sources/` for the public API surface (CLI/pipeline/parser/renderer/models), including usage examples and cross-references; regenerate `Fixtures/Docc2contextCore.doccarchive` and update affected Markdown snapshots under pinned provenance. _Doc:_ `DOCS/PRD/docc2context_prd.md` §5 (F7). _Owner:_ unassigned. _Status:_ Ready — 2025-12-18.
+- [ ] _(none — all ready items are now tracked in progress.)_
 
 ## Blocked
 Tasks prevented from proceeding by external dependencies, missing resources, or pending decisions.
