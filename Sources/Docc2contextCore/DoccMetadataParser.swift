@@ -1319,20 +1319,75 @@ extension DoccMetadataParser {
     }
 
     private func makeTutorialFileURL(for identifier: String, bundleURL: URL) -> URL {
-        let slug = identifier.split(separator: "/").last.map(String.init) ?? identifier
-        return bundleURL
+        let root = bundleURL
             .appendingPathComponent("data", isDirectory: true)
             .appendingPathComponent("tutorials", isDirectory: true)
-            .appendingPathComponent("\(slug).json", isDirectory: false)
+
+        if let url = URL(string: identifier), url.scheme == "doc" {
+            var rawComponents = url.pathComponents.filter { $0 != "/" }
+            if rawComponents.first == "tutorials" {
+                rawComponents.removeFirst()
+            }
+            if !rawComponents.isEmpty {
+                var directory = root
+                for component in rawComponents.dropLast() {
+                    directory = directory.appendingPathComponent(slug(for: component, fallback: "segment"), isDirectory: true)
+                }
+                let fileName = slug(for: rawComponents.last ?? "tutorial", fallback: "tutorial")
+                return directory.appendingPathComponent(fileName).appendingPathExtension("json")
+            }
+        }
+
+        let fallbackComponent = identifier.split(separator: "/").last.map(String.init) ?? identifier
+        let fileName = slug(for: fallbackComponent, fallback: "tutorial")
+        return root.appendingPathComponent(fileName).appendingPathExtension("json")
     }
 
     private func makeArticleFileURL(for identifier: String, bundleURL: URL) -> URL {
-        let slug = identifier.split(separator: "/").last.map(String.init) ?? identifier
-        return bundleURL
+        let root = bundleURL
             .appendingPathComponent("data", isDirectory: true)
             .appendingPathComponent("documentation", isDirectory: true)
             .appendingPathComponent("articles", isDirectory: true)
-            .appendingPathComponent("\(slug).json", isDirectory: false)
+
+        if let url = URL(string: identifier), url.scheme == "doc" {
+            var rawComponents = url.pathComponents.filter { $0 != "/" }
+            if rawComponents.first == "documentation" {
+                rawComponents.removeFirst()
+            }
+            if !rawComponents.isEmpty {
+                var directory = root
+                for component in rawComponents.dropLast() {
+                    directory = directory.appendingPathComponent(slug(for: component, fallback: "segment"), isDirectory: true)
+                }
+                let fileName = slug(for: rawComponents.last ?? "article", fallback: "article")
+                return directory.appendingPathComponent(fileName).appendingPathExtension("json")
+            }
+        }
+
+        let fallbackComponent = identifier.split(separator: "/").last.map(String.init) ?? identifier
+        let fileName = slug(for: fallbackComponent, fallback: "article")
+        return root.appendingPathComponent(fileName).appendingPathExtension("json")
+    }
+
+    private func slug(for value: String, fallback: String) -> String {
+        let trimmed = value.trimmingCharacters(in: .whitespacesAndNewlines)
+        let lowercased = trimmed.lowercased()
+        var scalars: [Character] = []
+        var previousWasDash = false
+        for scalar in lowercased.unicodeScalars {
+            if CharacterSet.alphanumerics.contains(scalar) {
+                scalars.append(Character(scalar))
+                previousWasDash = false
+            } else if !previousWasDash {
+                scalars.append("-")
+                previousWasDash = true
+            }
+        }
+        var result = String(scalars).trimmingCharacters(in: CharacterSet(charactersIn: "-"))
+        if result.isEmpty {
+            result = fallback
+        }
+        return result
     }
 
     private func logSkippedSymbols(count: Int, fileURL: URL) {

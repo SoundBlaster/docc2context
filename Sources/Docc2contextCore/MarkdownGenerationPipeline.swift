@@ -193,8 +193,18 @@ public struct MarkdownGenerationPipeline {
                     let tutorialIdentifiers = chapter.pageIdentifiers.filter(isTutorialIdentifier(_:))
                     guard !tutorialIdentifiers.isEmpty else { continue }
 
-                    let tutorials = try tutorialIdentifiers.map { identifier in
-                        try metadataParser.loadTutorialPage(withIdentifier: identifier, from: inputURL)
+                    var tutorials: [DoccTutorial] = []
+                    tutorials.reserveCapacity(tutorialIdentifiers.count)
+                    for identifier in tutorialIdentifiers {
+                        do {
+                            tutorials.append(try metadataParser.loadTutorialPage(withIdentifier: identifier, from: inputURL))
+                        } catch {
+                            let message =
+                                "MarkdownGenerationPipeline: warning: failed to load tutorial page \(identifier): \(error)\n"
+                            if let data = message.data(using: .utf8) {
+                                FileHandle.standardError.write(data)
+                            }
+                        }
                     }
 
                     let chapterMarkdown = renderer.renderTutorialChapterPage(
