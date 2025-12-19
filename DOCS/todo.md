@@ -66,7 +66,6 @@ Use this list for near-term execution. Each entry maps back to the PRD and [work
 - [x] **C1 Tutorial Chapter Snapshot Spec** Capture the deterministic Markdown contract for the first tutorial chapter page (`tutorialcatalog/tutorials/getting-started`) and lock it via `MarkdownSnapshotSpecsTests.test_tutorialChapterPageMatchesSnapshot`. _Depends on:_ C1 outline + tutorial overview snapshot harness. _Doc:_ PRD §Phase C (snapshot specs). _Owner:_ docc2context agent. _Status:_ Complete – archived under `DOCS/TASK_ARCHIVE/15_C1_TutorialChapterSnapshot/`; validated with `swift test --filter MarkdownSnapshotSpecsTests.test_tutorialChapterPageMatchesSnapshot` and the full `swift test` suite, with follow-on tutorial + article specs tracked in `DOCS/TASK_ARCHIVE/16_C1_MarkdownSnapshotSpecs/` and `17_C1_ReferenceArticleSnapshot/`.
 
 ## Ready to Start
-- [ ] **F8 CI Self-Docs Markdown Artifact** — Add a GitHub Actions CI job that runs `docc2context` against `Fixtures/Docc2contextCore.doccarchive` and uploads the generated `markdown/` output as an artifact for inspection; keep it offline-friendly by using committed fixtures only. _Doc:_ `DOCS/PRD/docc2context_prd.md` §5 (F8). _Owner:_ unassigned. _Status:_ Ready — 2025-12-18.
 
 ## In Progress – F9 Remaining Gaps (Subtasks)
 **Parent Task:** F9 Real-World `.doccarchive` Parity Audit — Investigation complete (commit `86a310a`); initial implementation landed (commit `55e1ab6`); F9.1 complete (commit `f17c7dc`); F9.2 complete (commit `3ef977b`). Remaining work decomposed into subtasks below.
@@ -95,6 +94,12 @@ _Doc:_ `DOCS/INPROGRESS/F9_RealWorldDoccarchiveParityAudit.md` | _Owner:_ docc2c
   **Implementation:** Commit `835d1f1`; added 3 test cases (availability, deprecation, defaults); all 188 tests pass (coverage 90.78%); symbol pages now render availability, deprecation, and default implementation metadata. _Doc:_ `DOCS/INPROGRESS/F9.4_SymbolMetadataParity.md`. _Status:_ Complete — 2025-12-20.
 
 - [x] **F10 Swift-DocC Render-Archive Tutorial Parity** ✅ **COMPLETE** — Implemented decoding/rendering for real tutorial render nodes (kind: `project`) produced by the `@Tutorial` directive, eliminating all `invalidTutorialPage` warnings on real archives (SpecificationKit.doccarchive). Renders tutorial intro, steps with code blocks, and assessment questions into deterministic Markdown. **Validation:** 4 tests covering render-archive tutorial decoding, all 188 tests passing (coverage 90.78%), real-world SpecificationKit archive generates 1 volume/1 chapter/2 tutorials. _Doc:_ `DOCS/INPROGRESS/F10_RenderArchiveTutorialParity.md`. _Status:_ Complete — 2025-12-20.
+
+## In Progress – F8 (Selected for Planning)
+**Parent Task:** F8 CI Self-Docs Markdown Artifact — Add GitHub Actions CI job that runs `docc2context` against committed `Fixtures/Docc2contextCore.doccarchive` and uploads generated `markdown/` output as build artifact for inspection (offline-friendly, no repo mutations).
+_Doc:_ `DOCS/INPROGRESS/F8_CISelfDocsMarkdownArtifact.md` | _Owner:_ docc2context agent
+
+- [ ] **F8 CI Self-Docs Markdown Artifact** ⭐ **SELECTED** — Create GitHub Actions workflow job that runs `docc2context` on committed fixture, uploads `markdown/` artifact for quick visual feedback without local builds. Offline-friendly (committed fixtures only), no repo mutations, deterministic output. **Execution planning:** `DOCS/INPROGRESS/F8_CISelfDocsMarkdownArtifact.md`. _Status:_ **Selected (Planning)** — ready for START.md.
 
 ## Blocked
 Tasks prevented from proceeding by external dependencies, missing resources, or pending decisions.
