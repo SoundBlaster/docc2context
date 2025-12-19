@@ -246,11 +246,13 @@ public struct DoccArticle: Equatable, Codable {
         public let identifier: String
         public let kind: String
         public let title: String
+        public let url: String?
 
-        public init(identifier: String, kind: String, title: String) {
+        public init(identifier: String, kind: String, title: String, url: String? = nil) {
             self.identifier = identifier
             self.kind = kind
             self.title = title
+            self.url = url
         }
     }
 
@@ -318,6 +320,7 @@ public struct DoccArticle: Equatable, Codable {
         let identifier: String?
         let kind: String?
         let title: String?
+        let url: String?
     }
 
     private struct RenderPrimaryContentSection: Decodable {
@@ -443,7 +446,7 @@ public struct DoccArticle: Equatable, Codable {
                 guard let title = reference.title, !title.isEmpty else { continue }
                 let kind = reference.kind ?? "topic"
                 let resolvedIdentifier = reference.identifier ?? identifier
-                resolved.append(Reference(identifier: resolvedIdentifier, kind: kind, title: title))
+                resolved.append(Reference(identifier: resolvedIdentifier, kind: kind, title: title, url: reference.url))
             }
         }
 
@@ -492,7 +495,12 @@ public struct DoccArticle: Equatable, Codable {
                 case "reference":
                     guard let identifier = item.identifier else { continue }
                     if let title = resolveReference(identifier) {
-                        result.append(title)
+                        let candidate = references[identifier] ?? references.values.first(where: { $0.identifier == identifier })
+                        if let url = candidate?.url, !url.isEmpty {
+                            result.append("[\(title)](\(url))")
+                        } else {
+                            result.append(title)
+                        }
                     }
                 default:
                     continue

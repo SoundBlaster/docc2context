@@ -81,5 +81,48 @@ final class SwiftDocCRenderArchiveArticleRenderingTests: XCTestCase {
         XCTAssertTrue(table.contains("| Platform | Supported |"))
         XCTAssertTrue(table.contains("| iOS | Yes |"))
     }
+
+    func testRenderArchiveArticleRenersReferencesWithUrlAsLinks() throws {
+        let json = """
+        {
+          "kind": "article",
+          "identifier": { "url": "doc://test/documentation/Test/Overview" },
+          "metadata": { "title": "Overview" },
+          "abstract": [{ "type": "text", "text": "Reference guide." }],
+          "references": {
+            "doc://test/documentation/Test/SomeClass": {
+              "identifier": "doc://test/documentation/Test/SomeClass",
+              "kind": "symbol",
+              "title": "SomeClass",
+              "url": "/documentation/test/someclass"
+            }
+          },
+          "primaryContentSections": [
+            {
+              "content": [
+                { "type": "heading", "text": "See Also", "level": 2 },
+                {
+                  "type": "paragraph",
+                  "inlineContent": [
+                    { "type": "text", "text": "Check out " },
+                    { "type": "reference", "identifier": "doc://test/documentation/Test/SomeClass", "isActive": true },
+                    { "type": "text", "text": " for details." }
+                  ]
+                }
+              ]
+            }
+          ],
+          "topicSections": []
+        }
+        """
+
+        let article = try JSONDecoder().decode(DoccArticle.self, from: Data(json.utf8))
+        XCTAssertEqual(article.title, "Overview")
+
+        let seeAlso = article.sections[0].content.joined(separator: "\n")
+        // Reference with URL should render as a Markdown link
+        XCTAssertTrue(seeAlso.contains("[SomeClass](/documentation/test/someclass)"),
+                      "Expected reference with URL to render as Markdown link, but got: \(seeAlso)")
+    }
 }
 
