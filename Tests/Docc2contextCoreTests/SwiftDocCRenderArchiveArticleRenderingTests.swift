@@ -124,5 +124,136 @@ final class SwiftDocCRenderArchiveArticleRenderingTests: XCTestCase {
         XCTAssertTrue(seeAlso.contains("[SomeClass](/documentation/test/someclass)"),
                       "Expected reference with URL to render as Markdown link, but got: \(seeAlso)")
     }
+
+    func testRenderArchiveArticleRendersAsidesAsBlockquotes() throws {
+        let json = """
+        {
+          "kind": "article",
+          "identifier": { "url": "doc://test/documentation/Test/ThreadSafety" },
+          "metadata": { "title": "Thread Safety Guide" },
+          "abstract": [{ "type": "text", "text": "Understanding concurrency." }],
+          "references": {},
+          "primaryContentSections": [
+            {
+              "content": [
+                { "type": "heading", "text": "Important", "level": 2 },
+                {
+                  "type": "aside",
+                  "style": "note",
+                  "name": "Note",
+                  "content": [
+                    {
+                      "type": "paragraph",
+                      "inlineContent": [
+                        { "type": "text", "text": "This API is thread-safe as long as the underlying operation completes atomically." }
+                      ]
+                    }
+                  ]
+                }
+              ]
+            }
+          ],
+          "topicSections": []
+        }
+        """
+
+        let article = try JSONDecoder().decode(DoccArticle.self, from: Data(json.utf8))
+        XCTAssertEqual(article.title, "Thread Safety Guide")
+
+        let content = article.sections[0].content.joined(separator: "\n")
+        // Aside should render as blockquote with style prefix
+        XCTAssertTrue(content.contains(">") && content.contains("**Note:**"),
+                      "Expected aside to render as blockquote with Note prefix, but got: \(content)")
+        XCTAssertTrue(content.contains("thread-safe"),
+                      "Expected aside content to be preserved, but got: \(content)")
+    }
+
+    func testRenderArchiveArticleRendersImagesAsMarkdownLinks() throws {
+        let json = """
+        {
+          "kind": "article",
+          "identifier": { "url": "doc://test/documentation/Test/ImageGuide" },
+          "metadata": { "title": "Image Guide" },
+          "abstract": [{ "type": "text", "text": "Working with images." }],
+          "references": {},
+          "primaryContentSections": [
+            {
+              "content": [
+                { "type": "heading", "text": "Screenshots", "level": 2 },
+                {
+                  "type": "image",
+                  "source": "/images/example.png",
+                  "altText": "Example application screenshot"
+                }
+              ]
+            }
+          ],
+          "topicSections": []
+        }
+        """
+
+        let article = try JSONDecoder().decode(DoccArticle.self, from: Data(json.utf8))
+        XCTAssertEqual(article.title, "Image Guide")
+
+        let content = article.sections[0].content.joined(separator: "\n")
+        // Image should render as Markdown image syntax
+        XCTAssertTrue(content.contains("![Example application screenshot](/images/example.png)"),
+                      "Expected image to render as Markdown image link, but got: \(content)")
+    }
+
+    func testRenderArchiveArticleRendersTermLists() throws {
+        let json = """
+        {
+          "kind": "article",
+          "identifier": { "url": "doc://test/documentation/Test/Glossary" },
+          "metadata": { "title": "Glossary" },
+          "abstract": [{ "type": "text", "text": "Key terms and definitions." }],
+          "references": {},
+          "primaryContentSections": [
+            {
+              "content": [
+                { "type": "heading", "text": "Terms", "level": 2 },
+                {
+                  "type": "termList",
+                  "items": [
+                    {
+                      "content": [
+                        {
+                          "type": "paragraph",
+                          "inlineContent": [
+                            { "type": "text", "text": "API: Application Programming Interface - a set of protocols for building software applications." }
+                          ]
+                        }
+                      ]
+                    },
+                    {
+                      "content": [
+                        {
+                          "type": "paragraph",
+                          "inlineContent": [
+                            { "type": "text", "text": "HTTP: HyperText Transfer Protocol - the foundation of data communication on the web." }
+                          ]
+                        }
+                      ]
+                    }
+                  ]
+                }
+              ]
+            }
+          ],
+          "topicSections": []
+        }
+        """
+
+        let article = try JSONDecoder().decode(DoccArticle.self, from: Data(json.utf8))
+        XCTAssertEqual(article.title, "Glossary")
+
+        let content = article.sections[0].content.joined(separator: "\n")
+        // Term list should preserve term-definition pairs
+        XCTAssertTrue(content.contains("API") && content.contains("Application Programming Interface"),
+                      "Expected term list to preserve API definition, but got: \(content)")
+        XCTAssertTrue(content.contains("HTTP") && content.contains("HyperText Transfer Protocol"),
+                      "Expected term list to preserve HTTP definition, but got: \(content)")
+    }
 }
 

@@ -337,6 +337,11 @@ public struct DoccArticle: Equatable, Codable {
         let rows: [[[RenderContentBlock]]]?
         let syntax: String?
         let code: String?
+        let style: String?
+        let name: String?
+        let content: [RenderContentBlock]?
+        let source: String?
+        let altText: String?
 
         private enum CodingKeys: String, CodingKey {
             case type
@@ -348,6 +353,11 @@ public struct DoccArticle: Equatable, Codable {
             case rows
             case syntax
             case code
+            case style
+            case name
+            case content
+            case source
+            case altText
         }
 
         init(from decoder: Decoder) throws {
@@ -360,6 +370,11 @@ public struct DoccArticle: Equatable, Codable {
             header = try? container.decodeIfPresent(String.self, forKey: .header)
             rows = try? container.decodeIfPresent([[[RenderContentBlock]]].self, forKey: .rows)
             syntax = try? container.decodeIfPresent(String.self, forKey: .syntax)
+            style = try? container.decodeIfPresent(String.self, forKey: .style)
+            name = try? container.decodeIfPresent(String.self, forKey: .name)
+            content = try? container.decodeIfPresent([RenderContentBlock].self, forKey: .content)
+            source = try? container.decodeIfPresent(String.self, forKey: .source)
+            altText = try? container.decodeIfPresent(String.self, forKey: .altText)
 
             if let codeString = try? container.decodeIfPresent(String.self, forKey: .code) {
                 code = codeString
@@ -391,6 +406,9 @@ public struct DoccArticle: Equatable, Codable {
         case orderedList
         case codeListing
         case table
+        case aside
+        case image
+        case termList
     }
 
     public init(from decoder: Decoder) throws {
@@ -577,6 +595,46 @@ public struct DoccArticle: Equatable, Codable {
                         let rowLine = "| " + normalized.prefix(columnCount).map { $0.replacingOccurrences(of: "|", with: "\\|") }.joined(separator: " | ") + " |"
                         rendered.append(rowLine)
                     }
+                case .aside:
+                    let asideContent = block.content ?? []
+                    let renderedAsideBlocks = renderContentBlocks(asideContent)
+
+                    if !renderedAsideBlocks.isEmpty {
+                        let style = (block.style ?? "note").lowercased()
+                        let stylePrefix: String
+                        switch style {
+                        case "warning":
+                            stylePrefix = "**Warning:**"
+                        case "important":
+                            stylePrefix = "**Important:**"
+                        case "tip":
+                            stylePrefix = "**Tip:**"
+                        default:
+                            stylePrefix = "**Note:**"
+                        }
+
+                        for (index, asideLine) in renderedAsideBlocks.enumerated() {
+                            if index == 0 {
+                                rendered.append("> \(stylePrefix) \(asideLine)")
+                            } else {
+                                rendered.append("> \(asideLine)")
+                            }
+                        }
+                    }
+                case .image:
+                    if let source = block.source, !source.isEmpty {
+                        let altText = block.altText ?? "Image"
+                        rendered.append("![\(altText)](\(source))")
+                    }
+                case .termList:
+                    // Handle term list items - render as definition list format
+                    if let items = block.items {
+                        for item in items {
+                            let itemContent = renderContentBlocks(item.content)
+                            let itemText = itemContent.joined(separator: " ").trimmingCharacters(in: .whitespacesAndNewlines)
+                            if !itemText.isEmpty { rendered.append("\(itemText)") }
+                        }
+                    }
                 case .none:
                     continue
                 }
@@ -591,7 +649,7 @@ public struct DoccArticle: Equatable, Codable {
                 case .heading:
                     flushSectionIfNeeded()
                     currentTitle = block.text?.trimmingCharacters(in: .whitespacesAndNewlines)
-                case .paragraph, .unorderedList, .orderedList, .codeListing, .table:
+                case .paragraph, .unorderedList, .orderedList, .codeListing, .table, .aside, .image, .termList:
                     currentContent.append(contentsOf: renderContentBlocks([block]))
                 case .none:
                     continue
