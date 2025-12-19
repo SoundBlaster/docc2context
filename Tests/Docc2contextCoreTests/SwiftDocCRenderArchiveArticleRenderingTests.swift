@@ -255,5 +255,137 @@ final class SwiftDocCRenderArchiveArticleRenderingTests: XCTestCase {
         XCTAssertTrue(content.contains("HTTP") && content.contains("HyperText Transfer Protocol"),
                       "Expected term list to preserve HTTP definition, but got: \(content)")
     }
+
+    func testRenderArticleWithLinkInlineContent() throws {
+        let json = """
+        {
+          "kind": "article",
+          "identifier": { "url": "doc://test/documentation/Test/Resources" },
+          "metadata": { "title": "Resources" },
+          "abstract": [{ "type": "text", "text": "Helpful resources." }],
+          "references": {},
+          "primaryContentSections": [
+            {
+              "content": [
+                { "type": "heading", "text": "External Links", "level": 2 },
+                {
+                  "type": "paragraph",
+                  "inlineContent": [
+                    { "type": "text", "text": "Check out " },
+                    {
+                      "type": "link",
+                      "href": "https://example.com/docs",
+                      "inlineContent": [
+                        { "type": "text", "text": "the documentation" }
+                      ]
+                    },
+                    { "type": "text", "text": " for more details." }
+                  ]
+                }
+              ]
+            }
+          ],
+          "topicSections": []
+        }
+        """
+
+        let article = try JSONDecoder().decode(DoccArticle.self, from: Data(json.utf8))
+        XCTAssertEqual(article.title, "Resources")
+
+        let content = article.sections[0].content.joined(separator: "\n")
+        // Link should render as Markdown link
+        XCTAssertTrue(content.contains("[the documentation](https://example.com/docs)"),
+                      "Expected link to render as Markdown link, but got: \(content)")
+    }
+
+    func testRenderArticleWithStrikethroughInlineContent() throws {
+        let json = """
+        {
+          "kind": "article",
+          "identifier": { "url": "doc://test/documentation/Test/Deprecated" },
+          "metadata": { "title": "Deprecation Notice" },
+          "abstract": [{ "type": "text", "text": "Outdated information." }],
+          "references": {},
+          "primaryContentSections": [
+            {
+              "content": [
+                { "type": "heading", "text": "Old API", "level": 2 },
+                {
+                  "type": "paragraph",
+                  "inlineContent": [
+                    { "type": "text", "text": "The " },
+                    {
+                      "type": "strikethrough",
+                      "inlineContent": [
+                        { "type": "text", "text": "legacyFunction" }
+                      ]
+                    },
+                    { "type": "text", "text": " is deprecated. Use newFunction instead." }
+                  ]
+                }
+              ]
+            }
+          ],
+          "topicSections": []
+        }
+        """
+
+        let article = try JSONDecoder().decode(DoccArticle.self, from: Data(json.utf8))
+        XCTAssertEqual(article.title, "Deprecation Notice")
+
+        let content = article.sections[0].content.joined(separator: "\n")
+        // Strikethrough should render as ~~text~~
+        XCTAssertTrue(content.contains("~~legacyFunction~~"),
+                      "Expected strikethrough to render as ~~text~~, but got: \(content)")
+    }
+
+    func testRenderArticleWithComplexNestedInlineContent() throws {
+        let json = """
+        {
+          "kind": "article",
+          "identifier": { "url": "doc://test/documentation/Test/Advanced" },
+          "metadata": { "title": "Advanced Syntax" },
+          "abstract": [{ "type": "text", "text": "Complex formatting." }],
+          "references": {},
+          "primaryContentSections": [
+            {
+              "content": [
+                { "type": "heading", "text": "Nesting", "level": 2 },
+                {
+                  "type": "paragraph",
+                  "inlineContent": [
+                    { "type": "text", "text": "Learn about " },
+                    {
+                      "type": "emphasis",
+                      "inlineContent": [
+                        { "type": "text", "text": "important " },
+                        {
+                          "type": "strong",
+                          "inlineContent": [
+                            { "type": "text", "text": "strong " },
+                            { "type": "codeVoice", "code": "code" }
+                          ]
+                        },
+                        { "type": "text", "text": " concepts" }
+                      ]
+                    },
+                    { "type": "text", "text": "." }
+                  ]
+                }
+              ]
+            }
+          ],
+          "topicSections": []
+        }
+        """
+
+        let article = try JSONDecoder().decode(DoccArticle.self, from: Data(json.utf8))
+        XCTAssertEqual(article.title, "Advanced Syntax")
+
+        let content = article.sections[0].content.joined(separator: "\n")
+        // Nested structure should preserve all formatting elements
+        XCTAssertTrue(content.contains("important") && content.contains("strong") && content.contains("code"),
+                      "Expected nested structure to preserve all content, but got: \(content)")
+    }
 }
 

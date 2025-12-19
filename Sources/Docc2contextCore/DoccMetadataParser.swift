@@ -393,6 +393,7 @@ public struct DoccArticle: Equatable, Codable {
         let inlineContent: [RenderInlineContent]?
         let identifier: String?
         let isActive: Bool?
+        let href: String?
     }
 
     private struct RenderListItem: Decodable {
@@ -508,8 +509,21 @@ public struct DoccArticle: Equatable, Codable {
                     if let code = item.code {
                         result.append("`\(code)`")
                     }
-                case "strong", "emphasis":
+                case "strong":
                     result.append(renderInlineText(from: item.inlineContent ?? []))
+                case "emphasis":
+                    result.append(renderInlineText(from: item.inlineContent ?? []))
+                case "strikethrough":
+                    let strikeContent = renderInlineText(from: item.inlineContent ?? [])
+                    result.append("~~\(strikeContent)~~")
+                case "link":
+                    if let href = item.href, !href.isEmpty {
+                        let linkText = renderInlineText(from: item.inlineContent ?? [])
+                        result.append("[\(linkText)](\(href))")
+                    } else {
+                        let linkText = renderInlineText(from: item.inlineContent ?? [])
+                        result.append(linkText)
+                    }
                 case "reference":
                     guard let identifier = item.identifier else { continue }
                     if let title = resolveReference(identifier) {
@@ -521,7 +535,10 @@ public struct DoccArticle: Equatable, Codable {
                         }
                     }
                 default:
-                    continue
+                    // For unknown inline types, render any nested content as fallback
+                    if let nestedContent = item.inlineContent {
+                        result.append(renderInlineText(from: nestedContent))
+                    }
                 }
             }
 
