@@ -92,7 +92,7 @@ _Doc:_ `DOCS/INPROGRESS/F9_RealWorldDoccarchiveParityAudit.md` | _Owner:_ docc2c
   - Deprecation notices and migration guidance
   - "Default Implementations" section for protocol symbols
   - "See Also" / related symbols navigation
-  **Implementation:** Commit `<tbd>`; added 3 test cases (availability, deprecation, defaults); all 188 tests pass (coverage 90.78%); symbol pages now render availability, deprecation, and default implementation metadata. _Doc:_ `DOCS/INPROGRESS/F9.4_SymbolMetadataParity.md`. _Status:_ Complete — 2025-12-20.
+  **Implementation:** Commit `835d1f1`; added 3 test cases (availability, deprecation, defaults); all 188 tests pass (coverage 90.78%); symbol pages now render availability, deprecation, and default implementation metadata. _Doc:_ `DOCS/INPROGRESS/F9.4_SymbolMetadataParity.md`. _Status:_ Complete — 2025-12-20.
 
 - [ ] **F10 Swift-DocC Render-Archive Tutorial Parity (Decode + Markdown)** — Implement decoding/rendering for real tutorial render nodes produced by the `@Tutorial` directive (steps, code listings, assessments, intro), eliminating `invalidTutorialPage` warnings on real archives (initial repro: `SpecificationKit.doccarchive`). _Doc:_ `DOCS/INPROGRESS/F10_RenderArchiveTutorialParity.md`. _Owner:_ docc2context agent. _Status:_ Blocked on F9 remaining gaps — 2025-12-18.
 
