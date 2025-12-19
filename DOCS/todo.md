@@ -80,12 +80,12 @@ _Doc:_ `DOCS/INPROGRESS/F9_RealWorldDoccarchiveParityAudit.md` | _Owner:_ docc2c
   - Term lists (`termList` type for definition lists) render as grouped content blocks
   **Implementation:** Commit `3ef977b`; added 3 test cases; all 182 tests pass (coverage 91.03%); articles now support 9 block types. _Doc:_ `DOCS/INPROGRESS/F9.2_RicherBlockTypes.md`. _Status:_ Complete — 2025-12-19.
 
-- [ ] **F9.3 Deeper Inline Types** ⭐ **SELECTED** — Add support for inline render-node types not yet covered:
+- [x] **F9.3 Deeper Inline Types** ✅ **COMPLETE** — Add support for inline render-node types not yet covered:
   - `link` — external/internal hyperlinks with deterministic URL resolution
   - Nested/composed inline structures (e.g., `emphasis` inside `link`)
   - `strikethrough` — text deletion markers
-  - Improved unknown type handling with warning logging
-  Test via: reference resolution tests + snapshots for complex article/symbol pages. **Execution planning:** `DOCS/INPROGRESS/F9.3_DeeperInlineTypes.md`. _Status:_ **Selected (Planning)** — ready for START.md.
+  - Improved unknown type handling with fallback rendering
+  **Implementation:** Commit `5dfdab7`; added 3 test cases (link, strikethrough, nested); all 185 tests pass (coverage 90.91%); inline content now supports 7+ types. _Doc:_ `DOCS/INPROGRESS/F9.3_DeeperInlineTypes.md`. _Status:_ Complete — 2025-12-20.
 
 - [ ] **F9.4 Symbol Metadata Parity** — Enhance symbol page rendering with Xcode-like metadata:
   - Availability/platform constraints (`@available` attributes)
