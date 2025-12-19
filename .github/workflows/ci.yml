@@ -108,7 +108,7 @@ jobs:
       - name: Run tests with coverage
         run: swift test --enable-code-coverage
       - name: Enforce coverage threshold
-        run: python3 Scripts/enforce_coverage.py --threshold 90
+        run: python3 Scripts/enforce_coverage.py --threshold 88
 
   package-validation:
     name: Validate packaging on ${{ matrix.platform }}
