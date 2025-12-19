@@ -107,4 +107,56 @@ final class DoccMetadataParserAdditionalTests: XCTestCase {
             }
         }
     }
+
+    func testRenderArchiveSymbolLossyDecoderRecoversFromSchemaMismatch() throws {
+        try TestTemporaryDirectory.withTemporaryDirectory { temp in
+            try Data(#"{"bundleID":"com.example.test","bundleDisplayName":"Test"}"#.utf8)
+                .write(to: temp.url.appendingPathComponent("metadata.json", isDirectory: false))
+
+            let documentationDir = temp.url
+                .appendingPathComponent("data", isDirectory: true)
+                .appendingPathComponent("documentation", isDirectory: true)
+                .appendingPathComponent("test", isDirectory: true)
+            try FileManager.default.createDirectory(at: documentationDir, withIntermediateDirectories: true)
+
+            let symbolURL = documentationDir.appendingPathComponent("losingdecoder.json", isDirectory: false)
+            // Note: relationshipsSections is intentionally the wrong type (object not array) to force the strict
+            // RenderNode decode to fail and exercise the lossy fallback.
+            let json = """
+            {
+              "kind": "symbol",
+              "identifier": { "url": "doc://test/documentation/Test/LossyDecoder" },
+              "metadata": {
+                "title": "LossyDecoder",
+                "roleHeading": "Structure",
+                "symbolKind": "struct",
+                "role": "symbol",
+                "modules": [{ "name": "Test" }]
+              },
+              "relationshipsSections": { "oops": true },
+              "primaryContentSections": [
+                {
+                  "kind": "content",
+                  "content": [
+                    { "type": "heading", "text": "Overview", "level": 2 },
+                    { "type": "paragraph", "inlineContent": [ { "type": "text", "text": "Hello" } ] },
+                    { "type": "unorderedList", "items": [ { "content": [ { "type": "paragraph", "inlineContent": [ { "type": "text", "text": "One" } ] } ] } ] },
+                    { "type": "codeListing", "syntax": "swift", "code": ["let x = 1"] }
+                  ]
+                }
+              ]
+            }
+            """
+            try Data(json.utf8).write(to: symbolURL)
+
+            let parser = DoccMetadataParser()
+            let pages = try parser.loadSwiftDocCRenderArchiveSymbolPages(from: temp.url)
+            let page = try XCTUnwrap(pages["doc://test/documentation/Test/LossyDecoder"])
+
+            XCTAssertEqual(page.title, "LossyDecoder")
+            XCTAssertEqual(page.moduleName, "Test")
+            XCTAssertTrue(page.discussion.joined(separator: "\n").contains("- One"))
+            XCTAssertTrue(page.discussion.joined(separator: "\n").contains("```swift"))
+        }
+    }
 }

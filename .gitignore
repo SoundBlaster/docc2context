@@ -34,6 +34,9 @@ playground.xcworkspace
 # Generated artifacts
 dist/
 
+# Ad-hoc generated outputs (untracked)
+DOCS/INPROGRESS/docc2context-f4-out/
+
 # CocoaPods
 #
 # We recommend against adding the Pods directory to your .gitignore. However
@@ -64,3 +67,5 @@ fastlane/Preview.html
 fastlane/screenshots/**/*.png
 fastlane/test_output
 .serena
+Workspace.xcworkspace/xcuserdata
+docc2context.xcodeproj/xcuserdata

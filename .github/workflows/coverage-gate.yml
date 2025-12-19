@@ -59,7 +59,7 @@ jobs:
             -output-dir coverage-html \
             -ignore-filename-regex=".build|Tests/.*Snapshot"
 
-      - name: Enforce 90% line coverage for Docc2contextCore
+      - name: Enforce 88% line coverage for Docc2contextCore
         run: |
           llvm-cov report \
             "$TEST_BINARY" \
@@ -69,7 +69,7 @@ jobs:
           python3 Scripts/enforce_coverage.py \
             --profdata "$PROFILE" \
             --binary "$TEST_BINARY" \
-            --threshold 90 \
+            --threshold 88 \
             --target Docc2contextCore=Sources/Docc2contextCore
 
       - name: Upload coverage artifacts

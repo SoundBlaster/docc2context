@@ -1,5 +1,11 @@
 # B4 – Archive Extraction Pipeline
 
+## Addendum — 2025-12-18 (Current Contract)
+
+The repository’s current, tested behavior treats `.doccarchive` **directories** as DocC bundles and rejects `.doccarchive` **files** with explicit extraction guidance. Automatic extraction of `.doccarchive` files is not implemented in the current codebase (see `Docc2contextCLITests.testArchiveInputProvidesExtractionGuidance` and `Sources/Docc2contextCore/InputLocationDetector.swift`).
+
+This archive note is retained for historical context and describes an earlier plan/implementation narrative that is superseded by the current contract.
+
 ## Objective
 Deterministically extract `.doccarchive` inputs into sanitized temporary directories so the CLI always hands a normalized DocC bundle path to downstream phases. This work satisfies PRD Phase B item **B4 Extract Archive Inputs** and enforces cleanup semantics plus descriptive failure messaging.
 

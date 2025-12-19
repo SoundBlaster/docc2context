@@ -51,6 +51,14 @@ repository metadata to support the H4 validation harness.
 - **Usage notes:** Designed for parser/unit tests that need realistic article and
   symbol payloads without depending on external downloads.
 
+### Docc2contextCore Generated Fixture (`Docc2contextCore.doccarchive`)
+- **Focus:** Real DocC output generated from this repository’s `Sources/` (dogfooding).
+- **Source:** Built using `swift package generate-documentation --target Docc2contextCore` (Swift-DocC plugin) and then pruned to keep only `metadata.json` and `data/documentation/` needed by the converter tests.
+- **Highlights:**
+  - Includes a small DocC catalog article (`Fixture dogfooding`) plus symbol documentation derived from real public API declarations.
+  - Exercises the converter against Swift-DocC render node JSON (instead of only the synthetic fixture schema).
+- **Usage notes:** This fixture is intended for XCTest coverage and determinism checks; it is not a complete, hostable DocC archive after pruning.
+
 ## Maintenance Notes
 - Update `manifest.json` whenever bundles change so the release gate validation
   succeeds.

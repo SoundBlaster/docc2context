@@ -1,5 +1,27 @@
 import Foundation
 
+/// Converts a DocC bundle into deterministic Markdown and a link graph.
+///
+/// Use this type when you want a **repeatable**, filesystem-based export that is suitable for feeding into
+/// downstream tooling (for example, LLM context ingestion) without requiring Xcode.
+///
+/// The pipeline is designed to be:
+/// - **Deterministic**: identical inputs produce byte-identical outputs (ordering, formatting, hashing).
+/// - **Offline-friendly**: no network access is required during conversion.
+/// - **Fixture-first**: the repo ships DocC fixtures under `Fixtures/` that are used by snapshot tests.
+///
+/// ## Usage
+/// Convert a DocC archive directory to Markdown:
+/// ```swift
+/// let pipeline = MarkdownGenerationPipeline()
+/// let summary = try pipeline.generateMarkdown(
+///   from: "/path/to/MyLibrary.doccarchive",
+///   to: "/tmp/docc2context-out",
+///   forceOverwrite: true,
+///   symbolLayout: .single
+/// )
+/// print(summary.symbolCount)
+/// ```
 public struct MarkdownGenerationPipeline {
     public struct Summary: Equatable, Codable {
         public let outputDirectory: URL
@@ -21,6 +43,16 @@ public struct MarkdownGenerationPipeline {
             self.referenceArticleCount = referenceArticleCount
             self.symbolCount = symbolCount
         }
+    }
+
+    public enum SymbolLayout: String, CaseIterable, Codable {
+        case tree
+        case single
+    }
+
+    public enum TutorialLayout: String, CaseIterable, Codable {
+        case chapter
+        case single
     }
 
     public enum Error: Swift.Error, LocalizedError {
@@ -109,7 +141,9 @@ public struct MarkdownGenerationPipeline {
         from inputPath: String,
         to outputPath: String,
         forceOverwrite: Bool,
-        technologyFilter: [String]? = nil
+        technologyFilter: [String]? = nil,
+        symbolLayout: SymbolLayout = .tree,
+        tutorialLayout: TutorialLayout = .chapter
     ) throws -> Summary {
         let inputURL = URL(fileURLWithPath: inputPath).standardizedFileURL
         try validateInputDirectory(inputURL)
@@ -165,32 +199,76 @@ public struct MarkdownGenerationPipeline {
                     let tutorialIdentifiers = chapter.pageIdentifiers.filter(isTutorialIdentifier(_:))
                     guard !tutorialIdentifiers.isEmpty else { continue }
 
-                    let tutorials = try tutorialIdentifiers.map { identifier in
-                        try metadataParser.loadTutorialPage(withIdentifier: identifier, from: inputURL)
+                    var tutorials: [DoccTutorial] = []
+                    tutorials.reserveCapacity(tutorialIdentifiers.count)
+                    for identifier in tutorialIdentifiers {
+                        do {
+                            tutorials.append(try metadataParser.loadTutorialPage(withIdentifier: identifier, from: inputURL))
+                        } catch {
+                            let message =
+                                "MarkdownGenerationPipeline: warning: failed to load tutorial page \(identifier): \(error)\n"
+                            if let data = message.data(using: .utf8) {
+                                FileHandle.standardError.write(data)
+                            }
+                        }
                     }
 
-                    let chapterMarkdown = renderer.renderTutorialChapterPage(
-                        catalog: bundleModel.documentationCatalog,
-                        volume: volume,
-                        chapter: chapter,
-                        tutorials: tutorials)
+                    switch tutorialLayout {
+                    case .chapter:
+                        let chapterMarkdown = renderer.renderTutorialChapterPage(
+                            catalog: bundleModel.documentationCatalog,
+                            volume: volume,
+                            chapter: chapter,
+                            tutorials: tutorials)
 
-                    let chapterURL = makeChapterFileURL(
-                        title: chapter.title,
-                        index: index,
-                        under: volumeDirectory)
-                    try write(markdown: chapterMarkdown, to: chapterURL)
-                    chapterCount += 1
+                        let chapterURL = makeChapterFileURL(
+                            title: chapter.title,
+                            index: index,
+                            under: volumeDirectory)
+                        try write(markdown: chapterMarkdown, to: chapterURL)
+                        chapterCount += 1
+                    case .single:
+                        let chapterMarkdown = renderer.renderTutorialChapterPage(
+                            catalog: bundleModel.documentationCatalog,
+                            volume: volume,
+                            chapter: chapter,
+                            tutorials: tutorials)
+
+                        let chapterURL = makeChapterFileURL(
+                            title: chapter.title,
+                            index: index,
+                            under: volumeDirectory)
+                        try write(markdown: chapterMarkdown, to: chapterURL)
+                        chapterCount += 1
+
+                        let chapterTutorialsDirectory = volumeDirectory
+                            .appendingPathComponent(slug(for: chapter.title, fallback: "chapter"), isDirectory: true)
+                        try ensureDirectoryExists(chapterTutorialsDirectory)
+
+                        for tutorial in tutorials {
+                            let tutorialMarkdown = renderer.renderTutorialPage(
+                                catalog: bundleModel.documentationCatalog,
+                                volume: volume,
+                                chapter: chapter,
+                                tutorial: tutorial
+                            )
+                            let tutorialURL = makeTutorialFileURL(title: tutorial.title, under: chapterTutorialsDirectory)
+                            try write(markdown: tutorialMarkdown, to: tutorialURL)
+                        }
+                    }
                 }
             }
         }
 
         let articlesRoot = markdownRoot.appendingPathComponent("articles", isDirectory: true)
         var referenceArticleCount = 0
-        let articleIdentifiers = orderedArticleIdentifiers(from: bundleModel.documentationCatalog)
-
-        // Streaming optimization: Load articles as dictionary to avoid intermediate array
+        // Streaming optimization: Load articles as dictionary to avoid intermediate array.
         let articlesByIdentifier = try loadAvailableArticlesDictionary(from: inputURL)
+        let articleIdentifiers = orderedArticleIdentifiers(
+            from: bundleModel.documentationCatalog,
+            availableArticles: Set(articlesByIdentifier.keys))
+
+        let renderArchiveSymbols = try metadataParser.loadSwiftDocCRenderArchiveSymbolPages(from: inputURL)
 
         if !articleIdentifiers.isEmpty && !articlesByIdentifier.isEmpty {
             try ensureDirectoryExists(articlesRoot)
@@ -198,12 +276,37 @@ public struct MarkdownGenerationPipeline {
 
         for identifier in articleIdentifiers {
             guard let article = articlesByIdentifier[identifier] else { continue }
+            let renderedArticle = maybeAugmentCollectionGroupArticle(
+                article,
+                symbolsByIdentifier: renderArchiveSymbols
+            )
             let markdown = renderer.renderReferenceArticle(
                 catalog: bundleModel.documentationCatalog,
-                article: article)
+                article: renderedArticle)
             let articleURL = makeArticleFileURL(for: identifier, under: articlesRoot)
             try write(markdown: markdown, to: articleURL)
             referenceArticleCount += 1
+        }
+
+        // Swift-DocC render archive symbol pages (F5): render `kind: "symbol"` nodes into Xcode-like Markdown.
+        if !renderArchiveSymbols.isEmpty {
+            switch symbolLayout {
+            case .tree:
+                for identifier in renderArchiveSymbols.keys.sorted() {
+                    guard let symbol = renderArchiveSymbols[identifier] else { continue }
+                    let markdown = renderer.renderSymbolPage(catalog: bundleModel.documentationCatalog, symbol: symbol)
+                    let symbolURL = makeRenderNodeIndexFileURL(for: identifier, under: markdownRoot)
+                    try write(markdown: markdown, to: symbolURL)
+                }
+            case .single:
+                for identifier in renderArchiveSymbols.keys.sorted() {
+                    guard isTopLevelSymbolIdentifier(identifier) else { continue }
+                    guard let symbol = renderArchiveSymbols[identifier] else { continue }
+                    let markdown = renderer.renderSymbolPage(catalog: bundleModel.documentationCatalog, symbol: symbol)
+                    let symbolURL = makeRenderNodeSingleFileURL(for: identifier, under: markdownRoot)
+                    try write(markdown: markdown, to: symbolURL)
+                }
+            }
         }
 
         // Build and write link graph
@@ -314,16 +417,28 @@ public struct MarkdownGenerationPipeline {
         identifier.contains("/tutorials/")
     }
 
-    private func orderedArticleIdentifiers(from catalog: DoccDocumentationCatalog) -> [String] {
+    private func orderedArticleIdentifiers(
+        from catalog: DoccDocumentationCatalog,
+        availableArticles: Set<String>
+    ) -> [String] {
         var seen: Set<String> = []
         var identifiers: [String] = []
         for topic in catalog.topics {
-            for identifier in topic.identifiers where identifier.contains("/articles/") {
+            for identifier in topic.identifiers {
+                guard availableArticles.contains(identifier) else { continue }
                 if seen.insert(identifier).inserted {
                     identifiers.append(identifier)
                 }
             }
         }
+
+        if seen.count != availableArticles.count {
+            let remaining = availableArticles
+                .subtracting(seen)
+                .sorted()
+            identifiers.append(contentsOf: remaining)
+        }
+
         return identifiers
     }
 
@@ -333,8 +448,20 @@ public struct MarkdownGenerationPipeline {
         return volumeDirectory.appendingPathComponent("\(slugValue).md", isDirectory: false)
     }
 
+    private func makeTutorialFileURL(title: String, under directory: URL) -> URL {
+        let slugValue = slug(for: title, fallback: "tutorial")
+        return directory.appendingPathComponent("\(slugValue).md", isDirectory: false)
+    }
+
     private func makeArticleFileURL(for identifier: String, under root: URL) -> URL {
-        var components = identifier.split(separator: "/").map { slug(for: String($0), fallback: "segment") }
+        let rawComponents: [String]
+        if let url = URL(string: identifier), url.scheme == "doc" {
+            rawComponents = url.pathComponents.filter { $0 != "/" }
+        } else {
+            rawComponents = identifier.split(separator: "/").map(String.init)
+        }
+
+        var components = rawComponents.map { slug(for: String($0), fallback: "segment") }
         guard let fileName = components.popLast() else {
             return root.appendingPathComponent("article.md", isDirectory: false)
         }
@@ -343,6 +470,102 @@ public struct MarkdownGenerationPipeline {
             directory = directory.appendingPathComponent(component, isDirectory: true)
         }
         return directory.appendingPathComponent(fileName).appendingPathExtension("md")
+    }
+
+    private func makeRenderNodeIndexFileURL(for identifier: String, under markdownRoot: URL) -> URL {
+        guard let docURL = URL(string: identifier), docURL.scheme == "doc" else {
+            return markdownRoot
+                .appendingPathComponent("documentation", isDirectory: true)
+                .appendingPathComponent(slug(for: identifier, fallback: "symbol"), isDirectory: true)
+                .appendingPathComponent("index.md", isDirectory: false)
+        }
+
+        let rawComponents = docURL.pathComponents.filter { $0 != "/" }
+        var directory = markdownRoot
+        for component in rawComponents {
+            directory = directory.appendingPathComponent(slug(for: component, fallback: "segment"), isDirectory: true)
+        }
+        return directory.appendingPathComponent("index.md", isDirectory: false)
+    }
+
+    private func isTopLevelSymbolIdentifier(_ identifier: String) -> Bool {
+        guard let docURL = URL(string: identifier), docURL.scheme == "doc" else { return false }
+        let rawComponents = docURL.pathComponents.filter { $0 != "/" }
+        guard rawComponents.count == 3 else { return false }
+        return rawComponents.first == "documentation"
+    }
+
+    private func makeRenderNodeSingleFileURL(for identifier: String, under markdownRoot: URL) -> URL {
+        guard let docURL = URL(string: identifier), docURL.scheme == "doc" else {
+            return markdownRoot
+                .appendingPathComponent("documentation", isDirectory: true)
+                .appendingPathComponent(slug(for: identifier, fallback: "symbol") + ".md", isDirectory: false)
+        }
+
+        let rawComponents = docURL.pathComponents.filter { $0 != "/" }
+        guard rawComponents.count >= 2 else {
+            return markdownRoot
+                .appendingPathComponent("documentation", isDirectory: true)
+                .appendingPathComponent("symbol.md", isDirectory: false)
+        }
+
+        var directory = markdownRoot
+        for component in rawComponents.dropLast() {
+            directory = directory.appendingPathComponent(slug(for: component, fallback: "segment"), isDirectory: true)
+        }
+
+        let fileName = slug(for: rawComponents.last ?? "symbol", fallback: "symbol")
+        return directory.appendingPathComponent(fileName).appendingPathExtension("md")
+    }
+
+    private func maybeAugmentCollectionGroupArticle(
+        _ article: DoccArticle,
+        symbolsByIdentifier: [String: DoccSymbolPage]
+    ) -> DoccArticle {
+        guard article.kind == "article",
+              article.sections.isEmpty,
+              let parentIdentifier = parentSymbolIdentifier(forCollectionGroupArticleIdentifier: article.identifier),
+              let parentSymbol = symbolsByIdentifier[parentIdentifier]
+        else {
+            return article
+        }
+
+        var contextLines: [String] = []
+        if let summary = parentSymbol.abstract?.trimmingCharacters(in: .whitespacesAndNewlines), !summary.isEmpty {
+            contextLines.append(summary)
+        }
+
+        let discussionText = parentSymbol.discussion
+            .map { $0.trimmingCharacters(in: .whitespacesAndNewlines) }
+            .filter { !$0.isEmpty }
+
+        if let firstParagraph = discussionText.first(where: { !$0.hasPrefix("#") }) {
+            contextLines.append(firstParagraph)
+        }
+
+        guard !contextLines.isEmpty else { return article }
+
+        let augmentedSections = [DoccArticle.Section(title: "Context", content: contextLines)]
+        return DoccArticle(
+            identifier: article.identifier,
+            kind: article.kind,
+            title: article.title,
+            abstract: article.abstract,
+            sections: augmentedSections + article.sections,
+            topics: article.topics,
+            references: article.references
+        )
+    }
+
+    private func parentSymbolIdentifier(forCollectionGroupArticleIdentifier identifier: String) -> String? {
+        guard let url = URL(string: identifier), url.scheme == "doc", let host = url.host else { return nil }
+        let components = url.pathComponents.filter { $0 != "/" }
+        guard components.count >= 4 else { return nil }
+        guard components.first == "documentation" else { return nil }
+        // documentation/<module>/<symbol>/<collection-group>
+        let module = components[1]
+        let symbol = components[2]
+        return "doc://\(host)/documentation/\(module)/\(symbol)"
     }
 
     /// Streaming-optimized article loading: Returns dictionary directly without intermediate array
@@ -354,31 +577,40 @@ public struct MarkdownGenerationPipeline {
     /// - Parameter bundleURL: URL to the DocC bundle
     /// - Returns: Dictionary mapping article identifiers to DoccArticle instances
     private func loadAvailableArticlesDictionary(from bundleURL: URL) throws -> [String: DoccArticle] {
-        let articlesDirectory = bundleURL
+        let documentationRoot = bundleURL
             .appendingPathComponent("data", isDirectory: true)
             .appendingPathComponent("documentation", isDirectory: true)
-            .appendingPathComponent("articles", isDirectory: true)
 
-        guard fileManager.fileExists(atPath: articlesDirectory.path) else {
+        guard fileManager.fileExists(atPath: documentationRoot.path) else {
             return [:]
         }
 
-        let fileURLs = try fileManager.contentsOfDirectory(
-            at: articlesDirectory,
+        let enumerator = fileManager.enumerator(
+            at: documentationRoot,
             includingPropertiesForKeys: nil,
             options: [.skipsHiddenFiles])
+
+        let fileURLs = (enumerator?.allObjects as? [URL] ?? [])
             .filter { $0.pathExtension.lowercased() == "json" }
-            .sorted { $0.lastPathComponent < $1.lastPathComponent }
+            .sorted { $0.path < $1.path }
+
+        struct KindProbe: Decodable { let kind: String }
 
         var articlesByIdentifier: [String: DoccArticle] = [:]
-        articlesByIdentifier.reserveCapacity(fileURLs.count)
+        articlesByIdentifier.reserveCapacity(16)
 
         let decoder = JSONDecoder()
         for fileURL in fileURLs {
             let data = try Data(contentsOf: fileURL)
+
+            guard let probe = try? decoder.decode(KindProbe.self, from: data),
+                  probe.kind == "article"
+            else {
+                continue
+            }
+
             do {
                 let article = try decoder.decode(DoccArticle.self, from: data)
-                // Directly insert into dictionary, avoiding intermediate array allocation
                 articlesByIdentifier[article.identifier] = article
             } catch {
                 throw DoccMetadataParserError.invalidArticlePage(fileURL)

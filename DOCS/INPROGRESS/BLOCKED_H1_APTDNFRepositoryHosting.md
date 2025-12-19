@@ -44,11 +44,21 @@ This task requires external resources and operational setup that cannot be compl
 - Wired `.github/workflows/release.yml` to call the Cloudsmith helper on tagged releases once `CLOUDSMITH_*` secrets are configured
 - Documented Cloudsmith secrets and maintainer activation steps in `.github/SECRETS.md` and README (Linux install section)
 
+## 📌 Progress Update (2025-12-18)
+
+- Hardened Cloudsmith publishing workflow to be safer for staged rollout:
+  - Skip `*-musl.deb` / `*-musl.rpm` by default to avoid same-name/version collisions in a single repository
+  - Added `--skip-deb` / `--skip-rpm` flags so maintainers can publish apt-only or rpm-only repositories intentionally
+- Archived implementation notes:
+  - `DOCS/TASK_ARCHIVE/46_H1.1_CloudsmithPublishingVariantFiltering/`
+  - `DOCS/TASK_ARCHIVE/47_H1.2_CloudsmithPublishSelectiveChannels/`
+
 ### Remaining Blockers After Automation Prep
 
 - Cloudsmith account/repository creation (owner/repo slugs required by upload helper)
 - API key provisioning and secret configuration (`CLOUDSMITH_API_KEY`, `CLOUDSMITH_OWNER`, `CLOUDSMITH_REPOSITORY`)
 - Distribution metadata decisions (apt: distribution/release/component; rpm: distribution/release) and corresponding secrets
+- Variant publishing decision (glibc vs musl): musl installers share the same package name/version as glibc, so repository publishing must be glibc-only unless we adopt separate package names or separate repositories
 - GPG signing keys for apt/dnf repositories and CI integration
 - Test repository to validate real uploads before enabling the workflow condition
 

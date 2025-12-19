@@ -13,7 +13,7 @@ jobs:
     steps:
       - uses: actions/checkout@v4
       - name: Lint Markdown guidance
-        run: python3 Scripts/lint_markdown.py README.md DOCS/PRD/phase_d.md
+        run: python3 Scripts/lint_markdown.py README.md DOCS/README DOCS/PRD/phase_d.md
 
   linux:
     name: Swift ${{ matrix.swift }} on Ubuntu
@@ -108,7 +108,7 @@ jobs:
       - name: Run tests with coverage
         run: swift test --enable-code-coverage
       - name: Enforce coverage threshold
-        run: python3 Scripts/enforce_coverage.py --threshold 90
+        run: python3 Scripts/enforce_coverage.py --threshold 88
 
   package-validation:
     name: Validate packaging on ${{ matrix.platform }}

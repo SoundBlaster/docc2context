@@ -11,6 +11,26 @@ public struct Docc2contextCommandResult {
     }
 }
 
+/// Programmatic entry point for running the `docc2context` CLI.
+///
+/// This type is primarily used by the executable target, but is also convenient for tests and for embedding
+/// `docc2context` behavior into other tooling (e.g. a custom release pipeline).
+///
+/// The command is intentionally deterministic and offline-friendly: it converts DocC bundle directories or
+/// `.doccarchive` directories into Markdown outputs under `--output`.
+///
+/// ## Usage
+/// ```swift
+/// let result = Docc2contextCommand().run(arguments: [
+///   "docc2context",
+///   "/path/to/MyDocs.doccarchive",
+///   "--output", "/tmp/out",
+///   "--force",
+///   "--symbol-layout", "single",
+/// ])
+/// print(result.exitCode)
+/// print(result.output)
+/// ```
 public struct Docc2contextCommand {
     private let inputDetector: InputLocationDetector
     private let pipeline: MarkdownGenerationPipeline
@@ -32,6 +52,8 @@ public struct Docc2contextCommand {
         case missingOutput
         case missingValue(flag: String)
         case unsupportedFormat(String)
+        case unsupportedSymbolLayout(String)
+        case unsupportedTutorialLayout(String)
         case unknownFlag(String)
         case unexpectedArgument(String)
 
@@ -45,6 +67,10 @@ public struct Docc2contextCommand {
                 return "Flag \(flag) requires a value."
             case .unsupportedFormat(let value):
                 return "Unsupported format '\(value)'. Supported formats: markdown."
+            case .unsupportedSymbolLayout(let value):
+                return "Unsupported symbol layout '\(value)'. Supported values: tree, single."
+            case .unsupportedTutorialLayout(let value):
+                return "Unsupported tutorial layout '\(value)'. Supported values: chapter, single."
             case .unknownFlag(let flag):
                 return "Unknown flag '\(flag)'. Pass --help to see supported options."
             case .unexpectedArgument(let value):
@@ -59,6 +85,8 @@ public struct Docc2contextCommand {
         let forceOverwrite: Bool
         let format: String
         let technologyFilter: [String]?
+        let symbolLayout: MarkdownGenerationPipeline.SymbolLayout
+        let tutorialLayout: MarkdownGenerationPipeline.TutorialLayout
     }
 
     public func run(arguments: [String]) -> Docc2contextCommandResult {
@@ -76,7 +104,9 @@ public struct Docc2contextCommand {
                 from: inputURL.path,
                 to: options.outputPath,
                 forceOverwrite: options.forceOverwrite,
-                technologyFilter: options.technologyFilter)
+                technologyFilter: options.technologyFilter,
+                symbolLayout: options.symbolLayout,
+                tutorialLayout: options.tutorialLayout)
             let formattedSummary = "Generated \(summary.tutorialVolumeCount) tutorial volume(s), " +
                 "\(summary.chapterCount) chapter(s), \(summary.referenceArticleCount) reference article(s), " +
                 "and \(summary.symbolCount) symbol(s) into \(summary.outputDirectory.path)."
@@ -107,12 +137,24 @@ public struct Docc2contextCommand {
             throw CLIError.unsupportedFormat(parsedArguments.format)
         }
 
+        let normalizedSymbolLayout = parsedArguments.symbolLayout.lowercased()
+        guard let symbolLayout = MarkdownGenerationPipeline.SymbolLayout(rawValue: normalizedSymbolLayout) else {
+            throw CLIError.unsupportedSymbolLayout(parsedArguments.symbolLayout)
+        }
+
+        let normalizedTutorialLayout = parsedArguments.tutorialLayout.lowercased()
+        guard let tutorialLayout = MarkdownGenerationPipeline.TutorialLayout(rawValue: normalizedTutorialLayout) else {
+            throw CLIError.unsupportedTutorialLayout(parsedArguments.tutorialLayout)
+        }
+
         return CLIOptions(
             inputPath: input,
             outputPath: output,
             forceOverwrite: parsedArguments.force,
             format: normalizedFormat,
-            technologyFilter: parsedArguments.technology)
+            technologyFilter: parsedArguments.technology,
+            symbolLayout: symbolLayout,
+            tutorialLayout: tutorialLayout)
     }
 }
 
@@ -131,6 +173,18 @@ struct Docc2contextCLIOptions: ParsableArguments {
 
     @Option(name: .customLong("technology"), help: "Filter symbols by technology/module name. Can be specified multiple times.")
     var technology: [String] = []
+
+    @Option(
+        name: .customLong("symbol-layout"),
+        help: "Symbol page output layout. Supported values: tree (default), single."
+    )
+    var symbolLayout: String = "tree"
+
+    @Option(
+        name: .customLong("tutorial-layout"),
+        help: "Tutorial output layout. Supported values: chapter (default), single."
+    )
+    var tutorialLayout: String = "chapter"
 }
 
 public struct Docc2contextHelp {
@@ -141,7 +195,7 @@ public struct Docc2contextHelp {
         docc2context – DocC to Markdown converter (bootstrap)
 
         Usage:
-          docc2context <input-path> --output <directory> [--format markdown] [--force] [--technology <name>]
+          docc2context <input-path> --output <directory> [--format markdown] [--force] [--technology <name>] [--symbol-layout tree|single] [--tutorial-layout chapter|single]
 
         Options:
           -h, --help                Show this help message and exit.
@@ -149,6 +203,8 @@ public struct Docc2contextHelp {
           --force                   Overwrite the output directory if it already exists.
           --format <value>          Output format. Supported values: markdown (default).
           --technology <name>       Filter symbols by technology/module name. Can be specified multiple times.
+          --symbol-layout <value>   Symbol page output layout. Supported values: tree (default), single.
+          --tutorial-layout <value> Tutorial output layout. Supported values: chapter (default), single.
         """
     }
 }

@@ -8,7 +8,7 @@
 | Success Criteria | Given a valid DocC bundle/archive, the tool emits Markdown files whose content, metadata, and navigational links mirror the original DocC documentation; CLI offers discoverable help; quality gates (tests, determinism checks, release scripts) exist before feature code merges and pass on Linux and macOS Swift toolchains. |
 | Constraints | Swift 5.9+; no proprietary dependencies; must operate offline; output Markdown must be deterministic; adhere to POSIX shell execution for automation. |
 | Assumptions | DocC bundle structure follows Apple DocC specification; Swift DocC symbol graphs are available within bundles; filesystem access is unrestricted; LLM agents consume plain Markdown and JSON metadata. |
-| External Dependencies | SwiftDocC parsing libraries (DocCKit / SymbolKit), Foundation file APIs, optional compression libraries for .doccarchive extraction. |
+| External Dependencies | SwiftDocC parsing libraries (DocCKit / SymbolKit), Foundation file APIs. `.doccarchive` inputs are treated as directories produced by DocC; if a user provides a `.doccarchive` file, the CLI emits extraction guidance. |
 
 ## 2. Structured TODO Plan
 ### Phase A – Quality & Deployment Foundations
@@ -24,8 +24,8 @@
 | --- | --- | --- | --- | --- |
 | B1 | Specify CLI Interface via Failing Tests | Capture expected CLI arguments, flags, and error outputs through XCTest cases before implementation. | A2 | No |
 | B2 | Implement Argument Parsing to Satisfy Tests | Use swift-argument-parser to meet behaviors defined in B1 tests. | B1 | No |
-| B3 | Detect Input Type | Implement logic to detect directories vs `.doccarchive` zip and normalize to bundle path, with unit tests covering all cases. | B2 | Limited |
-| B4 | Extract Archive Inputs | If archive provided, extract to temp directory with deterministic paths validated by tests seeded with fixture archives. | B3 | Yes |
+| B3 | Detect Input Type | Detect DocC bundle directories (including `.doccarchive` directories) and reject `.doccarchive` *files* with actionable extraction guidance. | B2 | Limited |
+| B4 | Archive Inputs (No Auto-Extraction) | `.doccarchive` directories are treated as DocC bundles. If a `.doccarchive` file is provided, fail with explicit guidance to extract it before converting. | B3 | Yes |
 | B5 | Parse DocC Metadata | Load `Info.plist`, documentation data, and symbol graph references guided by fixture-based tests. | B3 | Limited |
 | B6 | Build Internal Model | Define structs/classes representing articles, tutorials, and references, red-green-refactor style using model-focused tests. | B5 | No |
 
@@ -80,7 +80,8 @@ DocC2Context converts DocC documentation bundles into Markdown corpora so that L
 ### 4.2 Functional Requirements
 1. **Input Handling**
    - Accept command `docc2context <input> --output <dir> [--format markdown]`.
-   - Detect `.doccarchive` vs directory and normalize to bundle structure.
+   - Accept DocC bundle directories, including `.doccarchive` directories produced by DocC.
+   - If a `.doccarchive` file is provided, fail with explicit extraction guidance.
    - Fail with explicit error if DocC manifest missing.
 2. **DocC Parsing**
    - Read metadata (`Info.plist`), documentation articles, tutorials, technology catalog, and symbol graphs.
@@ -108,7 +109,7 @@ DocC2Context converts DocC documentation bundles into Markdown corpora so that L
 
 ### 4.4 User Interaction Flow
 1. User installs tool via SwiftPM build or binary download.
-2. User runs `docc2context /path/MyDocs.doccarchive --output ./docs-md`.
+2. User runs `docc2context /path/MyDocs.doccarchive --output ./docs-md` (where `MyDocs.doccarchive` is a DocC archive directory, not a file).
 3. Tool logs detection, extraction, parsing, generation phases with progress.
 4. On completion, CLI prints summary with counts of pages, links, and output location.
 5. User navigates Markdown output (TOC/index) for downstream ingestion.
@@ -138,3 +139,39 @@ To close out Phase D, the release automation must ship documented distribution c
    - Offer manual install path mirroring Linux instructions with `/usr/local/bin` or `/opt/homebrew/bin` destinations, plus a one-line install script option.
    - Document codesigning (`codesign --options runtime`) and notarization (`notarytool submit`, `stapler staple`) steps for prebuilt binaries so Gatekeeper trust warnings are minimized, even if Homebrew rebuilds from source.
    - Call out when notarized/signature artifacts are required (e.g., distributing prebuilt bottles) vs optional for source-installs.
+
+## 5. Post-MVP Enhancements
+
+These items are intentionally out-of-scope for Phases A–D, but remain high-value follow-ups that improve long-term quality, realism of fixtures, and dogfooding coverage.
+
+| ID | Task | Description | Dependencies | Parallelizable |
+| --- | --- | --- | --- | --- |
+| F4 | Dogfood DocC Fixture from Sources | Add real DocC documentation in `Sources/` (DocC comments and/or a `.docc` catalog for this package), then generate a `.doccarchive` from the repo using `swift package generate-documentation` and commit the resulting artifacts under `Fixtures/` as a deterministic test fixture. Document provenance (toolchain + command line) and add tests that validate the converter can parse and emit stable Markdown/link graphs from the new fixture without requiring DocC generation at test time. | A3, A4, B5, C2, C5 | Yes |
+| F5 | Xcode-Parity Symbol Page Rendering (Swift-DocC Render Archives) | Extend the Markdown export to render Swift-DocC `kind: "symbol"` render nodes into Xcode-like pages (structure + topics + relationships) rather than relying on synthetic fixture schemas. Use `topicSections`, `relationshipsSections`, `primaryContentSections` (including declarations) and `references` to emit stable Markdown pages for symbols (e.g. `MarkdownGenerationPipeline`) and to treat `collectionGroup` nodes (e.g. “Equatable Implementations”) as structured sub-sections. Add snapshot tests against the `Docc2contextCore.doccarchive` fixture to lock output structure and determinism. | F4, B5, C2, C5 | Limited |
+| F6 | Single-Page Symbol Markdown Mode | Add an opt-in output mode that renders each DocC symbol (struct/class/enum/protocol/etc.) as a single “solid” Markdown document instead of a nested folder tree of member pages. In this mode, the symbol’s Topics/Relationships/Declarations are flattened and member references are inlined (as headings or bullet sections) so outputs are easier to ingest as standalone documents. The default output remains the current tree layout. | F5, C2, C5 | Limited |
+| F7 | Rich Inline Source Documentation | Add high-quality DocC documentation comments directly in `Sources/` for the public API surface (CLI command types, pipeline, parser, renderer, models), including usage examples and cross-references, and keep the committed `Fixtures/Docc2contextCore.doccarchive` + Markdown snapshots in sync by regenerating/updating them under controlled provenance. | F4, F5, C2, C5 | Limited |
+| F8 | CI Self-Docs Markdown Artifact | Add a GitHub Actions CI job that runs `docc2context` against the project’s own committed DocC fixture (`Fixtures/Docc2contextCore.doccarchive`) and uploads the generated Markdown output as a build artifact for inspection. This keeps the “what does it look like?” feedback loop fast without requiring manual local runs. | C2, C5, F4, F5 | Yes |
+
+### F5 Acceptance Criteria (Xcode parity)
+- Render Swift-DocC symbol pages (`kind: "symbol"`) into Markdown with the same major structure Xcode shows: summary, topics, relationships, and declarations (as available in the render node).
+- Resolve Topic/Relationship items via `references` so Markdown uses stable human-readable titles rather than raw `doc://…` identifiers.
+- Treat `metadata.role == "collectionGroup"` pages as structured sub-sections (e.g. “Equatable Implementations”) and render their topic sections and referenced items.
+- Lock behavior with snapshot tests against `Fixtures/Docc2contextCore.doccarchive` and prove determinism (byte-identical outputs across runs).
+
+### F6 Acceptance Criteria (single-page symbol mode)
+- Provide a new CLI option (or equivalent configuration) that switches symbol rendering from “tree layout” (directories with `index.md` + nested member pages) to “single-page layout”.
+- In single-page mode, converting `Fixtures/Docc2contextCore.doccarchive` emits one Markdown file per symbol page (e.g. `BenchmarkComparator` as a single `.md` file) that includes summary, declarations, topics, and relationships in a readable, flattened structure.
+- Add snapshot coverage for at least one representative symbol (recommend `BenchmarkComparator`) to lock the single-page layout output and ensure determinism.
+- Default behavior remains unchanged (tree layout).
+
+### F7 Acceptance Criteria (rich inline source docs)
+- Expand DocC documentation comments across the `Docc2contextCore` public API surface so that Xcode/DocC symbol pages show meaningful Summary/Discussion content (not only auto-generated “article metadata”).
+- Include at least one short “Usage” example in the public docs for the CLI/pipeline entry point that is safe, deterministic, and offline-friendly.
+- Regenerate `Fixtures/Docc2contextCore.doccarchive` from the updated sources using a documented, pinned toolchain + command line, and update `Fixtures/manifest.json` accordingly.
+- Update Markdown snapshots impacted by the richer source documentation, and keep determinism checks green (`swift test` + fixture manifest validation).
+
+### F8 Acceptance Criteria (CI self-docs Markdown artifact)
+- Add a CI workflow/job that runs `docc2context` on `Fixtures/Docc2contextCore.doccarchive` and writes outputs to a deterministic directory within the runner workspace.
+- Upload at least the generated `markdown/` subtree as a GitHub Actions artifact (for easy review of symbol/article output without cloning locally).
+- The job must remain offline-friendly (no network fetches, no DocC generation required); it uses committed fixtures only.
+- The workflow must not require committing generated outputs back to the repository (artifact-only).
