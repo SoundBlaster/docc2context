@@ -148,6 +148,28 @@ public struct DoccMarkdownRenderer {
         if let roleHeading = symbol.roleHeading {
             lines.append("- **Role Heading:** \(roleHeading)")
         }
+
+        // Add availability metadata
+        if let availability = symbol.availability, !availability.isEmpty {
+            lines.append("- **Availability:**")
+            for constraint in availability {
+                lines.append("  - \(constraint)")
+            }
+        }
+
+        // Add deprecation metadata
+        if symbol.isDeprecated {
+            lines.append("- **Status:** ⚠️ Deprecated")
+            if let summary = symbol.deprecatedSummary {
+                lines.append("- **Deprecation Notice:** \(summary)")
+            }
+        }
+
+        // Add default implementations metadata
+        if let defaults = symbol.defaultImplementations, !defaults.isEmpty {
+            lines.append("- **Default Implementations:** \(defaults.count) types")
+        }
+
         lines.append("- **Catalog Identifier:** \(catalog.identifier)")
         lines.append("- **Catalog Title:** \(catalog.title)")
         return lines.joined(separator: "\n")

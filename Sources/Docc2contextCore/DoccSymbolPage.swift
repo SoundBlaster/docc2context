@@ -56,6 +56,10 @@ public struct DoccSymbolPage: Equatable {
     public let relationshipSections: [RelationshipSection]
     public let declarations: [Declaration]
     public let referencesByIdentifier: [String: Reference]
+    public let availability: [String]?
+    public let isDeprecated: Bool
+    public let deprecatedSummary: String?
+    public let defaultImplementations: [String]?
 
     public init(
         identifier: String,
@@ -68,7 +72,11 @@ public struct DoccSymbolPage: Equatable {
         topicSections: [TopicSection],
         relationshipSections: [RelationshipSection],
         declarations: [Declaration],
-        referencesByIdentifier: [String: Reference]
+        referencesByIdentifier: [String: Reference],
+        availability: [String]? = nil,
+        isDeprecated: Bool = false,
+        deprecatedSummary: String? = nil,
+        defaultImplementations: [String]? = nil
     ) {
         self.identifier = identifier
         self.title = title
@@ -81,5 +89,9 @@ public struct DoccSymbolPage: Equatable {
         self.relationshipSections = relationshipSections
         self.declarations = declarations
         self.referencesByIdentifier = referencesByIdentifier
+        self.availability = availability
+        self.isDeprecated = isDeprecated
+        self.deprecatedSummary = deprecatedSummary
+        self.defaultImplementations = defaultImplementations
     }
 }

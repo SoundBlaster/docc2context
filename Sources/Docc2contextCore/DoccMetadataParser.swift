@@ -1497,6 +1497,10 @@ extension DoccMetadataParser {
                 let symbolKind: String?
                 let role: String?
                 let modules: [Module]?
+                let availability: [String]?
+                let deprecated: Bool?
+                let deprecatedSummary: String?
+                let defaultImplementations: [String]?
             }
 
             struct TopicSection: Decodable {
@@ -1860,7 +1864,11 @@ extension DoccMetadataParser {
                 topicSections: topicSections,
                 relationshipSections: relationshipSections,
                 declarations: declarations,
-                referencesByIdentifier: referencesByIdentifier
+                referencesByIdentifier: referencesByIdentifier,
+                availability: node.metadata.availability,
+                isDeprecated: node.metadata.deprecated ?? false,
+                deprecatedSummary: node.metadata.deprecatedSummary,
+                defaultImplementations: node.metadata.defaultImplementations
             )
         }
 
@@ -1885,6 +1893,10 @@ extension DoccMetadataParser {
             let roleHeading = metadataValue["roleHeading"] as? String
             let symbolKind = metadataValue["symbolKind"] as? String
             let moduleName = ((metadataValue["modules"] as? [[String: Any]])?.first?["name"] as? String)
+            let availability = metadataValue["availability"] as? [String]
+            let isDeprecated = (metadataValue["deprecated"] as? Bool) ?? false
+            let deprecatedSummary = metadataValue["deprecatedSummary"] as? String
+            let defaultImplementations = metadataValue["defaultImplementations"] as? [String]
 
             let abstractItems = (json["abstract"] as? [[String: Any]]) ?? []
             let abstractText = abstractItems.map { item -> String in
@@ -2017,7 +2029,11 @@ extension DoccMetadataParser {
                 topicSections: topicSections,
                 relationshipSections: relationshipSections,
                 declarations: declarations,
-                referencesByIdentifier: referencesByIdentifier
+                referencesByIdentifier: referencesByIdentifier,
+                availability: availability,
+                isDeprecated: isDeprecated,
+                deprecatedSummary: deprecatedSummary,
+                defaultImplementations: defaultImplementations
             )
         }
 
