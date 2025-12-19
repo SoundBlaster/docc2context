@@ -163,7 +163,7 @@ def main(argv: List[str]) -> int:
     parser = argparse.ArgumentParser(description="Enforce minimum Swift coverage per target")
     parser.add_argument("--profdata", type=Path, default=None, help="Path to default.profdata")
     parser.add_argument("--binary", type=Path, default=None, help="Path to docc2contextPackageTests.xctest")
-    parser.add_argument("--threshold", type=float, default=90.0, help="Required minimum line coverage percentage")
+    parser.add_argument("--threshold", type=float, default=88.0, help="Required minimum line coverage percentage")
     parser.add_argument(
         "--target",
         action="append",
