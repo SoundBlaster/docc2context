@@ -1,0 +1,82 @@
+name: Generate Self-Docs Artifact
+
+on:
+  push:
+    branches:
+      - main
+  workflow_dispatch:
+
+jobs:
+  self-docs:
+    name: Generate Self-Docs Markdown
+    runs-on: ubuntu-22.04
+    steps:
+      - uses: actions/checkout@v4
+
+      - name: Install Swift dependencies
+        run: |
+          sudo apt-get update
+          sudo apt-get install -y clang libicu-dev libatomic1 libcurl4-openssl-dev
+
+      - name: Set up Swift 6.1.2
+        uses: SwiftyLab/setup-swift@v1
+        with:
+          swift-version: '6.1.2'
+
+      - name: Validate Swift toolchain
+        run: swift --version
+
+      - name: Build docc2context
+        run: swift build --configuration release
+
+      - name: Generate self-docs from fixture
+        run: |
+          mkdir -p self-docs-output
+          .build/release/docc2context \
+            Fixtures/Docc2contextCore.doccarchive \
+            --output self-docs-output \
+            --force
+
+      - name: Verify output structure
+        run: |
+          echo "Generated output structure:"
+          ls -la self-docs-output/
+          echo ""
+          echo "Markdown files:"
+          find self-docs-output/markdown -type f -name "*.md" | wc -l
+          echo ""
+          echo "Sample markdown files:"
+          find self-docs-output/markdown -type f -name "*.md" | head -10
+
+      - name: Upload self-docs artifact
+        if: success()
+        uses: actions/upload-artifact@v4
+        with:
+          name: docc2context-self-docs
+          path: self-docs-output/markdown/
+          retention-days: 90
+          if-no-files-found: error
+
+      - name: Upload link graph artifact
+        if: success()
+        uses: actions/upload-artifact@v4
+        with:
+          name: docc2context-link-graph
+          path: self-docs-output/linkgraph/
+          retention-days: 90
+          if-no-files-found: ignore
+
+      - name: Workflow summary
+        if: always()
+        run: |
+          echo "## Self-Docs Generation Report" >> $GITHUB_STEP_SUMMARY
+          echo "" >> $GITHUB_STEP_SUMMARY
+          echo "**Status:** $([ $? -eq 0 ] && echo '✅ Success' || echo '❌ Failed')" >> $GITHUB_STEP_SUMMARY
+          echo "" >> $GITHUB_STEP_SUMMARY
+          echo "**Artifacts:**" >> $GITHUB_STEP_SUMMARY
+          echo "- 📄 docc2context-self-docs (Markdown output)" >> $GITHUB_STEP_SUMMARY
+          echo "- 🔗 docc2context-link-graph (Link graph)" >> $GITHUB_STEP_SUMMARY
+          echo "" >> $GITHUB_STEP_SUMMARY
+          echo "**Generated from:** Fixtures/Docc2contextCore.doccarchive" >> $GITHUB_STEP_SUMMARY
+          echo "" >> $GITHUB_STEP_SUMMARY
+          echo "Download artifacts from the GitHub Actions tab to inspect the generated Markdown output." >> $GITHUB_STEP_SUMMARY
