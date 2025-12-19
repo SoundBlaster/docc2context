@@ -67,8 +67,34 @@ Use this list for near-term execution. Each entry maps back to the PRD and [work
 
 ## Ready to Start
 - [ ] **F8 CI Self-Docs Markdown Artifact** — Add a GitHub Actions CI job that runs `docc2context` against `Fixtures/Docc2contextCore.doccarchive` and uploads the generated `markdown/` output as an artifact for inspection; keep it offline-friendly by using committed fixtures only. _Doc:_ `DOCS/PRD/docc2context_prd.md` §5 (F8). _Owner:_ unassigned. _Status:_ Ready — 2025-12-18.
-- [ ] **F9 Real-World `.doccarchive` Parity Audit (Missing Parts)** — Investigate “missing in Markdown but present in Xcode” for a real-world render archive (initial repro: `SpecificationKit.doccarchive`), record the render-node JSON shapes/types involved, and propose a test-backed plan to close major gaps while preserving determinism. _Doc:_ `DOCS/INPROGRESS/F9_RealWorldDoccarchiveParityAudit.md`. _Owner:_ docc2context agent. _Status:_ In Progress — 2025-12-18.
-- [ ] **F10 Swift-DocC Render-Archive Tutorial Parity (Decode + Markdown)** — Implement decoding/rendering for real tutorial render nodes produced by the `@Tutorial` directive (steps, code listings, assessments, intro), eliminating `invalidTutorialPage` warnings on real archives (initial repro: `SpecificationKit.doccarchive`). _Doc:_ `DOCS/INPROGRESS/F10_RenderArchiveTutorialParity.md`. _Owner:_ docc2context agent. _Status:_ In Progress — 2025-12-18.
+
+## In Progress – F9 Remaining Gaps (Subtasks)
+**Parent Task:** F9 Real-World `.doccarchive` Parity Audit — Investigation complete; initial implementation landed (commit `55e1ab6`). Remaining work decomposed into subtasks below.
+_Doc:_ `DOCS/INPROGRESS/F9_RealWorldDoccarchiveParityAudit.md` | _Owner:_ docc2context agent
+
+- [ ] **F9.1 Article References as Links** — Render article inline references with `url` as Markdown links instead of plain titles in sections. Depends on: F9 investigation (complete). Test case: verify `PlatformContextProviders` article reference styling. _Status:_ Ready to start.
+
+- [ ] **F9.2 Richer Block Types** — Support additional render-node content types in articles and symbols:
+  - Asides/callouts (visually distinct note/warning/important blocks)
+  - Images/media elements with alt text
+  - Term lists (definition lists)
+  - Other block types discovered in real `SpecificationKit.doccarchive` analysis
+  Test via: `SpecificationKit` fixture render-archive parity snapshots. _Status:_ Ready to start (depends on F9.1).
+
+- [ ] **F9.3 Deeper Inline Types** — Add support for inline render-node types not yet covered:
+  - `link` — external/internal hyperlinks with deterministic URL resolution
+  - Nested/composed inline structures (e.g., `emphasis` inside `link`)
+  - Other undocumented inline types from real archives
+  Test via: reference resolution tests + snapshots for complex article/symbol pages. _Status:_ Ready to start (depends on F9.1–F9.2).
+
+- [ ] **F9.4 Symbol Metadata Parity** — Enhance symbol page rendering with Xcode-like metadata:
+  - Availability/platform constraints (`@available` attributes)
+  - "Default Implementations" section for protocol symbols
+  - "See Also" / related symbols navigation
+  - Deprecation notices and migration guidance
+  Test via: snapshots against `Docc2contextCore.doccarchive` and `SpecificationKit.doccarchive` symbol pages. _Status:_ Ready to start (depends on F9.1–F9.3).
+
+- [ ] **F10 Swift-DocC Render-Archive Tutorial Parity (Decode + Markdown)** — Implement decoding/rendering for real tutorial render nodes produced by the `@Tutorial` directive (steps, code listings, assessments, intro), eliminating `invalidTutorialPage` warnings on real archives (initial repro: `SpecificationKit.doccarchive`). _Doc:_ `DOCS/INPROGRESS/F10_RenderArchiveTutorialParity.md`. _Owner:_ docc2context agent. _Status:_ Blocked on F9 remaining gaps — 2025-12-18.
 
 ## Blocked
 Tasks prevented from proceeding by external dependencies, missing resources, or pending decisions.
