@@ -162,11 +162,19 @@ Run release gates (determinism + coverage + fixture validation):
 bash Scripts/release_gates.sh
 ```
 
-## Development Documentation
+## More docs
 
+User and contributor guides:
+- **CLI Reference**: `DOCS/README/cli.md` — Detailed CLI usage and advanced options
+- **Contributing**: `DOCS/README/contributing.md` — Development workflow and contribution guidelines
+- **Fixtures**: `DOCS/README/fixtures.md` — Test fixtures and how to use them
+- **Internals**: `DOCS/README/internals.md` — Internal architecture and design
+- **Releases**: `DOCS/README/releases.md` — Release process and versioning
+- **Troubleshooting**: `DOCS/README/troubleshooting.md` — Common issues and solutions
+
+Project documentation:
 - **Product Requirements**: `DOCS/PRD/docc2context_prd.md`
 - **Workplan**: `DOCS/workplan.md`
 - **Task Tracking**: `DOCS/todo.md`
 - **Archive Summary**: `DOCS/TASK_ARCHIVE/ARCHIVE_SUMMARY.md`
 - **Current State**: `DOCS/INPROGRESS/ACTUAL_STATE.md`
-- **Fixtures**: `Fixtures/README.md`
