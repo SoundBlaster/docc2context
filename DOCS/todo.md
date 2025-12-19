@@ -87,12 +87,12 @@ _Doc:_ `DOCS/INPROGRESS/F9_RealWorldDoccarchiveParityAudit.md` | _Owner:_ docc2c
   - Improved unknown type handling with fallback rendering
   **Implementation:** Commit `5dfdab7`; added 3 test cases (link, strikethrough, nested); all 185 tests pass (coverage 90.91%); inline content now supports 7+ types. _Doc:_ `DOCS/INPROGRESS/F9.3_DeeperInlineTypes.md`. _Status:_ Complete — 2025-12-20.
 
-- [ ] **F9.4 Symbol Metadata Parity** — Enhance symbol page rendering with Xcode-like metadata:
+- [ ] **F9.4 Symbol Metadata Parity** ⭐ **SELECTED** — Enhance symbol page rendering with Xcode-like metadata:
   - Availability/platform constraints (`@available` attributes)
+  - Deprecation notices and migration guidance
   - "Default Implementations" section for protocol symbols
   - "See Also" / related symbols navigation
-  - Deprecation notices and migration guidance
-  Test via: snapshots against `Docc2contextCore.doccarchive` and `SpecificationKit.doccarchive` symbol pages. _Status:_ Blocked on F9.1–F9.3 completion.
+  Test via: snapshots against `Docc2contextCore.doccarchive` and `SpecificationKit.doccarchive` symbol pages. **Execution planning:** `DOCS/INPROGRESS/F9.4_SymbolMetadataParity.md`. _Status:_ **Selected (Planning)** — ready for START.md.
 
 - [ ] **F10 Swift-DocC Render-Archive Tutorial Parity (Decode + Markdown)** — Implement decoding/rendering for real tutorial render nodes produced by the `@Tutorial` directive (steps, code listings, assessments, intro), eliminating `invalidTutorialPage` warnings on real archives (initial repro: `SpecificationKit.doccarchive`). _Doc:_ `DOCS/INPROGRESS/F10_RenderArchiveTutorialParity.md`. _Owner:_ docc2context agent. _Status:_ Blocked on F9 remaining gaps — 2025-12-18.
 
