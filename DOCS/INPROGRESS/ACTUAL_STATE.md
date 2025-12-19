@@ -2,7 +2,7 @@
   
 Generated: 2025-12-19
 Status: Active development with all core phases complete; F/H-track work inprogress
-Last Updated: 2025-12-19
+Last Updated: 2025-12-20
 Next Review: After F9 investigation completion or maintainer feedback
 
 ---
@@ -24,7 +24,7 @@ Health: 🟢 Healthy — All Phases A–D at 100%; active F/H/S-track work; 2 ex
 | C | ✅ Complete | 5/5 (100%) | C1–C5 | Markdown snapshots, generation, link graph, TOC/index, determinism verification |
 | D | ✅ Complete | 4/4 (100%) | D1–D4, D4-LNX, D4-MAC | Logging, coverage hardening, documentation, package distribution, release automation |
 | E | ⚠️ Partial | 2/4 (50%)  | E1–E4 | E1–E2, E4 complete; E3 blocked (Apple signing credentials) |
-| F | 🔄 In Progress | 7/10+ | F1–F7 complete; F3.1 complete; F9–F10 active | Performance harness, feature parity work, tutorial rendering |
+| F | 🔄 In Progress | 8/10+ | F1–F8 complete; F3.1 complete; F9–F10 active | Performance harness, CI self-docs, feature parity work, tutorial rendering |
 | G | ✅ Complete | 2/2 (100%) | G0–G1 | Test debt cleanup, platform-specific code organization |
 | H | ⚠️ Partial | 4/5+ | H1 blocked; H1.1–H1.2, H2–H5 complete | Linux distribution, musl builds, AUR, repository validation; H1 blocked (external provisioning) |
 | S | ✅ Complete | 3/3 (100%) | S0–S3 | Documentation hygiene, archive alignment, public docs clarity |
@@ -148,7 +148,6 @@ Status: ✅ Resolved — all files now pass 88% threshold
 
 ### Short Term (After F9/F10)
 
-- F8 CI Self-Docs Artifact — Add GitHub Actions job to run docc2context on Fixtures/Docc2contextCore.doccarchive and upload generated Markdown (offline-friendly)
 - H1 Unblock Prep — Document provisioning steps & dry-run scripts so maintainer can unblock when ready
 
 ### Long Term
