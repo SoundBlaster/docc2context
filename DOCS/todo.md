@@ -69,17 +69,17 @@ Use this list for near-term execution. Each entry maps back to the PRD and [work
 - [ ] **F8 CI Self-Docs Markdown Artifact** — Add a GitHub Actions CI job that runs `docc2context` against `Fixtures/Docc2contextCore.doccarchive` and uploads the generated `markdown/` output as an artifact for inspection; keep it offline-friendly by using committed fixtures only. _Doc:_ `DOCS/PRD/docc2context_prd.md` §5 (F8). _Owner:_ unassigned. _Status:_ Ready — 2025-12-18.
 
 ## In Progress – F9 Remaining Gaps (Subtasks)
-**Parent Task:** F9 Real-World `.doccarchive` Parity Audit — Investigation complete (commit `86a310a`); initial implementation landed (commit `55e1ab6`). Remaining work decomposed into subtasks below; **F9.1 selected via SELECT_NEXT** on 2025-12-19.
+**Parent Task:** F9 Real-World `.doccarchive` Parity Audit — Investigation complete (commit `86a310a`); initial implementation landed (commit `55e1ab6`); F9.1 complete (commit `f17c7dc`). Remaining work decomposed into subtasks below; **F9.2 selected via SELECT_NEXT** on 2025-12-19.
 _Doc:_ `DOCS/INPROGRESS/F9_RealWorldDoccarchiveParityAudit.md` | _Owner:_ docc2context agent
 
-- [ ] **F9.1 Article References as Links** ⭐ **SELECTED** — Render article inline references with `url` as Markdown links instead of plain titles in sections. Xcode parity improvement for real-world fixtures. Test case: verify `PlatformContextProviders` article shows links. **Execution planning:** `DOCS/INPROGRESS/F9.1_ArticleReferencesAsLinks.md`. _Status:_ **In Progress (Planning)** — ready for START.md. See _next_ section below for F9.2-F9.4.
+- [x] **F9.1 Article References as Links** ✅ **COMPLETE** — Render article inline references with `url` as Markdown links instead of plain titles in sections. Xcode parity improvement for real-world fixtures. **Implementation:** Commit `f17c7dc`; all 179 tests pass (coverage 91.03%). _Doc:_ `DOCS/INPROGRESS/F9.1_ArticleReferencesAsLinks.md`. _Status:_ Complete — 2025-12-19.
 
-- [ ] **F9.2 Richer Block Types** — Support additional render-node content types in articles and symbols:
-  - Asides/callouts (visually distinct note/warning/important blocks)
-  - Images/media elements with alt text
-  - Term lists (definition lists)
-  - Other block types discovered in real `SpecificationKit.doccarchive` analysis
-  Test via: `SpecificationKit` fixture render-archive parity snapshots. _Status:_ Blocked on F9.1 completion.
+- [ ] **F9.2 Richer Block Types** ⭐ **SELECTED** — Support additional render-node content types in articles and symbols:
+  - Asides/callouts (`aside` type with styles: note, warning, important)
+  - Images/media elements (`image` type with alt text and URL)
+  - Term lists (`termList` type for definition lists)
+  - Unsupported block type warning logging
+  Test via: `SpecificationKit` fixture render-archive parity snapshots (asides found in `CompositeContextProvider` article). **Execution planning:** `DOCS/INPROGRESS/F9.2_RicherBlockTypes.md`. _Status:_ **Selected (Planning)** — ready for START.md.
 
 - [ ] **F9.3 Deeper Inline Types** — Add support for inline render-node types not yet covered:
   - `link` — external/internal hyperlinks with deterministic URL resolution
